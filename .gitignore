@@ -1,0 +1,9 @@
+.agents/
+.codex/
+.DS_Store
+._*
+.env
+.env.*
+*.pyc
+__pycache__/
+coppertraceworks-site/

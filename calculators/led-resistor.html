@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LED Resistor Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Copper Trace Works provides simple engineering calculators and maker electronics products.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">LED resistor</span>
+      <span class="chip">Tool 1</span>
+    </div>
+  </header>
+
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">Series LED</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="vs">Supply voltage, Vsupply (V)</label>
+              <input id="vs" type="number" step="any" value="5">
+            </div>
+            <div>
+              <label for="vf">LED forward voltage, Vf (V)</label>
+              <input id="vf" type="number" step="any" value="2">
+            </div>
+            <div>
+              <label for="i">LED current (mA)</label>
+              <input id="i" type="number" step="any" value="20">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equation</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>R = (Vsupply - Vf) / I</code></p>
+            <p class="small" style="margin-top: 0.5rem;"><code>P = (Vsupply - Vf) x I</code></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter values and press calculate.</div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Usage note</h2>
+            <span class="chip">Practical</span>
+          </div>
+          <div class="note-box">
+            Use a resistor wattage margin above the calculated dissipation. If the result is close to a common rating, move up to the next standard size.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+function calculate() {
+  const vs = parseFloat(document.getElementById("vs").value);
+  const vf = parseFloat(document.getElementById("vf").value);
+  const ma = parseFloat(document.getElementById("i").value);
+  const out = document.getElementById("result");
+
+  if ([vs, vf, ma].some(Number.isNaN) || ma <= 0) {
+    out.innerHTML = "Enter valid values.";
+    return;
+  }
+
+  const voltsAcrossR = vs - vf;
+  if (voltsAcrossR <= 0) {
+    out.innerHTML = "Supply voltage must be greater than LED forward voltage.";
+    return;
+  }
+
+  const amps = ma / 1000.0;
+  const r = voltsAcrossR / amps;
+  const p = voltsAcrossR * amps;
+  out.innerHTML =
+    `<div class="result-grid">` +
+      `<div class="result-card"><div class="lbl">Series resistor</div><div class="val">${r.toFixed(1)} ohm</div></div>` +
+      `<div class="result-card"><div class="lbl">Resistor power</div><div class="val">${p.toFixed(3)} W</div></div>` +
+      `<div class="result-card"><div class="lbl">Suggested minimum wattage</div><div class="val">${(p * 2).toFixed(3)} W</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>

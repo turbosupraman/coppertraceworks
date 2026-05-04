@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Voltage Divider Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Copper Trace Works provides simple engineering calculators and maker electronics products.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">Voltage divider</span>
+      <span class="chip">Tool 3</span>
+    </div>
+  </header>
+
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">Two resistor divider</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="vin">Input voltage, Vin (V)</label>
+              <input id="vin" type="number" step="any" value="5">
+            </div>
+            <div>
+              <label for="r1">Top resistor, R1 (ohm)</label>
+              <input id="r1" type="number" step="any" value="10000">
+            </div>
+            <div>
+              <label for="r2">Bottom resistor, R2 (ohm)</label>
+              <input id="r2" type="number" step="any" value="10000">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculateVD()">Calculate</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equation</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>Vout = Vin x R2 / (R1 + R2)</code></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter values and press calculate.</div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Usage note</h2>
+            <span class="chip">Real-world</span>
+          </div>
+          <div class="note-box">
+            This assumes an unloaded divider. Any connected load changes the effective output voltage and current.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+function calculateVD() {
+  const vin = parseFloat(document.getElementById("vin").value);
+  const r1 = parseFloat(document.getElementById("r1").value);
+  const r2 = parseFloat(document.getElementById("r2").value);
+  const out = document.getElementById("result");
+
+  if ([vin, r1, r2].some(Number.isNaN) || r1 <= 0 || r2 <= 0) {
+    out.innerHTML = "Enter valid values.";
+    return;
+  }
+
+  const vout = vin * r2 / (r1 + r2);
+  const current = vin / (r1 + r2);
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+      `<div class="result-card"><div class="lbl">Output voltage</div><div class="val">${vout.toFixed(4)} V</div></div>` +
+      `<div class="result-card"><div class="lbl">Divider current</div><div class="val">${(current * 1000).toFixed(4)} mA</div></div>` +
+      `<div class="result-card"><div class="lbl">Total resistance</div><div class="val">${(r1 + r2).toFixed(2)} ohm</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>

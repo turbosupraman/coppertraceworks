@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LC Resonance Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Copper Trace Works provides simple engineering calculators and maker electronics products.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">LC resonance</span>
+      <span class="chip">Tool 2</span>
+    </div>
+  </header>
+
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">Tank circuit</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="l">Inductance</label>
+              <input id="l" type="number" step="any" value="10">
+            </div>
+            <div>
+              <label for="lunit">Inductance unit</label>
+              <select id="lunit">
+                <option value="1e-9">nH</option>
+                <option value="1e-6" selected>uH</option>
+                <option value="1e-3">mH</option>
+                <option value="1">H</option>
+              </select>
+            </div>
+            <div>
+              <label for="c">Capacitance</label>
+              <input id="c" type="number" step="any" value="100">
+            </div>
+            <div>
+              <label for="cunit">Capacitance unit</label>
+              <select id="cunit">
+                <option value="1e-12">pF</option>
+                <option value="1e-9" selected>nF</option>
+                <option value="1e-6">uF</option>
+              </select>
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculateLC()">Calculate</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equation</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>f = 1 / (2 x pi x sqrt(L x C))</code></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter inductance and capacitance, then calculate.</div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <h2>Usage note</h2>
+            <span class="chip">RF reality</span>
+          </div>
+          <div class="note-box">
+            This is an ideal resonance calculation. Real layouts, ESR, parasitics, self-resonance, and measurement fixtures matter at RF.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+function formatFreq(f) {
+  if (f >= 1e9) return (f / 1e9).toFixed(6) + " GHz";
+  if (f >= 1e6) return (f / 1e6).toFixed(6) + " MHz";
+  if (f >= 1e3) return (f / 1e3).toFixed(3) + " kHz";
+  return f.toFixed(3) + " Hz";
+}
+
+function calculateLC() {
+  const L = parseFloat(document.getElementById("l").value) * parseFloat(document.getElementById("lunit").value);
+  const C = parseFloat(document.getElementById("c").value) * parseFloat(document.getElementById("cunit").value);
+  const out = document.getElementById("result");
+
+  if (Number.isNaN(L) || Number.isNaN(C) || L <= 0 || C <= 0) {
+    out.innerHTML = "Enter positive L and C values.";
+    return;
+  }
+
+  const f = 1 / (2 * Math.PI * Math.sqrt(L * C));
+  out.innerHTML =
+    `<div class="result-grid">` +
+      `<div class="result-card"><div class="lbl">Resonant frequency</div><div class="val">${formatFreq(f)}</div></div>` +
+      `<div class="result-card"><div class="lbl">Inductance used</div><div class="val">${L.toExponential(4)} H</div></div>` +
+      `<div class="result-card"><div class="lbl">Capacitance used</div><div class="val">${C.toExponential(4)} F</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>
