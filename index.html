@@ -99,22 +99,20 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
   <div class="logo">
     <div class="logo-mark" aria-hidden="true">
       <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NPN BJT logo">
-        <g fill="none" stroke="var(--brand)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="32" cy="32" r="28" opacity="0.45"/>
-          <!-- base -->
-          <line x1="14" y1="32" x2="28" y2="32"/>
-          <line x1="28" y1="20" x2="28" y2="44"/>
-          <!-- collector -->
-          <line x1="28" y1="24" x2="46" y2="14"/>
-          <line x1="46" y1="14" x2="54" y2="10"/>
-          <!-- emitter (down leg) -->
-          <line x1="28" y1="40" x2="54" y2="56"/>
-          <!-- explicit diode mark on emitter leg -->
-          <polygon points="41,47 47,51 42,54" fill="none"/>
-          <line x1="48" y1="50" x2="52" y2="53"/>
-          <!-- NPN arrow (outward) -->
-          <polygon points="49,49 56,56 46,57" fill="var(--brand)" stroke="none"/>
+        <g fill="none" stroke="var(--brand)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="32" cy="32" r="27" opacity="0.45"/>
+          <!-- base lead + base bar -->
+          <line x1="8" y1="32" x2="24" y2="32"/>
+          <line x1="26" y1="18" x2="26" y2="46"/>
+          <!-- collector lead -->
+          <line x1="26" y1="24" x2="46" y2="12"/>
+          <line x1="46" y1="12" x2="56" y2="6"/>
+          <!-- emitter lead -->
+          <line x1="26" y1="40" x2="44" y2="52"/>
+          <line x1="44" y1="52" x2="56" y2="60"/>
         </g>
+        <!-- NPN arrow: pointing out on emitter -->
+        <polygon points="45,47 54,53 44,57" fill="var(--brand)"/>
       </svg>
     </div>
     <div class="logo-wordmark">Copper Trace <span>Works</span></div>
