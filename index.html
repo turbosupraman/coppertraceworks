@@ -13,7 +13,8 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
-  --border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#f0883e;
+  --border:#30363d;--accent:#d18a3a;--accent2:#d18a3a;--warn:#d18a3a;
+  --brand:#d18a3a;
   --text:#e6edf3;--text2:#8b949e;--red:#f85149;--purple:#bc8cff;--radius:8px;
 }
 html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
@@ -36,8 +37,11 @@ button.danger{background:var(--red)}button.green{background:var(--accent2)}
 .eq-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;margin:.5rem 0;font-size:.88rem;line-height:1.8;overflow-x:auto;}
 #app{display:flex;flex-direction:column;height:100vh}
 header{background:var(--bg2);border-bottom:1px solid var(--border);padding:.6rem 1.2rem;display:flex;align-items:center;gap:1rem;flex-shrink:0;}
-header .logo{font-size:1.1rem;font-weight:800;letter-spacing:1px;color:var(--accent)}
-header .logo span{color:var(--text2);font-weight:400}
+header .logo{display:flex;align-items:center;gap:.55rem;font-size:1.08rem;font-weight:800;letter-spacing:.6px;color:var(--brand)}
+.logo-mark{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.logo-mark svg{width:100%;height:100%}
+.logo-wordmark{color:var(--brand)}
+.logo-wordmark span{color:var(--brand);font-weight:700}
 #tab-bar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;align-content:flex-start;gap:.25rem;padding:.35rem .5rem;flex-shrink:0;overflow-x:hidden;overflow-y:auto;max-height:140px;}
 .tab-btn{background:none;color:var(--text2);border:1px solid transparent;border-bottom:2px solid transparent;border-radius:8px;padding:.5rem .75rem;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .tab-btn:hover{color:var(--text);background:var(--bg3)}.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
@@ -45,6 +49,8 @@ header .logo span{color:var(--text2);font-weight:400}
 .tab-panel{display:none;padding:1rem;height:100%}.tab-panel.active{display:block}
 .two-col{display:grid;grid-template-columns:320px 1fr;gap:1rem;height:calc(100vh - 120px);overflow:hidden}
 .left-panel{overflow-y:auto}.right-panel{overflow-y:auto;display:flex;flex-direction:column;gap:.8rem}
+.two-col.sync-scroll{height:auto;overflow:visible;align-items:start}
+.two-col.sync-scroll .left-panel,.two-col.sync-scroll .right-panel{overflow:visible;max-height:none}
 .drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;}
 .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(88,166,255,.05)}
 .drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
@@ -90,11 +96,28 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 <body>
 <div id="app">
 <header>
-  <div class="logo">Copper Trace <span>Works</span></div>
+  <div class="logo">
+    <div class="logo-mark" aria-hidden="true">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
+        <g fill="none" stroke="var(--brand)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="32" cy="32" r="28" opacity="0.45"/>
+          <line x1="14" y1="20" x2="28" y2="20"/>
+          <line x1="14" y1="44" x2="28" y2="44"/>
+          <line x1="28" y1="20" x2="28" y2="44"/>
+          <line x1="28" y1="32" x2="40" y2="32"/>
+          <line x1="40" y1="32" x2="50" y2="22"/>
+          <line x1="40" y1="32" x2="50" y2="44"/>
+          <polyline points="44,39 50,44 42,45"/>
+        </g>
+      </svg>
+    </div>
+    <div class="logo-wordmark">Copper Trace <span>Works</span></div>
+  </div>
   <span style="color:var(--text2);font-size:.8rem;">Engineering calculator tools and maker-built hardware</span>
 </header>
 <div id="tab-bar">
-  <button class="tab-btn active" onclick="switchTab(0)">💡 LED Resistor</button>
+  <button class="tab-btn active" onclick="switchTab(12)">ℹ️ About</button>
+  <button class="tab-btn" onclick="switchTab(0)">💡 LED Resistor</button>
   <button class="tab-btn" onclick="switchTab(1)">📻 LC Resonance</button>
   <button class="tab-btn" onclick="switchTab(2)">⚡ Voltage Divider</button>
   <button class="tab-btn" onclick="switchTab(3)">📈 S-Parameters</button>
@@ -106,7 +129,6 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
   <button class="tab-btn" onclick="switchTab(9)">⚙️ Ohm's Law + Power</button>
   <button class="tab-btn" onclick="switchTab(10)">⏱️ RC Cutoff</button>
   <button class="tab-btn" onclick="switchTab(11)">📐 dBm ↔ Voltage</button>
-  <button class="tab-btn" onclick="switchTab(12)">ℹ️ About</button>
   <button class="tab-btn" onclick="switchTab(13)">🕳️ Via Properties</button>
   <button class="tab-btn" onclick="switchTab(14)">⚡ Min Copper Spacing</button>
   <button class="tab-btn" onclick="switchTab(15)">🧲 Diff Pair / Xtalk</button>
@@ -115,7 +137,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 <div id="content">
 
 <!-- TAB 0: LED RESISTOR -->
-<div class="tab-panel active" id="tab-0">
+<div class="tab-panel" id="tab-0">
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>LED Resistor Calculator</h2>
@@ -281,8 +303,8 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 
 <!-- TAB 4: COMPONENT MODELS -->
 <div class="tab-panel" id="tab-4">
-<div class="two-col">
-  <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem;grid-column:2">
+<div class="two-col sync-scroll">
+  <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
     <div class="card">
       <h2>Component Type</h2>
       <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
@@ -621,7 +643,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 12: ABOUT -->
-<div class="tab-panel" id="tab-12">
+<div class="tab-panel active" id="tab-12">
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>About Copper Trace Works</h2>
