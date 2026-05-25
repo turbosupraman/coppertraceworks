@@ -14,10 +14,6 @@
       <a class="brand" href="/">Copper Trace <span>Works</span></a>
       <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
     </div>
-    <div class="header-actions">
-      <span class="chip accent">Voltage divider</span>
-      <span class="chip">Tool 3</span>
-    </div>
   </header>
 
   <nav class="tabbar" aria-label="Primary">
@@ -29,62 +25,89 @@
   </nav>
 
   <main class="page">
-    <section class="split-layout">
-      <div class="stack">
+    <section class="calculator-shell">
+      <div class="console-head">
         <div class="panel">
-          <div class="section-title">
-            <h2>Inputs</h2>
-            <span class="chip accent">Two resistor divider</span>
-          </div>
-          <div class="input-grid">
-            <div>
-              <label for="vin">Input voltage, Vin (V)</label>
-              <input id="vin" type="number" step="any" value="5">
-            </div>
-            <div>
-              <label for="r1">Top resistor, R1 (ohm)</label>
-              <input id="r1" type="number" step="any" value="10000">
-            </div>
-            <div>
-              <label for="r2">Bottom resistor, R2 (ohm)</label>
-              <input id="r2" type="number" step="any" value="10000">
-            </div>
-          </div>
-          <div class="button-row">
-            <button class="button" onclick="calculateVD()">Calculate</button>
+          <div class="hero-copy">
+            <div class="eyebrow">Circuit Basics</div>
+            <h1>Voltage divider calculator.</h1>
+            <p class="lead">Quick unloaded divider output checks for design sanity work, including divider current and total resistance.</p>
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel status-note">
           <div class="section-title">
-            <h2>Equation</h2>
-            <span class="chip">Reference</span>
+            <h2>Tool Status</h2>
+            <span class="chip accent">Live</span>
           </div>
-          <div class="formula-box">
-            <p><code>Vout = Vin x R2 / (R1 + R2)</code></p>
-          </div>
+          <div class="metric-value">Unloaded model</div>
+          <p class="small">Results assume no load attached to the divider output. Real output voltage shifts once the next stage draws current.</p>
         </div>
       </div>
 
-      <div class="stack">
-        <div class="panel">
-          <div class="section-title">
-            <h2>Results</h2>
-            <span class="chip accent">Computed</span>
+      <div class="section-tabs" aria-label="Calculator tools">
+        <a href="/calculators/led-resistor.html">LED resistor</a>
+        <a href="/calculators/lc-resonance.html">LC resonance</a>
+        <a class="active" href="/calculators/voltage-divider.html">Voltage divider</a>
+      </div>
+
+      <section class="calculator-layout">
+        <div class="stack">
+          <div class="panel">
+            <div class="section-title">
+              <h2>Inputs</h2>
+              <span class="chip accent">Two resistor divider</span>
+            </div>
+            <div class="input-grid">
+              <div>
+                <label for="vin">Input voltage, Vin (V)</label>
+                <input id="vin" type="number" step="any" value="5">
+              </div>
+              <div>
+                <label for="r1">Top resistor, R1 (ohm)</label>
+                <input id="r1" type="number" step="any" value="10000">
+              </div>
+              <div>
+                <label for="r2">Bottom resistor, R2 (ohm)</label>
+                <input id="r2" type="number" step="any" value="10000">
+              </div>
+            </div>
+            <div class="button-row">
+              <button class="button" id="calc-btn" type="button" onclick="calculateVD()">Calculate</button>
+            </div>
           </div>
-          <div class="result-screen" id="result">Enter values and press calculate.</div>
+
+          <div class="panel">
+            <div class="section-title">
+              <h2>Equation</h2>
+              <span class="chip">Reference</span>
+            </div>
+            <div class="formula-box">
+              <p><code>Vout = Vin x R2 / (R1 + R2)</code></p>
+            </div>
+          </div>
         </div>
 
-        <div class="panel">
-          <div class="section-title">
-            <h2>Usage note</h2>
-            <span class="chip">Real-world</span>
+        <div class="stack">
+          <div class="panel">
+            <div class="section-title">
+              <h2>Results</h2>
+              <span class="chip accent">Computed</span>
+            </div>
+            <div class="result-screen" id="result">Enter values and press calculate.</div>
           </div>
-          <div class="note-box">
-            This assumes an unloaded divider. Any connected load changes the effective output voltage and current.
+
+          <div class="panel">
+            <div class="section-title">
+              <h2>Usage Note</h2>
+              <span class="chip">Real-world</span>
+            </div>
+            <div class="note-box">
+              This assumes an unloaded divider. Any connected load changes the effective output voltage and current.
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </section>
   </main>
 
@@ -118,6 +141,9 @@ function calculateVD() {
       `<div class="result-card"><div class="lbl">Total resistance</div><div class="val">${(r1 + r2).toFixed(2)} ohm</div></div>` +
     `</div>`;
 }
+
+const calcBtn = document.getElementById("calc-btn");
+if (calcBtn) calcBtn.addEventListener("click", calculateVD);
 </script>
 </body>
 </html>

@@ -1,162 +1,1319 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Home | Copper Trace Works</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Copper Trace Works provides simple engineering calculators and maker electronics products.">
-  <link rel="stylesheet" href="/assets/style.css">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Copper Trace Works — Engineering Tools</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
+  --border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#f0883e;
+  --text:#e6edf3;--text2:#8b949e;--red:#f85149;--purple:#bc8cff;--radius:8px;
+}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+h2{font-size:1.1rem;font-weight:600;color:var(--accent);margin-bottom:.6rem}
+h3{font-size:.95rem;font-weight:600;color:var(--text2);margin-bottom:.4rem}
+label{font-size:.82rem;color:var(--text2);display:block;margin-bottom:.2rem}
+input[type=text],input[type=number],select{background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:.35rem .6rem;font-size:.85rem;width:100%;transition:border .2s;}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+button{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:.4rem 1rem;font-size:.85rem;cursor:pointer;font-weight:600;transition:opacity .15s,transform .1s;}
+button:hover{opacity:.85}button:active{transform:scale(.97)}
+button.sec{background:var(--bg4);color:var(--text)}
+button.danger{background:var(--red)}button.green{background:var(--accent2)}
+.row{display:flex;gap:.7rem;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:.5rem;flex:1}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700}
+.badge-blue{background:#1f3a5e;color:var(--accent)}.badge-green{background:#1a3a26;color:var(--accent2)}
+.sep{height:1px;background:var(--border);margin:.6rem 0}
+.text-sm{font-size:.78rem;color:var(--text2)}
+.eq-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;margin:.5rem 0;font-size:.88rem;line-height:1.8;overflow-x:auto;}
+#app{display:flex;flex-direction:column;height:100vh}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:.6rem 1.2rem;display:flex;align-items:center;gap:1rem;flex-shrink:0;}
+header .logo{font-size:1.1rem;font-weight:800;letter-spacing:1px;color:var(--accent)}
+header .logo span{color:var(--text2);font-weight:400}
+#tab-bar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;align-content:flex-start;gap:.25rem;padding:.35rem .5rem;flex-shrink:0;overflow-x:hidden;overflow-y:auto;max-height:140px;}
+.tab-btn{background:none;color:var(--text2);border:1px solid transparent;border-bottom:2px solid transparent;border-radius:8px;padding:.5rem .75rem;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tab-btn:hover{color:var(--text);background:var(--bg3)}.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+#content{flex:1;overflow:auto}
+.tab-panel{display:none;padding:1rem;height:100%}.tab-panel.active{display:block}
+.two-col{display:grid;grid-template-columns:320px 1fr;gap:1rem;height:calc(100vh - 120px);overflow:hidden}
+.left-panel{overflow-y:auto}.right-panel{overflow-y:auto;display:flex;flex-direction:column;gap:.8rem}
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(88,166,255,.05)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone .icon{font-size:1.8rem;margin-bottom:.4rem;color:var(--text2)}.drop-zone p{font-size:.82rem;color:var(--text2)}
+.drop-zone .file-name{color:var(--accent);font-weight:600;font-size:.85rem;margin-top:.3rem}
+.smith-wrap{position:relative;width:100%;max-width:480px;margin:0 auto}
+.smith-wrap svg{width:100%;height:auto;display:block}
+.smith-legend{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem;font-size:.75rem}
+.smith-legend span{display:flex;align-items:center;gap:.3rem}
+.smith-legend .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.chart-wrap{position:relative;height:220px}.chart-wrap canvas{border-radius:var(--radius)}
+.lb-table-wrap{overflow-x:auto}
+table.lb-table{width:100%;border-collapse:collapse;font-size:.82rem}
+table.lb-table th{background:var(--bg3);color:var(--text2);padding:.4rem .6rem;border:1px solid var(--border);text-align:left}
+table.lb-table td{padding:.35rem .6rem;border:1px solid var(--border);font-family:'Courier New',monospace}
+table.lb-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+table.lb-table tr:hover td{background:rgba(88,166,255,.05)}
+table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
+.stage-list{display:flex;flex-direction:column;gap:.4rem}
+.stage-row{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:.4rem .6rem;display:grid;grid-template-columns:1fr 80px 80px 80px 32px;gap:.4rem;align-items:center;}
+.stage-row input{padding:.25rem .4rem;font-size:.8rem}
+.uc-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.uc-row input{max-width:140px}.uc-row .arrow{color:var(--text2);font-size:1.1rem;padding:0 .2rem}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.6rem}
+.result-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:.7rem .9rem;text-align:center}
+.result-card .val{font-size:1.4rem;font-weight:800;font-family:'Courier New',monospace;color:var(--accent)}
+.result-card .unit{font-size:.75rem;color:var(--text2)}.result-card .lbl{font-size:.73rem;color:var(--text2);margin-bottom:.2rem}
+.radar-layout{display:grid;grid-template-columns:340px 1fr;gap:1rem}
+.radar-inputs{display:flex;flex-direction:column;gap:.5rem}
+.droop-layout{display:grid;grid-template-columns:300px 1fr;gap:1rem}
+#toast{position:fixed;bottom:1.2rem;right:1.2rem;padding:.6rem 1rem;background:#1a2a1a;border:1px solid var(--accent2);border-radius:var(--radius);color:var(--accent2);font-size:.85rem;z-index:1000;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;}
+#toast.show{transform:translateY(0);opacity:1}#toast.err{background:#2a1a1a;border-color:var(--red);color:var(--red)}
+.text-sm{font-size:.82rem;color:var(--text2);line-height:1.5}
+.stack-table{width:100%;border-collapse:collapse;font-size:.8rem;background:var(--bg3);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stack-table th,.stack-table td{padding:.45rem .5rem;border-bottom:1px solid var(--line);text-align:left}
+.stack-table th{background:var(--panel2);color:var(--accent2);font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.02em}
+.stack-table tr:last-child td{border-bottom:none}
+.stack-wrap{display:flex;flex-direction:column;gap:.6rem}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+@media(max-width:900px){.two-col,.radar-layout,.droop-layout{grid-template-columns:1fr}.left-panel{height:auto;overflow:visible}}
+</style>
 </head>
 <body>
-<div class="app-shell">
-  <header class="topbar">
-    <div class="brand-block">
-      <a class="brand" href="/">Copper Trace <span>Works</span></a>
-      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
-    </div>
-    <div class="header-actions">
-      <span class="chip accent">CTW</span>
-      <span class="chip">Cloudflare Pages</span>
-      <span class="chip">Static site</span>
-    </div>
-  </header>
-
-  <nav class="tabbar" aria-label="Primary">
-    <a class="active" href="/">Home</a>
-    <a href="/calculators/">Calculators</a>
-    <a href="/about.html">About</a>
-    <a href="https://shop.coppertraceworks.com">Shop</a>
-    <a href="/contact.html">Contact</a>
-  </nav>
-
-  <main class="page">
-    <section class="hero-panel">
-      <div class="hero-grid">
-        <div class="stack">
-          <div class="eyebrow">Copper Trace Works LLC</div>
-          <h1>Simple tools for engineers, hobbyists, and makers.</h1>
-          <p class="lead">Copper Trace Works is a practical engineering and hobby electronics site: free calculator tools, project notes, and small-batch maker products.</p>
-          <div class="button-row">
-            <a class="button" href="/calculators/">Open the calculators</a>
-            <a class="button-secondary" href="https://shop.coppertraceworks.com">Shop coming soon</a>
-          </div>
-        </div>
-
-        <div class="status-grid">
-          <div class="metric">
-            <span class="metric-label">Current focus</span>
-            <div class="metric-value">3</div>
-            <div class="small">Browser-based calculators live in this first release.</div>
-          </div>
-          <div class="metric">
-            <span class="metric-label">Hosting model</span>
-            <div class="metric-value">Static</div>
-            <div class="small">No backend required for the initial tool set.</div>
-          </div>
-          <div class="metric">
-            <span class="metric-label">Coverage path</span>
-            <div class="metric-value">RF + EE</div>
-            <div class="small">Electronics first, then RF, power, and 3D printing.</div>
-          </div>
-          <div class="metric">
-            <span class="metric-label">Store direction</span>
-            <div class="metric-value">Shopify</div>
-            <div class="small">Kept separate on a subdomain when products are ready.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section card-grid">
-      <article class="card">
-        <div class="section-title">
-          <h2>Calculator Tools</h2>
-          <span class="chip">Live now</span>
-        </div>
-        <p class="muted">Fast browser-side tools for electronics, RF, power, and 3D printing work.</p>
-        <div class="button-row">
-          <a class="button-secondary" href="/calculators/">Browse tools</a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="section-title">
-          <h2>Maker Products</h2>
-          <span class="chip">Planned</span>
-        </div>
-        <p class="muted">Small electronics, display kits, bench gadgets, and 3D-printed accessories.</p>
-        <div class="button-row">
-          <a class="button-secondary" href="https://shop.coppertraceworks.com">Store preview</a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="section-title">
-          <h2>Project Notes</h2>
-          <span class="chip">Growing</span>
-        </div>
-        <p class="muted">Build notes and documentation from real workbench development, not generic filler.</p>
-        <div class="button-row">
-          <a class="button-secondary" href="/about.html">Company details</a>
-        </div>
-      </article>
-    </section>
-
-    <section class="section split-layout">
-      <div class="stack">
-        <div class="panel">
-          <div class="section-title">
-            <h2>Tool Roadmap</h2>
-            <span class="chip accent">Priority</span>
-          </div>
-          <div class="mini-list">
-            <div class="row">
-              <div class="row-title">Electronics</div>
-              <div class="row-value">LED, divider, ohm's law, RC cutoff</div>
-            </div>
-            <div class="row">
-              <div class="row-title">RF</div>
-              <div class="row-value">Path loss, noise floor, dBm conversions</div>
-            </div>
-            <div class="row">
-              <div class="row-title">Power</div>
-              <div class="row-value">Battery runtime, dissipation, wire drop</div>
-            </div>
-            <div class="row">
-              <div class="row-title">3D printing</div>
-              <div class="row-value">Print cost, filament use, time estimate</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="stack">
-        <div class="panel">
-          <div class="section-title">
-            <h2>Why this version looks like a tool</h2>
-            <span class="chip">Intentional</span>
-          </div>
-          <p class="muted">The reference site you pointed me to behaves more like an engineering console than a marketing homepage. This site now follows that same direction: compact shell, dark technical palette, panelized content, and UI that foregrounds the calculators.</p>
-        </div>
-
-        <div class="panel">
-          <div class="section-title">
-            <h2>Usage Positioning</h2>
-            <span class="chip">Important</span>
-          </div>
-          <p class="muted">Products and calculators are intended for hobbyist, educational, and experimental use unless otherwise stated.</p>
-          <p class="small safety">Do not present products as certified, industrial, medical, or safety-critical unless that is explicitly documented later.</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="footer-inner">
-      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
-      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
-    </div>
-  </footer>
+<div id="app">
+<header>
+  <div class="logo">Copper Trace <span>Works</span></div>
+  <span style="color:var(--text2);font-size:.8rem;">Engineering calculator tools and maker-built hardware</span>
+</header>
+<div id="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(0)">💡 LED Resistor</button>
+  <button class="tab-btn" onclick="switchTab(1)">📻 LC Resonance</button>
+  <button class="tab-btn" onclick="switchTab(2)">⚡ Voltage Divider</button>
+  <button class="tab-btn" onclick="switchTab(3)">📈 S-Parameters</button>
+  <button class="tab-btn" onclick="switchTab(4)">🔧 Component Models</button>
+  <button class="tab-btn" onclick="switchTab(5)">📡 Radar</button>
+  <button class="tab-btn" onclick="switchTab(6)">🔋 Pulse Droop</button>
+  <button class="tab-btn" onclick="switchTab(7)">📶 Link Budget</button>
+  <button class="tab-btn" onclick="switchTab(8)">🔄 Unit Converter</button>
+  <button class="tab-btn" onclick="switchTab(9)">⚙️ Ohm's Law + Power</button>
+  <button class="tab-btn" onclick="switchTab(10)">⏱️ RC Cutoff</button>
+  <button class="tab-btn" onclick="switchTab(11)">📐 dBm ↔ Voltage</button>
+  <button class="tab-btn" onclick="switchTab(12)">ℹ️ About</button>
+  <button class="tab-btn" onclick="switchTab(13)">🕳️ Via Properties</button>
+  <button class="tab-btn" onclick="switchTab(14)">⚡ Min Copper Spacing</button>
+  <button class="tab-btn" onclick="switchTab(15)">🧲 Diff Pair / Xtalk</button>
+  <button class="tab-btn" onclick="switchTab(16)">📏 Conductor Impedance</button>
 </div>
+<div id="content">
+
+<!-- TAB 0: LED RESISTOR -->
+<div class="tab-panel active" id="tab-0">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>LED Resistor Calculator</h2>
+    <div class="col">
+      <div class="row">
+        <div class="col"><label>Supply Voltage Vsupply (V)</label><input type="number" id="vs" step="any" value="5"/></div>
+        <div class="col"><label>LED Forward Voltage Vf (V)</label><input type="number" id="vf" step="any" value="2"/></div>
+        <div class="col"><label>LED Current (mA)</label><input type="number" id="iled" step="any" value="20"/></div>
+      </div>
+      <button onclick="calculateLED()">Calculate</button>
+    </div>
+  </div>
+  <div class="card"><h2>Equations</h2>
+    <div class="eq-box">$R = (V_{supply} - V_f) / I$ &nbsp;&nbsp; $P = (V_{supply} - V_f) \times I$</div>
+  </div>
+  <div class="card"><h2>Results</h2>
+    <div id="led-result" class="result-grid" style="color:var(--text2)">Enter values above and calculate.</div>
+  </div>
+  <div class="card"><h2>Usage Note</h2>
+    <p class="text-sm">Use a resistor wattage rating above the calculated dissipation. If close to a standard rating, move to the next size up. Single LED series path only.</p>
+  </div>
+</div>
+</div>
+
+<!-- TAB 1: LC RESONANCE -->
+<div class="tab-panel" id="tab-1">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>LC Resonance Calculator</h2>
+    <div class="col">
+      <div class="row">
+        <div class="col"><label>Inductance</label><input type="number" id="lc-l" step="any" value="10"/></div>
+        <div class="col"><label>Inductance unit</label>
+          <select id="lc-lunit">
+            <option value="1e-9">nH</option><option value="1e-6" selected>uH</option>
+            <option value="1e-3">mH</option><option value="1">H</option>
+          </select>
+        </div>
+        <div class="col"><label>Capacitance</label><input type="number" id="lc-c" step="any" value="100"/></div>
+        <div class="col"><label>Capacitance unit</label>
+          <select id="lc-cunit">
+            <option value="1e-12">pF</option><option value="1e-9" selected>nF</option><option value="1e-6">uF</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="calculateLC()">Calculate</button>
+    </div>
+  </div>
+  <div class="card"><h2>Equation</h2>
+    <div class="eq-box">$f = \dfrac{1}{2\pi\sqrt{L \cdot C}}$</div>
+  </div>
+  <div class="card"><h2>Results</h2>
+    <div id="lc-result" class="result-grid" style="color:var(--text2)">Enter inductance and capacitance, then calculate.</div>
+  </div>
+  <div class="card"><h2>Usage Note</h2>
+    <p class="text-sm">Ideal resonance calculation. Real layouts, ESR, parasitics, self-resonance, and measurement fixtures all matter at RF.</p>
+  </div>
+</div>
+</div>
+
+<!-- TAB 2: VOLTAGE DIVIDER -->
+<div class="tab-panel" id="tab-2">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Voltage Divider Calculator</h2>
+    <div class="col">
+      <div class="row">
+        <div class="col"><label>Input Voltage Vin (V)</label><input type="number" id="vd-vin" step="any" value="5"/></div>
+        <div class="col"><label>Top Resistor R1 (Ω)</label><input type="number" id="vd-r1" step="any" value="10000"/></div>
+        <div class="col"><label>Bottom Resistor R2 (Ω)</label><input type="number" id="vd-r2" step="any" value="10000"/></div>
+      </div>
+      <button onclick="calculateVD()">Calculate</button>
+    </div>
+  </div>
+  <div class="card"><h2>Equation</h2>
+    <div class="eq-box">$V_{out} = V_{in} \times \dfrac{R_2}{R_1 + R_2}$</div>
+  </div>
+  <div class="card"><h2>Results</h2>
+    <div id="vd-result" class="result-grid" style="color:var(--text2)">Enter values above and calculate.</div>
+  </div>
+  <div class="card"><h2>Usage Note</h2>
+    <p class="text-sm">Assumes an unloaded divider. Any connected load changes the effective output voltage and current.</p>
+  </div>
+</div>
+</div>
+
+<!-- TAB 3: S-PARAMETERS -->
+<div class="tab-panel" id="tab-3">
+<div class="two-col">
+  <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
+    <div class="card">
+      <h2>Touchstone Import</h2>
+      <div class="drop-zone" id="sparam-drop" ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')" ondrop="handleSpDrop(event)">
+        <input type="file" accept=".s1p,.s2p,.s3p,.s4p" onchange="handleSpFile(this.files[0])"/>
+        <div class="icon">📂</div><p>Drop .s1p / .s2p / .s3p / .s4p here</p><p>or click to browse</p>
+        <div class="file-name" id="sp-filename"></div>
+      </div>
+      <div id="sp-info" style="margin-top:.5rem;display:none"><div class="text-sm" id="sp-info-text"></div></div>
+    </div>
+    <div class="card" id="sp-controls" style="display:none">
+      <h2>Display</h2>
+      <div class="col" style="gap:.4rem">
+        <label>Show S-parameters:</label>
+        <div id="sp-checkbox-group" style="display:flex;flex-wrap:wrap;gap:.4rem"></div>
+        <div class="sep"></div>
+        <label>Chart type:</label>
+        <div style="display:flex;gap:.4rem">
+          <button class="sec" onclick="setSpChartMode('db')" id="btn-db">|S| dB</button>
+          <button class="sec" onclick="setSpChartMode('phase')" id="btn-phase">Phase</button>
+          <button class="sec" onclick="setSpChartMode('vswr')" id="btn-vswr">VSWR</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="sp-deembed" style="display:none">
+      <h2>De-Embedding</h2>
+      <div style="margin-bottom:.5rem" class="text-sm">Load a 2-port fixture file, then de-embed from DUT</div>
+      <div class="drop-zone" style="padding:.8rem" ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')" ondrop="handleFixtureDrop(event)">
+        <input type="file" accept=".s2p" onchange="handleFixtureFile(this.files[0])"/>
+        <div class="icon" style="font-size:1.2rem">📎</div><p>Load Fixture (.s2p)</p>
+        <div class="file-name" id="fix-filename"></div>
+      </div>
+      <div style="margin-top:.6rem;display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="green" onclick="doDeembed()">De-Embed (S-matrix)</button>
+        <button class="sec" onclick="showPortExt()">Port Extension</button>
+        <button class="danger" onclick="clearDeembed()">Clear</button>
+      </div>
+      <div id="port-ext-inputs" style="display:none;margin-top:.6rem">
+        <div class="row">
+          <div class="col"><label>Delay Port 1 (ps)</label><input type="number" id="pe-d1" value="0" step="0.1"/></div>
+          <div class="col"><label>Delay Port 2 (ps)</label><input type="number" id="pe-d2" value="0" step="0.1"/></div>
+        </div>
+        <button onclick="doPortExt()" style="margin-top:.4rem">Apply Port Extension</button>
+      </div>
+    </div>
+    <div class="card" id="sp-eq-box" style="display:none">
+      <h2>S-Parameter Equations</h2>
+      <div class="eq-box">
+        $$ S_{11} = \frac{b_1}{a_1}\bigg|_{a_2=0}, \quad S_{21} = \frac{b_2}{a_1}\bigg|_{a_2=0} $$
+        $$ \Gamma = \frac{Z - Z_0}{Z + Z_0}, \quad |S_{11}|_{\rm dB} = 20\log_{10}|S_{11}| $$
+        $$ T = S^{-1}_{\rm fix} \cdot S_{\rm DUT} \quad \text{(de-embedding)} $$
+      </div>
+    </div>
+  </div>
+  <div class="right-panel">
+    <div class="card">
+      <h2>Smith Chart <span class="badge badge-blue" id="smith-label">No data</span></h2>
+      <div class="smith-wrap">
+        <svg id="smith-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+          <g id="smith-grid"></g><g id="smith-data"></g>
+        </svg>
+      </div>
+      <div class="smith-legend" id="smith-legend"></div>
+    </div>
+    <div class="card">
+      <h2 id="chart-title">|S| vs Frequency</h2>
+      <div class="chart-wrap"><canvas id="sp-chart"></canvas></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 4: COMPONENT MODELS -->
+<div class="tab-panel" id="tab-4">
+<div class="two-col">
+  <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem;grid-column:2">
+    <div class="card">
+      <h2>Component Type</h2>
+      <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+        <button onclick="setComp('inductor')" id="btn-L" class="sec">Inductor (L)</button>
+        <button onclick="setComp('capacitor')" id="btn-C" class="sec">Capacitor (C)</button>
+        <button onclick="setComp('resistor')" id="btn-R" class="sec">Resistor (R)</button>
+      </div>
+    </div>
+    <div class="card" id="comp-inputs-L">
+      <h2>Inductor Parameters</h2>
+      <div class="col">
+        <div class="row"><div class="col"><label>Inductance L (nH)</label><input type="number" id="L-val" value="10" step="0.1" min="0.001"/></div></div>
+        <div class="row"><div class="col"><label>DC Resistance DCR (mΩ)</label><input type="number" id="L-dcr" value="50" step="1" min="0"/></div></div>
+        <div class="row"><div class="col"><label>Parallel Cap Cp (pF) — SRF model</label><input type="number" id="L-cp" value="0.5" step="0.01" min="0"/></div></div>
+        <div class="sep"></div>
+        <div class="row">
+          <div class="col"><label>Freq Start (MHz)</label><input type="number" id="comp-f1" value="1" min="0.001"/></div>
+          <div class="col"><label>Freq Stop (MHz)</label><input type="number" id="comp-f2" value="3000" min="1"/></div>
+        </div>
+        <div class="row"><div class="col"><label>Ref Impedance Z₀ (Ω)</label><input type="number" id="comp-z0" value="50" min="1"/></div></div>
+        <button onclick="computeComponent()">Compute</button>
+      </div>
+    </div>
+    <div class="card" id="comp-inputs-C" style="display:none">
+      <h2>Capacitor Parameters</h2>
+      <div class="col">
+        <div class="row"><div class="col"><label>Capacitance C (pF)</label><input type="number" id="C-val" value="100" step="1" min="0.001"/></div></div>
+        <div class="row"><div class="col"><label>ESR (mΩ)</label><input type="number" id="C-esr" value="20" step="1" min="0"/></div></div>
+        <div class="row"><div class="col"><label>ESL (nH)</label><input type="number" id="C-esl" value="0.5" step="0.01" min="0"/></div></div>
+        <button onclick="computeComponent()">Compute</button>
+      </div>
+    </div>
+    <div class="card" id="comp-inputs-R" style="display:none">
+      <h2>Resistor Parameters</h2>
+      <div class="col">
+        <div class="row"><div class="col"><label>Resistance R (Ω)</label><input type="number" id="R-val" value="50" step="1" min="0.001"/></div></div>
+        <div class="row"><div class="col"><label>Series Lead Inductance Ls (nH)</label><input type="number" id="R-ls" value="1" step="0.1" min="0"/></div></div>
+        <div class="row"><div class="col"><label>Parallel Cap Cs (pF)</label><input type="number" id="R-cs" value="0.1" step="0.01" min="0"/></div></div>
+        <button onclick="computeComponent()">Compute</button>
+      </div>
+    </div>
+    <div class="card" id="comp-results" style="display:none">
+      <h2>Results</h2><div id="comp-result-grid" class="result-grid"></div>
+    </div>
+    <div class="card">
+      <h2>Model Equations</h2>
+      <div class="eq-box" id="comp-eq-box">
+        $$ Z_L = \frac{(R_{DC} + j\omega L) \cdot \frac{1}{j\omega C_p}}{R_{DC} + j\omega L + \frac{1}{j\omega C_p}} $$
+        $$ f_{SRF} = \frac{1}{2\pi\sqrt{LC_p}}, \quad Q = \frac{\omega L}{R_{DC}} $$
+      </div>
+    </div>
+  </div>
+  <div class="right-panel">
+    <div class="card">
+      <h2>Smith Chart — Component Impedance</h2>
+      <div class="smith-wrap">
+        <svg id="comp-smith-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+          <g id="comp-smith-grid"></g><g id="comp-smith-data"></g>
+        </svg>
+      </div>
+    </div>
+    <div class="card"><h2>Impedance |Z| (dB) vs Frequency</h2><div class="chart-wrap"><canvas id="comp-chart"></canvas></div></div>
+    <div class="card"><h2>Phase (°) vs Frequency</h2><div class="chart-wrap"><canvas id="comp-phase-chart"></canvas></div></div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 5: RADAR -->
+<div class="tab-panel" id="tab-5">
+<div style="display:flex;flex-direction:column;gap:1rem">
+  <div class="radar-layout">
+    <div class="radar-inputs card">
+      <h2>Radar Range Calculator</h2>
+      <div class="col">
+        <div class="row">
+          <div class="col"><label>TX Power (dBm)</label><input type="number" id="r-ptx" value="30" step="0.1"/></div>
+          <div class="col"><label>TX Gain (dBi)</label><input type="number" id="r-gtx" value="20" step="0.1"/></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>RX Gain (dBi)</label><input type="number" id="r-grx" value="20" step="0.1"/></div>
+          <div class="col"><label>Frequency (GHz)</label><input type="number" id="r-freq" value="10" step="0.1" min="0.001"/></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Target RCS (dBsm)</label><input type="number" id="r-rcs" value="0" step="0.5"/></div>
+          <div class="col"><label>Required SNR (dB)</label><input type="number" id="r-snr" value="13" step="0.5"/></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Noise Figure (dB)</label><input type="number" id="r-nf" value="5" step="0.1"/></div>
+          <div class="col"><label>Bandwidth (MHz)</label><input type="number" id="r-bw" value="1" step="0.1" min="0.001"/></div>
+        </div>
+        <div class="sep"></div>
+        <h3>FMCW Parameters</h3>
+        <div class="row">
+          <div class="col"><label>FMCW Bandwidth (MHz)</label><input type="number" id="r-fmcw-bw" value="500" step="10" min="1"/></div>
+          <div class="col"><label>Sweep Time (ms)</label><input type="number" id="r-fmcw-t" value="1" step="0.1" min="0.001"/></div>
+        </div>
+        <div class="row"><div class="col"><label>Target Velocity (m/s)</label><input type="number" id="r-vel" value="10" step="1"/></div></div>
+        <button onclick="computeRadar()">Calculate</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card"><h2>Results</h2><div class="result-grid" id="radar-results"></div></div>
+      <div class="card">
+        <h2>Received Power vs Range</h2>
+        <label style="display:flex;align-items:center;gap:.45rem;margin-bottom:.6rem;color:var(--text);font-size:.82rem">
+          <input type="checkbox" id="radar-log-range" checked onchange="renderRadarChart()"/> Log range axis
+        </label>
+        <div class="chart-wrap"><canvas id="radar-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Radar Range Equation</h2>
+    <div class="eq-box">
+      $$ R_{max} = \left[\frac{P_t \cdot G_t \cdot G_r \cdot \lambda^2 \cdot \sigma}{(4\pi)^3 \cdot k T_0 B F \cdot SNR_{min}}\right]^{1/4} $$
+    </div>
+    <div class="eq-box" style="margin-top:.6rem">
+      $$ \Delta R = \frac{c}{2 B_{FMCW}}, \quad \Delta v = \frac{\lambda}{2 T_{sweep}}, \quad f_d = \frac{2v}{\lambda} $$
+    </div>
+    <div id="radar-substituted" style="margin-top:.5rem;font-size:.82rem;color:var(--text2)"></div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 6: PULSE DROOP -->
+<div class="tab-panel" id="tab-6">
+<div style="display:flex;flex-direction:column;gap:1rem">
+  <div class="droop-layout">
+    <div class="card">
+      <h2>PA Hold-Up Capacitor</h2>
+      <div class="col">
+        <div class="row"><div class="col"><label>PA Current Draw I (A)</label><input type="number" id="d-I" value="5" step="0.1" min="0"/></div></div>
+        <div class="row"><div class="col"><label>Pulse Width (μs)</label><input type="number" id="d-pw" value="10" step="0.1" min="0.001"/></div></div>
+        <div class="row"><div class="col"><label>Allowable Droop ΔV (mV)</label><input type="number" id="d-dv" value="50" step="1" min="1"/></div></div>
+        <div class="row"><div class="col"><label>Supply Voltage (V)</label><input type="number" id="d-vs" value="5" step="0.1" min="0.1"/></div></div>
+        <div class="row"><div class="col"><label>Cap ESR (mΩ)</label><input type="number" id="d-esr" value="10" step="1" min="0"/></div></div>
+        <div class="sep"></div>
+        <h3>Verify with actual cap value</h3>
+        <div class="row"><div class="col"><label>Given Cap Value (μF)</label><input type="number" id="d-cgiven" value="1000" step="10" min="0.01"/></div></div>
+        <button onclick="computeDroop()">Calculate</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.8rem">
+      <div class="card"><h2>Results</h2><div class="result-grid" id="droop-results"></div></div>
+      <div class="card"><h2>Droop vs Capacitance</h2><div class="chart-wrap" style="height:280px"><canvas id="droop-chart"></canvas></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Design Equations</h2>
+    <div class="eq-box">
+      $$ C_{required} = \frac{I \cdot t}{\Delta V - \Delta V_{ESR}}, \quad \Delta V_{ESR} = I \cdot R_{ESR} $$
+      $$ \Delta V_{total} = \frac{I \cdot t}{C} + I \cdot R_{ESR}, \quad \text{Droop\%} = \frac{\Delta V_{total}}{V_{supply}} \times 100 $$
+    </div>
+    <div id="droop-eq-sub" class="text-sm" style="margin-top:.5rem"></div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 7: LINK BUDGET -->
+<div class="tab-panel" id="tab-7">
+<div style="display:flex;flex-direction:column;gap:.8rem">
+  <div class="row" style="align-items:flex-start;gap:.8rem;flex-wrap:wrap">
+    <div class="card" style="min-width:280px">
+      <h2>System Setup</h2>
+      <div class="col">
+        <div class="row">
+          <div class="col"><label>Input Power (dBm)</label><input type="number" id="lb-pin" value="-100" step="0.5"/></div>
+          <div class="col"><label>Frequency (GHz)</label><input type="number" id="lb-freq" value="2.4" step="0.1" min="0.001"/></div>
+        </div>
+        <div class="row">
+          <div class="col"><label>Bandwidth (MHz)</label><input type="number" id="lb-bw" value="20" step="1" min="0.001"/></div>
+          <div class="col"><label>Temperature (K)</label><input type="number" id="lb-T" value="290" step="1" min="0"/></div>
+        </div>
+        <button onclick="computeLinkBudget()" class="green">Calculate Chain</button>
+      </div>
+    </div>
+    <div class="card" style="flex:1;min-width:300px">
+      <h2>Stage Chain</h2>
+      <div style="display:flex;gap:.4rem;margin-bottom:.6rem;font-size:.75rem;color:var(--text2);font-weight:700;padding:0 .2rem">
+        <span style="flex:1">Stage Name</span><span style="width:80px">Gain (dB)</span>
+        <span style="width:80px">NF (dB)</span><span style="width:80px">IIP3 (dBm)</span><span style="width:32px"></span>
+      </div>
+      <div class="stage-list" id="lb-stages"></div>
+      <div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">
+        <button onclick="addLbStage()" class="sec">+ Add Stage</button>
+        <button onclick="addLbTemplate('lna')" class="sec">LNA</button>
+        <button onclick="addLbTemplate('filter')" class="sec">Filter</button>
+        <button onclick="addLbTemplate('mixer')" class="sec">Mixer</button>
+        <button onclick="addLbTemplate('amp')" class="sec">Amp</button>
+        <button onclick="saveLbCascade()" class="sec">Save Cascade</button>
+        <button onclick="document.getElementById('lb-import-file').click()" class="sec">Import Cascade</button>
+        <input id="lb-import-file" type="file" accept="application/json,.json" style="display:none" onchange="importLbCascade(event)" />
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Cascade Results</h2>
+    <div class="result-grid" id="lb-summary" style="margin-bottom:.8rem"></div>
+    <div class="lb-table-wrap">
+      <table class="lb-table">
+        <thead><tr><th>#</th><th>Stage</th><th>Gain (dB)</th><th>NF (dB)</th><th>IIP3 (dBm)</th>
+          <th>Cum. Gain (dB)</th><th>Signal Out (dBm)</th><th>Noise Out (dBm)</th><th>SNR (dB)</th></tr></thead>
+        <tbody id="lb-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Cascaded NF — Friis Formula</h2>
+    <div class="eq-box">
+      $$ F_{total} = F_1 + \frac{F_2 - 1}{G_1} + \frac{F_3 - 1}{G_1 G_2} + \cdots $$
+      $$ \frac{1}{IIP3_{total}} = \frac{1}{IIP3_1} + \frac{G_1}{IIP3_2} + \frac{G_1 G_2}{IIP3_3} + \cdots $$
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 8: UNIT CONVERTER -->
+<div class="tab-panel" id="tab-8">
+<div style="max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Power: dBm ↔ Watts ↔ mW</h2>
+    <div class="uc-row">
+      <div class="col" style="max-width:180px"><label>dBm</label><input type="number" id="uc-dbm" step="0.1" value="30" oninput="ucDbmChanged()"/></div>
+      <div class="arrow">⇄</div>
+      <div class="col" style="max-width:180px"><label>mW</label><input type="number" id="uc-mw" step="0.001" value="1000" oninput="ucMwChanged()"/></div>
+      <div class="arrow">⇄</div>
+      <div class="col" style="max-width:180px"><label>Watts</label><input type="number" id="uc-w" step="0.000001" value="1" oninput="ucWChanged()"/></div>
+    </div>
+    <div class="eq-box" style="margin-top:.6rem">$P_{dBm} = 10\log_{10}(P_{mW}), \quad P_{mW} = 10^{P_{dBm}/10}$</div>
+  </div>
+  <div class="card">
+    <h2>dB ↔ Linear Ratio</h2>
+    <div class="uc-row">
+      <div class="col" style="max-width:180px"><label>dB</label><input type="number" id="uc-db" step="0.1" value="20" oninput="ucDbChanged()"/></div>
+      <div class="arrow">⇄</div>
+      <div class="col" style="max-width:240px"><label>Linear (voltage ratio)</label><input type="number" id="uc-lin-v" step="0.001" value="10" oninput="ucLinVChanged()"/></div>
+      <div class="arrow">⇄</div>
+      <div class="col" style="max-width:240px"><label>Linear (power ratio)</label><input type="number" id="uc-lin-p" step="0.001" value="100" oninput="ucLinPChanged()"/></div>
+    </div>
+    <div class="eq-box" style="margin-top:.6rem">$dB = 20\log_{10}(V_{ratio}) = 10\log_{10}(P_{ratio})$</div>
+  </div>
+  <div class="card">
+    <h2>Frequency ↔ Wavelength</h2>
+    <div class="uc-row">
+      <div class="col" style="max-width:160px"><label>Frequency (GHz)</label><input type="number" id="uc-fghz" step="0.001" value="2.4" min="0.001" oninput="ucFreqChanged()"/></div>
+      <div class="arrow">⇒</div>
+      <div class="col" style="max-width:160px"><label>Wavelength (mm)</label><input type="number" id="uc-wl-mm" readonly style="color:var(--accent2)"/></div>
+      <div class="col" style="max-width:160px"><label>λ/4 (mm)</label><input type="number" id="uc-wl-q" readonly style="color:var(--accent2)"/></div>
+      <div class="col" style="max-width:160px"><label>λ/2 (mm)</label><input type="number" id="uc-wl-h" readonly style="color:var(--accent2)"/></div>
+    </div>
+    <div class="eq-box" style="margin-top:.6rem">$\lambda = c/f, \quad c = 3 \times 10^8$ m/s</div>
+  </div>
+  <div class="card">
+    <h2>Impedance — Z ↔ Γ ↔ VSWR</h2>
+    <div class="uc-row" style="flex-wrap:wrap">
+      <div class="col" style="max-width:130px"><label>Z_real (Ω)</label><input type="number" id="uc-zr" value="75" step="1" oninput="ucZChanged()"/></div>
+      <div class="col" style="max-width:130px"><label>Z_imag (Ω)</label><input type="number" id="uc-zi" value="0" step="1" oninput="ucZChanged()"/></div>
+      <div class="col" style="max-width:100px"><label>Z₀ (Ω)</label><input type="number" id="uc-z0" value="50" step="1" min="0.001" oninput="ucZChanged()"/></div>
+      <div class="arrow">⇒</div>
+      <div class="col" style="max-width:130px"><label>|Γ|</label><input type="number" id="uc-gamma-mag" readonly style="color:var(--accent2)"/></div>
+      <div class="col" style="max-width:130px"><label>Γ angle (°)</label><input type="number" id="uc-gamma-ang" readonly style="color:var(--accent2)"/></div>
+      <div class="col" style="max-width:130px"><label>VSWR</label><input type="number" id="uc-vswr" readonly style="color:var(--accent2)"/></div>
+      <div class="col" style="max-width:130px"><label>Return Loss (dB)</label><input type="number" id="uc-rl" readonly style="color:var(--accent2)"/></div>
+    </div>
+    <div class="eq-box" style="margin-top:.6rem">$\Gamma = (Z-Z_0)/(Z+Z_0), \quad VSWR = (1+|\Gamma|)/(1-|\Gamma|), \quad RL = -20\log_{10}|\Gamma|$</div>
+  </div>
+  <div class="card">
+    <h2>Noise Temperature ↔ Noise Figure</h2>
+    <div class="uc-row">
+      <div class="col" style="max-width:180px"><label>Noise Figure (dB)</label><input type="number" id="uc-nf" step="0.1" value="3" oninput="ucNfChanged()"/></div>
+      <div class="arrow">⇄</div>
+      <div class="col" style="max-width:180px"><label>Noise Temperature (K)</label><input type="number" id="uc-nt" step="1" value="289.3" oninput="ucNtChanged()"/></div>
+    </div>
+    <div class="eq-box" style="margin-top:.6rem">$T_e = T_0(F-1), \quad T_0 = 290$ K, $\quad F = 10^{NF_{dB}/10}$</div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 9: OHM'S LAW + POWER -->
+<div class="tab-panel" id="tab-9">
+<div style="max-width:850px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Ohm's Law + Power</h2>
+    <p class="text-sm" style="color:var(--text2)">Leave exactly one field blank, then click solve.</p>
+    <div class="row" style="gap:.8rem;flex-wrap:wrap">
+      <div class="col" style="min-width:160px"><label>Voltage V (V)</label><input type="number" id="ohm-v" step="any"/></div>
+      <div class="col" style="min-width:160px"><label>Current I (A)</label><input type="number" id="ohm-i" step="any"/></div>
+      <div class="col" style="min-width:160px"><label>Resistance R (Ω)</label><input type="number" id="ohm-r" step="any"/></div>
+      <div class="col" style="min-width:160px"><label>Power P (W)</label><input type="number" id="ohm-p" step="any"/></div>
+    </div>
+    <div style="display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap">
+      <button onclick="solveOhmsLaw()" class="green">Solve</button>
+      <button onclick="clearOhmsLaw()" class="sec">Clear</button>
+    </div>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="ohm-result"></div></div>
+</div>
+</div>
+
+<!-- TAB 10: RC CUTOFF -->
+<div class="tab-panel" id="tab-10">
+<div style="max-width:850px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>RC Cutoff + Time Constant</h2>
+    <div class="row" style="gap:.8rem;flex-wrap:wrap">
+      <div class="col" style="min-width:160px"><label>R value</label><input type="number" id="rc-r" value="10000" step="any"/></div>
+      <div class="col" style="min-width:120px"><label>R unit</label><select id="rc-runit"><option value="1">Ω</option><option value="1000">kΩ</option><option value="1000000">MΩ</option></select></div>
+      <div class="col" style="min-width:160px"><label>C value</label><input type="number" id="rc-c" value="10" step="any"/></div>
+      <div class="col" style="min-width:120px"><label>C unit</label><select id="rc-cunit"><option value="1e-12">pF</option><option value="1e-9">nF</option><option value="1e-6" selected>µF</option><option value="0.001">mF</option></select></div>
+    </div>
+    <div style="margin-top:.7rem"><button onclick="calculateRC()" class="green">Calculate</button></div>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="rc-result"></div></div>
+</div>
+</div>
+
+<!-- TAB 11: DBM TO VOLTAGE -->
+<div class="tab-panel" id="tab-11">
+<div style="max-width:850px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>dBm ↔ Voltage (Vrms / Vpp)</h2>
+    <div class="row" style="gap:.8rem;flex-wrap:wrap">
+      <div class="col" style="min-width:180px"><label>Power (dBm)</label><input type="number" id="dbmv-dbm" value="0" step="any"/></div>
+      <div class="col" style="min-width:160px"><label>Impedance (Ω)</label><input type="number" id="dbmv-z" value="50" step="any" min="0.001"/></div>
+    </div>
+    <div style="display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap">
+      <button onclick="calculateDbmVoltage()" class="green">Calculate from dBm</button>
+      <button onclick="calculateVoltageToDbm()" class="sec">Calculate from Vrms</button>
+    </div>
+    <div class="row" style="gap:.8rem;flex-wrap:wrap;margin-top:.7rem">
+      <div class="col" style="min-width:180px"><label>Voltage (Vrms)</label><input type="number" id="dbmv-vrms" step="any"/></div>
+    </div>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="dbmv-result"></div></div>
+</div>
+</div>
+
+<!-- TAB 12: ABOUT -->
+<div class="tab-panel" id="tab-12">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>About Copper Trace Works</h2>
+    <p style="color:var(--text2);margin-bottom:.8rem">Practical tools first. Products when they are worth shipping.</p>
+    <p class="text-sm">Copper Trace Works LLC is a small Alabama-based maker business focused on practical calculator tools, hobby electronics, display kits, bench gadgets, 3D-printed accessories, and engineering-minded product ideas.</p>
+  </div>
+  <div class="card">
+    <h2>Business Profile</h2>
+    <div style="display:flex;flex-direction:column;gap:.4rem">
+      <div class="row" style="border-bottom:1px solid var(--border);padding-bottom:.4rem"><span class="text-sm" style="flex:1;color:var(--text2)">Legal entity</span><span class="text-sm">Copper Trace Works LLC</span></div>
+      <div class="row" style="border-bottom:1px solid var(--border);padding-bottom:.4rem"><span class="text-sm" style="flex:1;color:var(--text2)">Primary audience</span><span class="text-sm">Engineers, hobbyists, and makers</span></div>
+      <div class="row" style="border-bottom:1px solid var(--border);padding-bottom:.4rem"><span class="text-sm" style="flex:1;color:var(--text2)">Platform</span><span class="text-sm">Static website on Cloudflare Pages</span></div>
+      <div class="row"><span class="text-sm" style="flex:1;color:var(--text2)">Commerce</span><span class="text-sm">Shopify on a separate subdomain</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Operating Position</h2>
+    <p class="text-sm">Products and tools are intended for hobbyist, educational, and experimental use unless otherwise stated. Not for medical, life-safety, aviation, automotive safety-critical, or other mission-critical applications unless explicitly certified for that use.</p>
+  </div>
+  <div class="card">
+    <h2>Contact</h2>
+    <p class="text-sm">For product questions, calculator corrections, or documentation requests:</p>
+    <p style="margin-top:.4rem"><a href="mailto:support@coppertraceworks.com" style="color:var(--accent);font-family:'Courier New',monospace">support@coppertraceworks.com</a></p>
+    <p style="margin-top:.4rem"><a href="https://shop.coppertraceworks.com" style="color:var(--accent)">shop.coppertraceworks.com</a></p>
+  </div>
+  <p class="text-sm" style="text-align:center;color:var(--text2);padding:.5rem">© 2026 Copper Trace Works LLC</p>
+</div>
+</div>
+
+<!-- TAB 13: VIA PROPERTIES -->
+<div class="tab-panel" id="tab-13">
+<div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Via Properties (first-order)</h2>
+    <div class="row" style="flex-wrap:wrap;gap:.8rem">
+      <div class="col" style="min-width:170px"><label>Finished hole (mil)</label><input type="number" id="via-hole" value="10" step="0.1"/></div>
+      <div class="col" style="min-width:170px"><label>Plating thickness (mil)</label><input type="number" id="via-plate" value="1" step="0.1"/></div>
+      <div class="col" style="min-width:170px"><label>Board thickness (mil)</label><input type="number" id="via-thk" value="62" step="0.1"/></div>
+      <div class="col" style="min-width:170px"><label>Current (A)</label><input type="number" id="via-i" value="1" step="0.1"/></div>
+      <div class="col" style="min-width:170px"><label>Parallel vias</label><input type="number" id="via-n" value="1" step="1" min="1"/></div>
+    </div>
+    <div style="margin-top:.7rem"><button onclick="calcViaProps()">Compute Via Properties</button></div>
+  </div>
+  <div class="card stack-wrap">
+    <h2>Calculated Values</h2>
+    <table class="stack-table"><thead><tr><th>Property</th><th>Value</th><th>Units</th></tr></thead><tbody id="via-props-body"></tbody></table>
+    <p class="text-sm">Ampacity estimate uses conservative current-density guidance for via barrel copper. Validate against board stack-up and thermal reality.</p>
+  </div>
+</div>
+</div>
+
+<!-- TAB 14: MIN COPPER SPACING -->
+<div class="tab-panel" id="tab-14">
+<div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Minimum Copper Spacing (IPC quick table)</h2>
+    <div class="row" style="flex-wrap:wrap;gap:.8rem">
+      <div class="col" style="min-width:180px"><label>Peak voltage (V)</label><input type="number" id="sp-vpk" value="48" step="1"/></div>
+      <div class="col" style="min-width:180px"><label>Environment factor</label>
+        <select id="sp-env"><option value="1" selected>Internal/controlled</option><option value="1.25">External/conformal</option><option value="1.5">External/harsh</option></select>
+      </div>
+    </div>
+    <div style="margin-top:.7rem"><button onclick="calcMinSpacing()">Compute Spacing</button></div>
+  </div>
+  <div class="card stack-wrap">
+    <h2>Spacing Table Stack</h2>
+    <table class="stack-table"><thead><tr><th>Voltage band</th><th>Base spacing (mil)</th><th>Adjusted (mil)</th><th>Adjusted (mm)</th></tr></thead><tbody id="spacing-body"></tbody></table>
+  </div>
+</div>
+</div>
+
+<!-- TAB 15: DIFFERENTIAL PAIR / XTALK -->
+<div class="tab-panel" id="tab-15">
+<div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Differential Pair + Crosstalk (first-order)</h2>
+    <div class="row" style="flex-wrap:wrap;gap:.8rem">
+      <div class="col" style="min-width:150px"><label>Er</label><input type="number" id="dp-er" value="4.2" step="0.01"/></div>
+      <div class="col" style="min-width:150px"><label>Height h (mil)</label><input type="number" id="dp-h" value="6" step="0.1"/></div>
+      <div class="col" style="min-width:150px"><label>Width w (mil)</label><input type="number" id="dp-w" value="7" step="0.1"/></div>
+      <div class="col" style="min-width:150px"><label>Spacing s (mil)</label><input type="number" id="dp-s" value="7" step="0.1"/></div>
+      <div class="col" style="min-width:150px"><label>Copper t (mil)</label><input type="number" id="dp-t" value="1.37" step="0.01"/></div>
+      <div class="col" style="min-width:150px"><label>Parallel length (in)</label><input type="number" id="dp-len" value="4" step="0.1"/></div>
+      <div class="col" style="min-width:150px"><label>Rise time (ps)</label><input type="number" id="dp-tr" value="120" step="1"/></div>
+    </div>
+    <div style="margin-top:.7rem"><button onclick="calcDiffPair()">Compute Diff Pair / Xtalk</button></div>
+  </div>
+  <div class="card stack-wrap">
+    <h2>Results</h2>
+    <table class="stack-table"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody id="dp-body"></tbody></table>
+  </div>
+</div>
+</div>
+
+<!-- TAB 16: CONDUCTOR IMPEDANCE -->
+<div class="tab-panel" id="tab-16">
+<div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Conductor Impedance + Width Sweep Stack</h2>
+    <div class="row" style="flex-wrap:wrap;gap:.8rem">
+      <div class="col" style="min-width:150px"><label>Er</label><input type="number" id="ci-er" value="4.2" step="0.01"/></div>
+      <div class="col" style="min-width:150px"><label>Height h (mil)</label><input type="number" id="ci-h" value="6" step="0.1"/></div>
+      <div class="col" style="min-width:150px"><label>Width w (mil)</label><input type="number" id="ci-w" value="7" step="0.1"/></div>
+      <div class="col" style="min-width:150px"><label>Copper t (mil)</label><input type="number" id="ci-t" value="1.37" step="0.01"/></div>
+    </div>
+    <div style="margin-top:.7rem"><button onclick="calcConductorImpedance()">Compute Impedance Stack</button></div>
+  </div>
+  <div class="card stack-wrap">
+    <h2>Impedance Table Stack</h2>
+    <table class="stack-table"><thead><tr><th>Width (mil)</th><th>Microstrip Z0 (Ω)</th><th>Stripline Z0 (Ω)</th></tr></thead><tbody id="ci-body"></tbody></table>
+  </div>
+</div>
+</div>
+
+</div><!-- #content -->
+</div><!-- #app -->
+<div id="toast"></div>
+
+<script>
+const API = `${location.protocol}//${location.hostname}:8086`;
+let spData=null,fixtureData=null,spChartMode='db';
+let spChartInst=null,compChartInst=null,compPhaseInst=null,radarChartInst=null,droopChartInst=null;
+let radarChartData=null,currentComp='inductor',lbStageId=0;
+
+function toast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show'+(err?' err':'');
+  clearTimeout(t._timer);t._timer=setTimeout(()=>t.className='',3000);
+}
+function fmt(v,dec=2){return(typeof v==='number'&&isFinite(v))?v.toFixed(dec):(v||'—');}
+function fmtEng(v){
+  if(!isFinite(v))return'—';const a=Math.abs(v);
+  if(a>=1e9)return(v/1e9).toFixed(3)+' G';if(a>=1e6)return(v/1e6).toFixed(3)+' M';
+  if(a>=1e3)return(v/1e3).toFixed(3)+' k';if(a>=1)return v.toFixed(4);
+  if(a>=1e-3)return(v*1e3).toFixed(3)+' m';if(a>=1e-6)return(v*1e6).toFixed(3)+' μ';
+  if(a>=1e-9)return(v*1e9).toFixed(3)+' n';if(a>=1e-12)return(v*1e12).toFixed(3)+' p';
+  return v.toExponential(3);
+}
+
+function switchTab(idx){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
+}
+
+// CTW CALCULATORS
+function calculateLED(){
+  const vs=parseFloat(document.getElementById('vs').value);
+  const vf=parseFloat(document.getElementById('vf').value);
+  const ma=parseFloat(document.getElementById('iled').value);
+  const out=document.getElementById('led-result');
+  if([vs,vf,ma].some(Number.isNaN)||ma<=0){out.innerHTML='<span style="color:var(--text2)">Enter valid values.</span>';return;}
+  const vr=vs-vf;
+  if(vr<=0){out.innerHTML='<span style="color:var(--text2)">Supply voltage must exceed Vf.</span>';return;}
+  const amps=ma/1000,r=vr/amps,p=vr*amps;
+  out.innerHTML=
+    `<div class="result-card"><div class="lbl">Series resistor</div><div class="val">${r.toFixed(1)}</div><div class="unit">Ω</div></div>`+
+    `<div class="result-card"><div class="lbl">Resistor power</div><div class="val">${p.toFixed(3)}</div><div class="unit">W</div></div>`+
+    `<div class="result-card"><div class="lbl">Min wattage (2×)</div><div class="val">${(p*2).toFixed(3)}</div><div class="unit">W</div></div>`;
+}
+
+function formatFreq(f){
+  if(f>=1e9)return(f/1e9).toFixed(6)+' GHz';if(f>=1e6)return(f/1e6).toFixed(6)+' MHz';
+  if(f>=1e3)return(f/1e3).toFixed(3)+' kHz';return f.toFixed(3)+' Hz';
+}
+function calculateLC(){
+  const L=parseFloat(document.getElementById('lc-l').value)*parseFloat(document.getElementById('lc-lunit').value);
+  const C=parseFloat(document.getElementById('lc-c').value)*parseFloat(document.getElementById('lc-cunit').value);
+  const out=document.getElementById('lc-result');
+  if(Number.isNaN(L)||Number.isNaN(C)||L<=0||C<=0){out.innerHTML='<span style="color:var(--text2)">Enter positive L and C values.</span>';return;}
+  const f=1/(2*Math.PI*Math.sqrt(L*C));
+  out.innerHTML=
+    `<div class="result-card"><div class="lbl">Resonant frequency</div><div class="val" style="font-size:1.1rem">${formatFreq(f)}</div></div>`+
+    `<div class="result-card"><div class="lbl">Inductance used</div><div class="val" style="font-size:1rem">${L.toExponential(4)}</div><div class="unit">H</div></div>`+
+    `<div class="result-card"><div class="lbl">Capacitance used</div><div class="val" style="font-size:1rem">${C.toExponential(4)}</div><div class="unit">F</div></div>`;
+}
+function calculateVD(){
+  const vin=parseFloat(document.getElementById('vd-vin').value);
+  const r1=parseFloat(document.getElementById('vd-r1').value);
+  const r2=parseFloat(document.getElementById('vd-r2').value);
+  const out=document.getElementById('vd-result');
+  if([vin,r1,r2].some(Number.isNaN)||r1<=0||r2<=0){out.innerHTML='<span style="color:var(--text2)">Enter valid values.</span>';return;}
+  const vout=vin*r2/(r1+r2),current=vin/(r1+r2);
+  out.innerHTML=
+    `<div class="result-card"><div class="lbl">Output voltage</div><div class="val">${vout.toFixed(4)}</div><div class="unit">V</div></div>`+
+    `<div class="result-card"><div class="lbl">Divider current</div><div class="val">${(current*1000).toFixed(4)}</div><div class="unit">mA</div></div>`+
+    `<div class="result-card"><div class="lbl">Total resistance</div><div class="val">${(r1+r2).toFixed(2)}</div><div class="unit">Ω</div></div>`;
+}
+
+function solveOhmsLaw(){
+  const out=document.getElementById('ohm-result');
+  const V=parseFloat(document.getElementById('ohm-v').value);
+  const I=parseFloat(document.getElementById('ohm-i').value);
+  const R=parseFloat(document.getElementById('ohm-r').value);
+  const P=parseFloat(document.getElementById('ohm-p').value);
+  const vals={V,I,R,P};
+  const blank=Object.entries(vals).filter(([,v])=>Number.isNaN(v)).map(([k])=>k);
+  if(blank.length!==1){out.innerHTML='<span style="color:var(--text2)">Leave exactly one field blank.</span>';return;}
+  if((!Number.isNaN(I)&&I===0)||(!Number.isNaN(R)&&R===0)){out.innerHTML='<span style="color:var(--text2)">I and R must be non-zero when provided.</span>';return;}
+  let v=V,i=I,r=R,p=P;
+  const b=blank[0];
+  try{
+    if(b==='V'){ if(!Number.isNaN(I)&&!Number.isNaN(R))v=I*R; else if(!Number.isNaN(P)&&!Number.isNaN(I))v=P/I; else if(!Number.isNaN(P)&&!Number.isNaN(R))v=Math.sqrt(P*R); }
+    if(b==='I'){ if(!Number.isNaN(V)&&!Number.isNaN(R))i=V/R; else if(!Number.isNaN(P)&&!Number.isNaN(V))i=P/V; else if(!Number.isNaN(P)&&!Number.isNaN(R))i=Math.sqrt(P/R); }
+    if(b==='R'){ if(!Number.isNaN(V)&&!Number.isNaN(I))r=V/I; else if(!Number.isNaN(P)&&!Number.isNaN(I))r=P/(I*I); else if(!Number.isNaN(V)&&!Number.isNaN(P))r=(V*V)/P; }
+    if(b==='P'){ if(!Number.isNaN(V)&&!Number.isNaN(I))p=V*I; else if(!Number.isNaN(I)&&!Number.isNaN(R))p=I*I*R; else if(!Number.isNaN(V)&&!Number.isNaN(R))p=(V*V)/R; }
+    if([v,i,r,p].some(x=>!isFinite(x)||x<0))throw new Error('No valid solution');
+  }catch{out.innerHTML='<span style="color:var(--text2)">Inputs do not form a valid solve set.</span>';return;}
+  document.getElementById('ohm-v').value=v;document.getElementById('ohm-i').value=i;document.getElementById('ohm-r').value=r;document.getElementById('ohm-p').value=p;
+  out.innerHTML=
+    `<div class="result-card"><div class="lbl">Voltage</div><div class="val">${fmt(v,6)}</div><div class="unit">V</div></div>`+
+    `<div class="result-card"><div class="lbl">Current</div><div class="val">${fmt(i,6)}</div><div class="unit">A</div></div>`+
+    `<div class="result-card"><div class="lbl">Resistance</div><div class="val">${fmt(r,6)}</div><div class="unit">Ω</div></div>`+
+    `<div class="result-card"><div class="lbl">Power</div><div class="val">${fmt(p,6)}</div><div class="unit">W</div></div>`;
+}
+function clearOhmsLaw(){['ohm-v','ohm-i','ohm-r','ohm-p'].forEach(id=>document.getElementById(id).value='');document.getElementById('ohm-result').innerHTML='';}
+
+function calculateRC(){
+  const out=document.getElementById('rc-result');
+  const R=parseFloat(document.getElementById('rc-r').value)*parseFloat(document.getElementById('rc-runit').value);
+  const C=parseFloat(document.getElementById('rc-c').value)*parseFloat(document.getElementById('rc-cunit').value);
+  if(!isFinite(R)||!isFinite(C)||R<=0||C<=0){out.innerHTML='<span style="color:var(--text2)">Enter positive R and C values.</span>';return;}
+  const tau=R*C, fc=1/(2*Math.PI*tau);
+  out.innerHTML=
+    `<div class="result-card"><div class="lbl">Time Constant τ</div><div class="val">${fmtEng(tau)}</div><div class="unit">s</div></div>`+
+    `<div class="result-card"><div class="lbl">Cutoff Frequency f<sub>c</sub></div><div class="val">${formatFreq(fc)}</div></div>`+
+    `<div class="result-card"><div class="lbl">5τ Settling (~99.3%)</div><div class="val">${fmtEng(5*tau)}</div><div class="unit">s</div></div>`;
+}
+
+function calculateDbmVoltage(){
+  const out=document.getElementById('dbmv-result');
+  const dbm=parseFloat(document.getElementById('dbmv-dbm').value);
+  const z=parseFloat(document.getElementById('dbmv-z').value);
+  if(!isFinite(dbm)||!isFinite(z)||z<=0){out.innerHTML='<span style="color:var(--text2)">Enter valid dBm and impedance.</span>';return;}
+  const pW=Math.pow(10,dbm/10)/1000;
+  const vrms=Math.sqrt(pW*z);
+  const vpp=2*Math.sqrt(2)*vrms;
+  document.getElementById('dbmv-vrms').value=vrms.toPrecision(8);
+  out.innerHTML=`<div class="result-card"><div class="lbl">Power</div><div class="val">${fmtEng(pW)}</div><div class="unit">W</div></div>`+
+    `<div class="result-card"><div class="lbl">Vrms</div><div class="val">${fmt(vrms,8)}</div><div class="unit">V</div></div>`+
+    `<div class="result-card"><div class="lbl">Vpp (sine)</div><div class="val">${fmt(vpp,8)}</div><div class="unit">Vpp</div></div>`;
+}
+function calculateVoltageToDbm(){
+  const out=document.getElementById('dbmv-result');
+  const vrms=parseFloat(document.getElementById('dbmv-vrms').value);
+  const z=parseFloat(document.getElementById('dbmv-z').value);
+  if(!isFinite(vrms)||!isFinite(z)||z<=0||vrms<0){out.innerHTML='<span style="color:var(--text2)">Enter valid Vrms and impedance.</span>';return;}
+  const pW=(vrms*vrms)/z;
+  const dbm=10*Math.log10((pW*1000)>0?(pW*1000):1e-30);
+  document.getElementById('dbmv-dbm').value=dbm.toFixed(6);
+  const vpp=2*Math.sqrt(2)*vrms;
+  out.innerHTML=`<div class="result-card"><div class="lbl">Power</div><div class="val">${fmtEng(pW)}</div><div class="unit">W</div></div>`+
+    `<div class="result-card"><div class="lbl">Power</div><div class="val">${fmt(dbm,6)}</div><div class="unit">dBm</div></div>`+
+    `<div class="result-card"><div class="lbl">Vpp (sine)</div><div class="val">${fmt(vpp,8)}</div><div class="unit">Vpp</div></div>`;
+}
+
+// SMITH CHART
+const SMITH_CX=250,SMITH_CY=250,SMITH_R=220;
+const SMITH_R_CIRCLES=[0,0.2,0.5,1,2,5,10];
+const SMITH_X_ARCS=[0.2,0.5,1,2,5];
+function smithCoords(re,im){return{x:SMITH_CX+re*SMITH_R,y:SMITH_CY-im*SMITH_R};}
+function buildSmithGrid(svgGroupId){
+  const g=document.getElementById(svgGroupId);g.innerHTML='';
+  const ns='http://www.w3.org/2000/svg';
+  const outer=document.createElementNS(ns,'circle');
+  outer.setAttribute('cx',SMITH_CX);outer.setAttribute('cy',SMITH_CY);
+  outer.setAttribute('r',SMITH_R);outer.setAttribute('fill','#111820');
+  outer.setAttribute('stroke','#3a4a5a');outer.setAttribute('stroke-width','1.5');
+  g.appendChild(outer);
+  for(const r of SMITH_R_CIRCLES){
+    const cx_n=r/(r+1),rn=1/(r+1),cxs=SMITH_CX+cx_n*SMITH_R,rs=rn*SMITH_R;
+    const c=document.createElementNS(ns,'circle');
+    c.setAttribute('cx',cxs);c.setAttribute('cy',SMITH_CY);c.setAttribute('r',rs);c.setAttribute('fill','none');
+    c.setAttribute('stroke',r===1?'#3a5a7a':'#1e3040');c.setAttribute('stroke-width',r===0?'1.5':'0.8');
+    g.appendChild(c);
+    if(r>0&&r<=5){
+      const lx=SMITH_CX+(cx_n+rn)*SMITH_R+2,ly=SMITH_CY-2;
+      const txt=document.createElementNS(ns,'text');
+      txt.setAttribute('x',lx);txt.setAttribute('y',ly);txt.setAttribute('font-size','9');
+      txt.setAttribute('fill','#4a6a8a');txt.setAttribute('font-family','monospace');txt.textContent=r;
+      g.appendChild(txt);
+    }
+  }
+  for(const x of SMITH_X_ARCS){
+    for(const sign of[1,-1]){
+      const xv=sign*x,cy_n=1/xv,r_n=Math.abs(1/xv);
+      const cxs=SMITH_CX+SMITH_R,cys=SMITH_CY-cy_n*SMITH_R,rs=r_n*SMITH_R;
+      const pts=[];
+      for(let a=0;a<=360;a+=2){
+        const rad=a*Math.PI/180,px=cxs+rs*Math.cos(rad),py=cys+rs*Math.sin(rad);
+        const dx=px-SMITH_CX,dy=py-SMITH_CY;
+        if(dx*dx+dy*dy<=SMITH_R*SMITH_R+2)pts.push([px,py]);
+      }
+      if(pts.length>1){
+        let d='M'+pts[0][0]+','+pts[0][1];
+        for(let i=1;i<pts.length;i++)d+='L'+pts[i][0]+','+pts[i][1];
+        const path=document.createElementNS(ns,'path');
+        path.setAttribute('d',d);path.setAttribute('fill','none');
+        path.setAttribute('stroke','#1e3040');path.setAttribute('stroke-width','0.8');
+        g.appendChild(path);
+      }
+    }
+  }
+  const ax=document.createElementNS(ns,'line');
+  ax.setAttribute('x1',SMITH_CX-SMITH_R);ax.setAttribute('y1',SMITH_CY);
+  ax.setAttribute('x2',SMITH_CX+SMITH_R);ax.setAttribute('y2',SMITH_CY);
+  ax.setAttribute('stroke','#3a5a6a');ax.setAttribute('stroke-width','0.8');g.appendChild(ax);
+  function addLabel(gr,gi,txt,dx=0,dy=0){
+    const p=smithCoords(gr,gi);const el=document.createElementNS(ns,'text');
+    el.setAttribute('x',p.x+dx);el.setAttribute('y',p.y+dy);el.setAttribute('font-size','9');
+    el.setAttribute('fill','#5a7a9a');el.setAttribute('font-family','monospace');el.setAttribute('text-anchor','middle');
+    el.textContent=txt;g.appendChild(el);
+  }
+  addLabel(-1,0,'SC',0,10);addLabel(1,0,'OC',-2,10);addLabel(0,0,'Z₀',0,10);
+}
+function plotSmithData(svgDataGroupId,datasets){
+  const g=document.getElementById(svgDataGroupId);g.innerHTML='';
+  const ns='http://www.w3.org/2000/svg';
+  for(const ds of datasets){
+    const{real,imag,color,dotSize=2}=ds;
+    if(!real||!imag||real.length===0)continue;
+    let d='';
+    for(let i=0;i<real.length;i++){const p=smithCoords(real[i],imag[i]);d+=(i===0?'M':'L')+p.x+','+p.y;}
+    const path=document.createElementNS(ns,'path');
+    path.setAttribute('d',d);path.setAttribute('fill','none');path.setAttribute('stroke',color);
+    path.setAttribute('stroke-width','1.5');path.setAttribute('stroke-linejoin','round');g.appendChild(path);
+    const p0=smithCoords(real[0],imag[0]);
+    const dot=document.createElementNS(ns,'circle');
+    dot.setAttribute('cx',p0.x);dot.setAttribute('cy',p0.y);dot.setAttribute('r',dotSize+1);dot.setAttribute('fill',color);g.appendChild(dot);
+    const pe=smithCoords(real[real.length-1],imag[real.length-1]);
+    const dote=document.createElementNS(ns,'circle');
+    dote.setAttribute('cx',pe.x);dote.setAttribute('cy',pe.y);dote.setAttribute('r',dotSize);
+    dote.setAttribute('fill','#fff');dote.setAttribute('stroke',color);dote.setAttribute('stroke-width','1');g.appendChild(dote);
+  }
+}
+const SPARAMS_COLORS={S11:'#58a6ff',S21:'#3fb950',S12:'#f0883e',S22:'#bc8cff',S31:'#ff7b72',S32:'#79c0ff',S33:'#ffa657',S44:'#d2a8ff'};
+
+// S-PARAMETERS
+function handleSpDrop(e){
+  e.preventDefault();document.getElementById('sparam-drop').classList.remove('drag-over');
+  const f=e.dataTransfer.files[0];if(f)handleSpFile(f);
+}
+async function handleSpFile(file){
+  if(!file)return;
+  document.getElementById('sp-filename').textContent=file.name;
+  const fd=new FormData();fd.append('file',file);
+  try{
+    const res=await fetch(API+'/api/parse-touchstone',{method:'POST',body:fd});
+    const data=await res.json();if(!res.ok)throw new Error(data.detail||'Parse error');
+    spData=data;onSpDataLoaded();toast(`Loaded: ${file.name} — ${data.frequencies.length} pts, ${data.n_ports}-port`);
+  }catch(e){toast('Error: '+e.message,true);}
+}
+function onSpDataLoaded(){
+  if(!spData)return;
+  buildSmithGrid('smith-grid');buildSmithGrid('comp-smith-grid');
+  document.getElementById('sp-controls').style.display='';
+  document.getElementById('sp-deembed').style.display='';
+  document.getElementById('sp-eq-box').style.display='';
+  document.getElementById('sp-info').style.display='';
+  document.getElementById('sp-info-text').textContent=
+    `${spData.n_ports}-port | ${spData.frequencies.length} pts | ${fmtEng(spData.frequencies[0])}Hz – ${fmtEng(spData.frequencies[spData.frequencies.length-1])}Hz | Z₀=${spData.ref_impedance}Ω`;
+  document.getElementById('smith-label').textContent=`${spData.n_ports}-port`;
+  const cg=document.getElementById('sp-checkbox-group');cg.innerHTML='';
+  for(const key of Object.keys(spData.s_params)){
+    const label=document.createElement('label');
+    label.style.cssText='display:flex;align-items:center;gap:.3rem;cursor:pointer;font-size:.82rem;color:var(--text)';
+    const cb=document.createElement('input');cb.type='checkbox';cb.value=key;cb.checked=true;cb.onchange=renderSpCharts;
+    const dot=document.createElement('span');
+    dot.style.cssText=`width:10px;height:10px;border-radius:50%;background:${SPARAMS_COLORS[key]||'#888'};flex-shrink:0`;
+    label.appendChild(cb);label.appendChild(dot);label.appendChild(document.createTextNode(key));cg.appendChild(label);
+  }
+  renderSpCharts();
+}
+function getSelectedSParams(){return Array.from(document.querySelectorAll('#sp-checkbox-group input:checked')).map(c=>c.value);}
+function setSpChartMode(mode){
+  spChartMode=mode;
+  document.getElementById('btn-db').className=mode==='db'?'':'sec';
+  document.getElementById('btn-phase').className=mode==='phase'?'':'sec';
+  document.getElementById('btn-vswr').className=mode==='vswr'?'':'sec';
+  renderSpCharts();
+}
+function renderSpCharts(){
+  if(!spData)return;
+  const selected=getSelectedSParams();const freqs=spData.frequencies.map(f=>f/1e9);
+  plotSmithData('smith-data',selected.map(key=>{const sp=spData.s_params[key];return{real:sp.real,imag:sp.imag,color:SPARAMS_COLORS[key]||'#888',label:key};}));
+  const leg=document.getElementById('smith-legend');
+  leg.innerHTML=selected.map(key=>`<span><span class="dot" style="background:${SPARAMS_COLORS[key]||'#888'}"></span>${key}</span>`).join('');
+  const modeLabels={db:'|S| (dB)',phase:'Phase (°)',vswr:'VSWR'};
+  document.getElementById('chart-title').textContent=modeLabels[spChartMode]+' vs Frequency';
+  const datasets=selected.map(key=>{
+    const sp=spData.s_params[key];let ydata;
+    if(spChartMode==='db')ydata=sp.mag_db;
+    else if(spChartMode==='phase')ydata=sp.phase;
+    else ydata=sp.mag_db.map(db=>{const g=Math.pow(10,db/20);return g<1?(1+g)/(1-g):99;});
+    return{label:key,data:ydata.map((y,i)=>({x:freqs[i],y})),borderColor:SPARAMS_COLORS[key]||'#888',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.1};
+  });
+  if(spChartInst)spChartInst.destroy();
+  spChartInst=new Chart(document.getElementById('sp-chart').getContext('2d'),{
+    type:'line',data:{datasets},
+    options:{animation:false,responsive:true,maintainAspectRatio:false,parsing:false,
+      plugins:{legend:{labels:{color:'#8b949e',boxWidth:12,font:{size:11}}}},
+      scales:{x:{type:'linear',title:{display:true,text:'Frequency (GHz)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}},
+              y:{title:{display:true,text:modeLabels[spChartMode],color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
+  });
+}
+async function handleFixtureDrop(e){e.preventDefault();e.currentTarget.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)await handleFixtureFile(f);}
+async function handleFixtureFile(file){
+  if(!file)return;document.getElementById('fix-filename').textContent=file.name;
+  const fd=new FormData();fd.append('file',file);
+  try{
+    const res=await fetch(API+'/api/parse-touchstone',{method:'POST',body:fd});
+    const data=await res.json();if(!res.ok)throw new Error(data.detail);
+    fixtureData=data;toast(`Fixture loaded: ${file.name}`);
+  }catch(e){toast('Fixture error: '+e.message,true);}
+}
+function showPortExt(){const pe=document.getElementById('port-ext-inputs');pe.style.display=pe.style.display==='none'?'':'none';}
+async function doDeembed(){
+  if(!spData||!fixtureData){toast('Load DUT and fixture first',true);return;}
+  try{
+    const body={dut_freqs:spData.frequencies,dut_s:spData.s_params,fix_freqs:fixtureData.frequencies,fix_s:fixtureData.s_params,n_ports:spData.n_ports};
+    const res=await fetch(API+'/api/deembed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();if(!res.ok)throw new Error(data.detail);
+    spData={...spData,s_params:data.s_params};renderSpCharts();toast('De-embedding applied');
+  }catch(e){toast('De-embed error: '+e.message,true);}
+}
+async function doPortExt(){
+  if(!spData){toast('Load DUT first',true);return;}
+  try{
+    const body={freqs:spData.frequencies,s_params:spData.s_params,delay_ps:parseFloat(document.getElementById('pe-d1').value)||0,delay2_ps:parseFloat(document.getElementById('pe-d2').value)||0,n_ports:spData.n_ports};
+    const res=await fetch(API+'/api/port-extension',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();if(!res.ok)throw new Error(data.detail);
+    spData={...spData,s_params:data.s_params};renderSpCharts();toast('Port extension applied');
+  }catch(e){toast('Port extension error: '+e.message,true);}
+}
+function clearDeembed(){fixtureData=null;document.getElementById('fix-filename').textContent='';toast('Fixture cleared');}
+
+// COMPONENT MODELS
+function setComp(type){
+  currentComp=type;const map={inductor:'L',capacitor:'C',resistor:'R'};
+  ['inductor','capacitor','resistor'].forEach(t=>document.getElementById('comp-inputs-'+map[t]).style.display=t===type?'':'none');
+  ['L','C','R'].forEach(id=>document.getElementById('btn-'+id).className='sec');
+  document.getElementById('btn-'+map[type]).className='';
+  const eqs={
+    inductor:`$$ Z_L = \\frac{(R_{DC}+j\\omega L)\\cdot\\frac{1}{j\\omega C_p}}{R_{DC}+j\\omega L+\\frac{1}{j\\omega C_p}}, \\quad f_{SRF}=\\frac{1}{2\\pi\\sqrt{LC_p}}, \\quad Q=\\frac{\\omega L}{R_{DC}} $$`,
+    capacitor:`$$ Z_C = ESR+j\\omega L_{ESL}+\\frac{1}{j\\omega C}, \\quad f_{SRF}=\\frac{1}{2\\pi\\sqrt{L_{ESL}\\cdot C}}, \\quad Q=\\frac{1}{\\omega C\\cdot ESR} $$`,
+    resistor:`$$ Z_R = \\frac{(R+j\\omega L_s)\\cdot\\frac{1}{j\\omega C_s}}{R+j\\omega L_s+\\frac{1}{j\\omega C_s}} $$`
+  };
+  document.getElementById('comp-eq-box').innerHTML=eqs[type];
+  if(window.renderMathInElement)renderMathInElement(document.getElementById('comp-eq-box'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  setComp('inductor');buildSmithGrid('smith-grid');buildSmithGrid('comp-smith-grid');
+  initLbStages();ucFreqChanged();ucDbmChanged();ucDbChanged();ucZChanged();ucNfChanged();
+  computeDroop();computeRadar();
+});
+async function computeComponent(){
+  buildSmithGrid('comp-smith-grid');
+  const f1=parseFloat(document.getElementById('comp-f1').value)*1e6||1e6;
+  const f2=parseFloat(document.getElementById('comp-f2').value)*1e6||3e9;
+  const z0=parseFloat(document.getElementById('comp-z0').value)||50;
+  let body={component_type:currentComp,freq_start:f1,freq_stop:f2,freq_points:600,Z0:z0};
+  if(currentComp==='inductor'){body.L=(parseFloat(document.getElementById('L-val').value)||10)*1e-9;body.DCR=(parseFloat(document.getElementById('L-dcr').value)||0)*1e-3;body.Cp=(parseFloat(document.getElementById('L-cp').value)||0)*1e-12;}
+  else if(currentComp==='capacitor'){body.C=(parseFloat(document.getElementById('C-val').value)||100)*1e-12;body.ESR=(parseFloat(document.getElementById('C-esr').value)||0)*1e-3;body.ESL=(parseFloat(document.getElementById('C-esl').value)||0)*1e-9;}
+  else{body.R=parseFloat(document.getElementById('R-val').value)||50;body.Ls=(parseFloat(document.getElementById('R-ls').value)||0)*1e-9;body.Cs=(parseFloat(document.getElementById('R-cs').value)||0)*1e-12;}
+  try{
+    const res=await fetch(API+'/api/component-model',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();if(!res.ok)throw new Error(data.detail);
+    plotSmithData('comp-smith-data',[{real:data.S11_real,imag:data.S11_imag,color:{inductor:'#58a6ff',capacitor:'#3fb950',resistor:'#f0883e'}[currentComp]||'#888',label:'Z'}]);
+    const fGhz=data.frequencies.map(f=>f/1e9);
+    if(compChartInst)compChartInst.destroy();
+    compChartInst=new Chart(document.getElementById('comp-chart').getContext('2d'),{type:'line',data:{datasets:[{label:'|Z| (dB Ω)',data:fGhz.map((f,i)=>({x:f,y:data.Z_mag_db[i]})),borderColor:'#58a6ff',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0}]},options:chartOpts('Frequency (GHz)','|Z| (dB Ω)')});
+    if(compPhaseInst)compPhaseInst.destroy();
+    compPhaseInst=new Chart(document.getElementById('comp-phase-chart').getContext('2d'),{type:'line',data:{datasets:[{label:'Phase (°)',data:fGhz.map((f,i)=>({x:f,y:data.Z_phase[i]})),borderColor:'#3fb950',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0}]},options:chartOpts('Frequency (GHz)','Phase (°)')});
+    const info=data.info||{};const grid=document.getElementById('comp-result-grid');grid.innerHTML='';
+    document.getElementById('comp-results').style.display='';
+    const cards=[];
+    if(info.SRF_Hz!=null)cards.push({lbl:'Self-Resonant Freq',val:fmtEng(info.SRF_Hz)+'Hz'});
+    if(info.Q_at_1MHz!=null)cards.push({lbl:'Q (@ 1 MHz)',val:fmt(info.Q_at_1MHz,1)});
+    if(info.L_H!=null)cards.push({lbl:'L',val:fmtEng(info.L_H)+'H'});
+    if(info.DCR_Ohm!=null)cards.push({lbl:'DCR',val:fmtEng(info.DCR_Ohm)+'Ω'});
+    if(info.Cp_F!=null)cards.push({lbl:'Cp',val:fmtEng(info.Cp_F)+'F'});
+    if(info.C_F!=null)cards.push({lbl:'C',val:fmtEng(info.C_F)+'F'});
+    if(info.ESR_Ohm!=null)cards.push({lbl:'ESR',val:fmtEng(info.ESR_Ohm)+'Ω'});
+    if(info.ESL_H!=null)cards.push({lbl:'ESL',val:fmtEng(info.ESL_H)+'H'});
+    for(const c of cards){const el=document.createElement('div');el.className='result-card';el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val" style="font-size:1rem">${c.val}</div>`;grid.appendChild(el);}
+    toast('Component model computed');
+  }catch(e){toast('Error: '+e.message,true);}
+}
+function chartOpts(xlabel,ylabel){
+  return{animation:false,responsive:true,maintainAspectRatio:false,parsing:false,
+    plugins:{legend:{labels:{color:'#8b949e',boxWidth:12,font:{size:11}}}},
+    scales:{x:{type:'linear',title:{display:true,text:xlabel,color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}},
+            y:{title:{display:true,text:ylabel,color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}};
+}
+
+// RADAR
+async function computeRadar(){
+  const body={tx_power_dbm:parseFloat(document.getElementById('r-ptx').value)||30,tx_gain_dbi:parseFloat(document.getElementById('r-gtx').value)||20,rx_gain_dbi:parseFloat(document.getElementById('r-grx').value)||20,freq_ghz:parseFloat(document.getElementById('r-freq').value)||10,rcs_dbsm:parseFloat(document.getElementById('r-rcs').value)||0,snr_required_db:parseFloat(document.getElementById('r-snr').value)||13,noise_figure_db:parseFloat(document.getElementById('r-nf').value)||5,bandwidth_mhz:parseFloat(document.getElementById('r-bw').value)||1,fmcw_bandwidth_mhz:parseFloat(document.getElementById('r-fmcw-bw').value)||500,fmcw_sweep_time_ms:parseFloat(document.getElementById('r-fmcw-t').value)||1,target_velocity_mps:parseFloat(document.getElementById('r-vel').value)||10};
+  try{
+    const res=await fetch(API+'/api/radar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();if(!res.ok)throw new Error(data.detail);
+    const rg=document.getElementById('radar-results');rg.innerHTML='';
+    const cards=[{lbl:'Max Range',val:fmt(data.R_max_km,2),unit:'km'},{lbl:'Max Range',val:fmt(data.R_max_m,0),unit:'m'},{lbl:'Noise Floor',val:fmt(data.noise_power_dbm,1),unit:'dBm'},{lbl:'Pr @ 1 km',val:fmt(data.Pr_at_1km_dbm,1),unit:'dBm'},{lbl:'Wavelength',val:fmt(data.wavelength_m*100,2),unit:'cm'},{lbl:'Range Res.',val:fmt(data.range_resolution_m,3),unit:'m'},{lbl:'Vel. Res.',val:fmt(data.velocity_resolution_mps,3),unit:'m/s'},{lbl:'Doppler Freq',val:fmtEng(data.doppler_freq_hz),unit:'Hz'}];
+    for(const c of cards){const el=document.createElement('div');el.className='result-card';el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val">${c.val}</div><div class="unit">${c.unit}</div>`;rg.appendChild(el);}
+    radarChartData=data;renderRadarChart();
+    const eq=data.eq_values||{};
+    document.getElementById('radar-substituted').innerHTML=`<strong style="color:var(--text2)">With your values:</strong> Pt=${eq.Pt_dbm} dBm, Gt=${eq.Gt_dbi} dBi, Gr=${eq.Gr_dbi} dBi, λ=${eq.lambda_m} cm, σ=${eq.sigma_m2} m² → <strong style="color:var(--accent)">Rmax = ${fmt(data.R_max_km,3)} km</strong>`;
+  }catch(e){toast('Radar error: '+e.message,true);}
+}
+function renderRadarChart(){
+  if(!radarChartData)return;
+  const useLog=document.getElementById('radar-log-range')?.checked??true;
+  const rangesKm=radarChartData.ranges_m.map(r=>r/1000);
+  if(radarChartInst)radarChartInst.destroy();
+  radarChartInst=new Chart(document.getElementById('radar-chart').getContext('2d'),{
+    type:'line',data:{datasets:[
+      {label:'Received Power',data:rangesKm.map((r,i)=>({x:r,y:radarChartData.Pr_curve_dbm[i]})),borderColor:'#58a6ff',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0},
+      {label:'Noise Floor',data:rangesKm.map(r=>({x:r,y:radarChartData.noise_floor_dbm})),borderColor:'#f85149',backgroundColor:'transparent',borderWidth:1,borderDash:[5,5],pointRadius:0}
+    ]},
+    options:{animation:false,responsive:true,maintainAspectRatio:false,parsing:false,
+      plugins:{legend:{labels:{color:'#8b949e',boxWidth:12,font:{size:11}}}},
+      scales:{x:{type:useLog?'logarithmic':'linear',title:{display:true,text:'Range (km)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}},
+              y:{title:{display:true,text:'Power (dBm)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
+  });
+}
+
+// PULSE DROOP
+async function computeDroop(){
+  const body={I_A:parseFloat(document.getElementById('d-I').value)||5,pulse_width_us:parseFloat(document.getElementById('d-pw').value)||10,delta_V_mV:parseFloat(document.getElementById('d-dv').value)||50,V_supply:parseFloat(document.getElementById('d-vs').value)||5,ESR_mohm:parseFloat(document.getElementById('d-esr').value)||10,C_given_uF:parseFloat(document.getElementById('d-cgiven').value)||null};
+  if(!isFinite(body.C_given_uF))body.C_given_uF=null;
+  try{
+    const res=await fetch(API+'/api/pulse-droop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();if(!res.ok)throw new Error(data.detail);
+    const rg=document.getElementById('droop-results');rg.innerHTML='';
+    const cards=[{lbl:'Required Cap',val:fmt(data.C_required_uF,1),unit:'μF'},{lbl:'ESR Droop',val:fmt(data.dV_ESR_mV,2),unit:'mV'},{lbl:'Cap Droop Budget',val:fmt(data.dV_cap_budget_mV,2),unit:'mV'}];
+    if(data.actual_droop_mV!=null){cards.push({lbl:'Actual Total Droop',val:fmt(data.actual_droop_mV,2),unit:'mV'});cards.push({lbl:'Cap Droop',val:fmt(data.actual_droop_cap_mV,2),unit:'mV'});cards.push({lbl:'ESR Droop',val:fmt(data.actual_droop_esr_mV,2),unit:'mV'});cards.push({lbl:'Droop %',val:fmt(data.droop_pct,3),unit:'%'});}
+    for(const c of cards){
+      const ok=c.lbl==='Actual Total Droop'&&data.actual_droop_mV<=data.allowable_mV+0.01;
+      const el=document.createElement('div');el.className='result-card';
+      el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val" style="color:${ok?'var(--accent2)':c.lbl==='Required Cap'?'var(--accent)':'var(--text)'}">${c.val}</div><div class="unit">${c.unit}</div>`;
+      rg.appendChild(el);
+    }
+    if(droopChartInst)droopChartInst.destroy();
+    droopChartInst=new Chart(document.getElementById('droop-chart').getContext('2d'),{
+      type:'line',data:{datasets:[
+        {label:'Total Droop',data:data.cap_sweep_uF.map((c,i)=>({x:c,y:data.droop_total_mV[i]})),borderColor:'#f0883e',backgroundColor:'rgba(240,136,62,.08)',fill:true,borderWidth:1.5,pointRadius:0},
+        {label:'Cap Droop Only',data:data.cap_sweep_uF.map((c,i)=>({x:c,y:data.droop_cap_only_mV[i]})),borderColor:'#58a6ff',backgroundColor:'transparent',borderWidth:1,borderDash:[4,4],pointRadius:0},
+        {label:'Limit',data:data.cap_sweep_uF.map(c=>({x:c,y:data.allowable_mV})),borderColor:'#f85149',backgroundColor:'transparent',borderWidth:1,borderDash:[8,4],pointRadius:0}
+      ]},
+      options:{animation:false,responsive:true,maintainAspectRatio:false,parsing:false,
+        plugins:{legend:{labels:{color:'#8b949e',boxWidth:12,font:{size:11}}}},
+        scales:{x:{type:'logarithmic',title:{display:true,text:'Cap Value (μF)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}},
+                y:{type:'logarithmic',title:{display:true,text:'Droop (mV)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
+    });
+    document.getElementById('droop-eq-sub').innerHTML=`C = (${body.I_A} A × ${body.pulse_width_us} μs) / (${body.delta_V_mV} mV − ${fmt(data.dV_ESR_mV,2)} mV<sub>ESR</sub>) = <strong style="color:var(--accent)">${fmt(data.C_required_uF,1)} μF</strong>`;
+  }catch(e){toast('Droop error: '+e.message,true);}
+}
+
+// LINK BUDGET
+const LB_TEMPLATES={lna:{name:'LNA',gain_db:16,nf_db:1.5,iip3_dbm:-5},filter:{name:'BPF',gain_db:-1.5,nf_db:1.5,iip3_dbm:50},mixer:{name:'Mixer',gain_db:-7,nf_db:8,iip3_dbm:15},amp:{name:'VGA',gain_db:20,nf_db:4,iip3_dbm:10}};
+function initLbStages(){for(const k of['lna','filter','mixer','amp'])addLbTemplate(k);}
+function addLbStage(name='Stage',gain_db=0,nf_db=3,iip3_dbm=20){
+  const id=++lbStageId;const list=document.getElementById('lb-stages');
+  const row=document.createElement('div');row.className='stage-row';row.id='stage-'+id;
+  row.innerHTML=`<input type="text" value="${name}" placeholder="Name" class="stage-name"/><input type="number" value="${gain_db}" step="0.5" class="stage-gain" title="Gain (dB)"/><input type="number" value="${nf_db}" step="0.1" min="0" class="stage-nf" title="NF (dB)"/><input type="number" value="${iip3_dbm}" step="1" class="stage-iip3" title="IIP3 (dBm)"/><button class="danger" onclick="removeStage(${id})" style="padding:.2rem .4rem;font-size:.75rem">✕</button>`;
+  list.appendChild(row);
+}
+function addLbTemplate(key){const t=LB_TEMPLATES[key]||{name:'Stage',gain_db:0,nf_db:3,iip3_dbm:20};addLbStage(t.name,t.gain_db,t.nf_db,t.iip3_dbm);}
+function removeStage(id){document.getElementById('stage-'+id)?.remove();}
+function getLbStages(){return Array.from(document.querySelectorAll('.stage-row')).map(row=>({name:row.querySelector('.stage-name').value||'Stage',gain_db:parseFloat(row.querySelector('.stage-gain').value)||0,nf_db:parseFloat(row.querySelector('.stage-nf').value)||3,iip3_dbm:parseFloat(row.querySelector('.stage-iip3').value)||20}));}
+function setLbStages(stages){
+  const list=document.getElementById('lb-stages');
+  list.innerHTML='';
+  for(const s of stages){addLbStage(s.name||'Stage',Number(s.gain_db)||0,Number(s.nf_db)||3,Number(s.iip3_dbm)||20);}
+}
+function saveLbCascade(){
+  const payload={
+    version:1,
+    created_at:new Date().toISOString(),
+    system:{
+      input_power_dbm:parseFloat(document.getElementById('lb-pin').value)||-100,
+      freq_ghz:parseFloat(document.getElementById('lb-freq').value)||2.4,
+      bandwidth_mhz:parseFloat(document.getElementById('lb-bw').value)||20,
+      T_K:parseFloat(document.getElementById('lb-T').value)||290
+    },
+    stages:getLbStages()
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  const ts=new Date().toISOString().replace(/[:.]/g,'-');
+  a.href=URL.createObjectURL(blob);
+  a.download=`ctw-cascade-${ts}.json`;
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(a.href);
+  toast('Cascade saved');
+}
+async function importLbCascade(event){
+  try{
+    const file=event?.target?.files?.[0];
+    if(!file){return;}
+    const text=await file.text();
+    const data=JSON.parse(text);
+    if(!Array.isArray(data.stages) || data.stages.length===0){throw new Error('Invalid cascade file: missing stages');}
+    if(data.system){
+      if(data.system.input_power_dbm!=null)document.getElementById('lb-pin').value=data.system.input_power_dbm;
+      if(data.system.freq_ghz!=null)document.getElementById('lb-freq').value=data.system.freq_ghz;
+      if(data.system.bandwidth_mhz!=null)document.getElementById('lb-bw').value=data.system.bandwidth_mhz;
+      if(data.system.T_K!=null)document.getElementById('lb-T').value=data.system.T_K;
+    }
+    setLbStages(data.stages);
+    toast(`Imported ${data.stages.length} stages`);
+    computeLinkBudget();
+  }catch(e){
+    toast('Import failed: '+e.message,true);
+  }finally{
+    if(event?.target)event.target.value='';
+  }
+}
+async function computeLinkBudget(){
+  const stages=getLbStages();if(stages.length===0){toast('Add at least one stage',true);return;}
+  const body={stages,input_power_dbm:parseFloat(document.getElementById('lb-pin').value)||-100,freq_ghz:parseFloat(document.getElementById('lb-freq').value)||2.4,bandwidth_mhz:parseFloat(document.getElementById('lb-bw').value)||20,T_K:parseFloat(document.getElementById('lb-T').value)||290};
+  try{
+    const res=await fetch(API+'/api/link-budget',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();if(!res.ok)throw new Error(data.detail);
+    const sg=document.getElementById('lb-summary');sg.innerHTML='';
+    const sumCards=[{lbl:'Total Gain',val:fmt(data.total_gain_db,2),unit:'dB'},{lbl:'Cascaded NF',val:fmt(data.total_nf_db,2),unit:'dB'},{lbl:'IIP3 (input)',val:fmt(data.iip3_total_dbm,2),unit:'dBm'},{lbl:'OIP3 (output)',val:fmt(data.oip3_total_dbm,2),unit:'dBm'},{lbl:'kTB Noise',val:fmt(data.ktb_dbm,1),unit:'dBm'},{lbl:'Output Signal',val:fmt(data.output_signal_dbm,2),unit:'dBm'}];
+    for(const c of sumCards){const el=document.createElement('div');el.className='result-card';el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val">${c.val}</div><div class="unit">${c.unit}</div>`;sg.appendChild(el);}
+    const tbody=document.getElementById('lb-table-body');tbody.innerHTML='';
+    for(const s of data.stages){
+      tbody.innerHTML+=`<tr><td>${s.stage}</td><td>${s.name}</td><td class="${s.gain_db>=0?'pos':'neg'}">${fmt(s.gain_db,2)}</td><td>${fmt(s.nf_db,2)}</td><td>${fmt(s.iip3_dbm,1)}</td><td class="${s.cum_gain_db>=0?'pos':'neg'}">${fmt(s.cum_gain_db,2)}</td><td>${fmt(s.signal_out_dbm,2)}</td><td>${fmt(s.output_noise_dbm,2)}</td><td class="${s.snr_db>=0?'pos':'neg'}">${fmt(s.snr_db,2)}</td></tr>`;
+    }
+  }catch(e){toast('Link budget error: '+e.message,true);}
+}
+
+// UNIT CONVERTER
+function ucDbmChanged(){const dbm=parseFloat(document.getElementById('uc-dbm').value)||0;const mw=Math.pow(10,dbm/10);document.getElementById('uc-mw').value=mw.toPrecision(6);document.getElementById('uc-w').value=(mw/1000).toPrecision(6);}
+function ucMwChanged(){const mw=parseFloat(document.getElementById('uc-mw').value)||0;document.getElementById('uc-dbm').value=(10*Math.log10(mw>0?mw:1e-30)).toFixed(3);document.getElementById('uc-w').value=(mw/1000).toPrecision(6);}
+function ucWChanged(){const w=parseFloat(document.getElementById('uc-w').value)||0;const mw=w*1000;document.getElementById('uc-mw').value=mw.toPrecision(6);document.getElementById('uc-dbm').value=(10*Math.log10(mw>0?mw:1e-30)).toFixed(3);}
+function ucDbChanged(){const db=parseFloat(document.getElementById('uc-db').value)||0;document.getElementById('uc-lin-v').value=Math.pow(10,db/20).toPrecision(6);document.getElementById('uc-lin-p').value=Math.pow(10,db/10).toPrecision(6);}
+function ucLinVChanged(){const v=parseFloat(document.getElementById('uc-lin-v').value)||0;const db=20*Math.log10(v>0?v:1e-30);document.getElementById('uc-db').value=db.toFixed(4);document.getElementById('uc-lin-p').value=Math.pow(10,db/10).toPrecision(6);}
+function ucLinPChanged(){const p=parseFloat(document.getElementById('uc-lin-p').value)||0;const db=10*Math.log10(p>0?p:1e-30);document.getElementById('uc-db').value=db.toFixed(4);document.getElementById('uc-lin-v').value=Math.pow(10,db/20).toPrecision(6);}
+function ucFreqChanged(){const f=parseFloat(document.getElementById('uc-fghz').value)||1;const wl=3e8/(f*1e9);document.getElementById('uc-wl-mm').value=(wl*1000).toFixed(4);document.getElementById('uc-wl-q').value=(wl*250).toFixed(4);document.getElementById('uc-wl-h').value=(wl*500).toFixed(4);}
+function ucZChanged(){
+  const zr=parseFloat(document.getElementById('uc-zr').value)||50,zi=parseFloat(document.getElementById('uc-zi').value)||0,z0=parseFloat(document.getElementById('uc-z0').value)||50;
+  const nR=zr-z0,nI=zi,dR=zr+z0,dI=zi,d2=dR*dR+dI*dI;
+  const gR=(nR*dR+nI*dI)/d2,gI=(nI*dR-nR*dI)/d2;
+  const mag=Math.sqrt(gR*gR+gI*gI),ang=Math.atan2(gI,gR)*180/Math.PI;
+  const vswr=mag<1?(1+mag)/(1-mag):9999,rl=-20*Math.log10(mag>1e-10?mag:1e-10);
+  document.getElementById('uc-gamma-mag').value=mag.toFixed(5);document.getElementById('uc-gamma-ang').value=ang.toFixed(2);
+  document.getElementById('uc-vswr').value=isFinite(vswr)?vswr.toFixed(3):'∞';document.getElementById('uc-rl').value=isFinite(rl)?rl.toFixed(2):'∞';
+}
+function ucNfChanged(){const nf=parseFloat(document.getElementById('uc-nf').value)||3;document.getElementById('uc-nt').value=((Math.pow(10,nf/10)-1)*290).toFixed(2);}
+function ucNtChanged(){const Te=parseFloat(document.getElementById('uc-nt').value)||289;document.getElementById('uc-nf').value=(10*Math.log10(1+Te/290)).toFixed(4);}
+
+// PCB QUICK TOOLS (Saturn-inspired first-order calculators)
+function milToM(mil){return mil*25.4e-6;}
+function z0Microstrip(er,h,w,t=0){const we=w+t;return (87/Math.sqrt(er+1.41))*Math.log((5.98*h)/(0.8*we));}
+function z0Stripline(er,b,w,t=0){const we=w+0.5*t;return (60/Math.sqrt(er))*Math.log((4*b)/(0.67*Math.PI*we));}
+
+function calcViaProps(){
+  const holeMil=parseFloat(document.getElementById('via-hole').value),plateMil=parseFloat(document.getElementById('via-plate').value),thkMil=parseFloat(document.getElementById('via-thk').value),iA=parseFloat(document.getElementById('via-i').value),n=Math.max(1,parseInt(document.getElementById('via-n').value||'1',10));
+  if([holeMil,plateMil,thkMil,iA].some(v=>!isFinite(v)||v<=0)){toast('Enter positive via values',true);return;}
+  const dIn=milToM(holeMil),dOut=milToM(holeMil+2*plateMil),L=milToM(thkMil),A=Math.PI*(dOut*dOut-dIn*dIn)/4;
+  const rho=1.724e-8,R1=rho*L/Math.max(A,1e-18),Rtot=R1/n,Vdrop=iA*Rtot,P=iA*iA*Rtot;
+  const Amm2=A*1e6,iest=Amm2*10*n;
+  const rows=[['Barrel Cu area',Amm2.toFixed(4),'mm²'],['Single-via DC resistance',(R1*1e3).toFixed(3),'mΩ'],['Parallel-via equivalent R',(Rtot*1e3).toFixed(3),'mΩ'],['Voltage drop @ I',Vdrop.toFixed(6),'V'],['Copper I²R loss',P.toFixed(4),'W'],['Conservative current estimate',iest.toFixed(2),'A']];
+  document.getElementById('via-props-body').innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+}
+
+function calcMinSpacing(){
+  const v=parseFloat(document.getElementById('sp-vpk').value),f=parseFloat(document.getElementById('sp-env').value)||1;
+  if(!isFinite(v)||v<0){toast('Enter valid voltage',true);return;}
+  const bands=[['0–30V',5],['31–60V',6],['61–120V',10],['121–170V',16],['171–250V',20],['251–500V',40],['501–1000V',80]];
+  const body=document.getElementById('spacing-body');
+  body.innerHTML=bands.map(([band,mil])=>{const adj=mil*f;return `<tr style="${(v<=30&&band==='0–30V')||(v>30&&v<=60&&band==='31–60V')||(v>60&&v<=120&&band==='61–120V')||(v>120&&v<=170&&band==='121–170V')||(v>170&&v<=250&&band==='171–250V')||(v>250&&v<=500&&band==='251–500V')||(v>500&&band==='501–1000V')?'background:rgba(46,160,67,.12)':''}"><td>${band}</td><td>${mil.toFixed(1)}</td><td>${adj.toFixed(1)}</td><td>${(adj*0.0254).toFixed(3)}</td></tr>`;}).join('');
+}
+
+function calcDiffPair(){
+  const er=parseFloat(document.getElementById('dp-er').value),h=parseFloat(document.getElementById('dp-h').value),w=parseFloat(document.getElementById('dp-w').value),s=parseFloat(document.getElementById('dp-s').value),t=parseFloat(document.getElementById('dp-t').value),len=parseFloat(document.getElementById('dp-len').value),tr=parseFloat(document.getElementById('dp-tr').value);
+  if([er,h,w,s,t,len,tr].some(v=>!isFinite(v)||v<=0)){toast('Enter positive diff-pair inputs',true);return;}
+  const z0=z0Microstrip(er,h,w,t); const zDiff=2*z0*(1-0.48*Math.exp(-0.96*(s/h))); const k=Math.exp(-s/h);
+  const nextPct=Math.min(100,Math.max(0,8*k*(len/Math.max(1,tr/1000)))); const fextPct=Math.min(100,Math.max(0,4*k*(len/Math.max(1,tr/1000))));
+  const body=[['Single-ended Z0',`${z0.toFixed(2)} Ω`],['Differential impedance',`${zDiff.toFixed(2)} Ω`],['Coupling factor (heuristic)',k.toFixed(3)],['NEXT estimate',`${nextPct.toFixed(2)} %`],['FEXT estimate',`${fextPct.toFixed(2)} %`],['Rule-of-thumb','Keep s ≥ 3h for lower xtalk']];
+  document.getElementById('dp-body').innerHTML=body.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+}
+
+function calcConductorImpedance(){
+  const er=parseFloat(document.getElementById('ci-er').value),h=parseFloat(document.getElementById('ci-h').value),w=parseFloat(document.getElementById('ci-w').value),t=parseFloat(document.getElementById('ci-t').value);
+  if([er,h,w,t].some(v=>!isFinite(v)||v<=0)){toast('Enter positive impedance inputs',true);return;}
+  const widths=[0.6,0.8,1.0,1.2,1.5,2.0].map(m=>w*m);
+  const b=2*h; // simple symmetric stripline assumption
+  document.getElementById('ci-body').innerHTML=widths.map(ww=>`<tr><td>${ww.toFixed(2)}</td><td>${z0Microstrip(er,h,ww,t).toFixed(2)}</td><td>${z0Stripline(er,b,ww,t).toFixed(2)}</td></tr>`).join('');
+}
+</script>
 </body>
 </html>

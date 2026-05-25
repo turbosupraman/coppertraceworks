@@ -14,11 +14,6 @@
       <a class="brand" href="/">Copper Trace <span>Works</span></a>
       <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
     </div>
-    <div class="header-actions">
-      <span class="chip accent">Calculators</span>
-      <span class="chip">Client-side</span>
-      <span class="chip">No backend</span>
-    </div>
   </header>
 
   <nav class="tabbar" aria-label="Primary">
@@ -30,86 +25,113 @@
   </nav>
 
   <main class="page">
-    <section class="hero-panel">
-      <div class="hero-grid">
-        <div class="stack">
-          <div class="eyebrow">Tool catalog</div>
-          <h1>Static calculators with a technical workbench UI.</h1>
-          <p class="lead">These tools run in the browser and do not require a server. The layout intentionally follows the dense instrument-panel feel of the RF simulator reference you shared.</p>
+    <section class="console-panel">
+      <div class="console-head">
+        <div class="panel">
+          <div class="hero-copy">
+            <div class="eyebrow">Tool Directory</div>
+            <h1>Calculator workspace.</h1>
+            <p class="lead">All tools run in the browser. The page is structured like a tabbed internal utility surface, with direct tool launch paths and compact status panels.</p>
+          </div>
         </div>
 
-        <div class="status-grid">
+        <div class="workspace-stats" aria-label="Calculator summary">
           <div class="metric">
             <span class="metric-label">Release set</span>
             <div class="metric-value">3 tools</div>
-            <div class="small">LED resistor, LC resonance, voltage divider</div>
+            <div class="small">LED, LC, divider</div>
           </div>
           <div class="metric">
             <span class="metric-label">Execution</span>
             <div class="metric-value">Browser</div>
-            <div class="small">Fast and easy to host on a static platform</div>
+            <div class="small">No install needed</div>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Next scope</span>
+            <div class="metric-value">RF + EE</div>
+            <div class="small">More bench utilities</div>
           </div>
         </div>
       </div>
-    </section>
 
-    <section class="section card-grid">
-      <article class="card">
-        <div class="section-title">
-          <h2>LED Resistor</h2>
-          <span class="chip accent">Electronics</span>
-        </div>
-        <p class="muted">Calculate the required series resistor, power dissipation, and a safer wattage margin.</p>
-        <div class="button-row">
-          <a class="button-secondary" href="/calculators/led-resistor.html">Open tool</a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="section-title">
-          <h2>LC Resonance</h2>
-          <span class="chip accent">RF</span>
-        </div>
-        <p class="muted">Convert L and C into resonant frequency with unit handling for practical bench work.</p>
-        <div class="button-row">
-          <a class="button-secondary" href="/calculators/lc-resonance.html">Open tool</a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="section-title">
-          <h2>Voltage Divider</h2>
-          <span class="chip accent">Basics</span>
-        </div>
-        <p class="muted">Calculate unloaded divider output voltage and divider current for quick design checks.</p>
-        <div class="button-row">
-          <a class="button-secondary" href="/calculators/voltage-divider.html">Open tool</a>
-        </div>
-      </article>
-    </section>
-
-    <section class="section panel">
-      <div class="section-title">
-        <h2>Planned next additions</h2>
-        <span class="chip">Roadmap</span>
+      <div class="section-tabs" aria-label="Calculator sections">
+        <a class="active" href="#active-tools">Active tools</a>
+        <a href="#planned-tools">Planned tools</a>
+        <a href="#store-links">Store links</a>
       </div>
-      <div class="mini-list">
-        <div class="row">
-          <div class="row-title">Electronics</div>
-          <div class="row-value">Ohm's law, RC cutoff</div>
-        </div>
-        <div class="row">
-          <div class="row-title">RF</div>
-          <div class="row-value">Path loss, thermal noise, dBm to watts</div>
-        </div>
-        <div class="row">
-          <div class="row-title">Power</div>
-          <div class="row-value">Battery runtime, wire voltage drop</div>
-        </div>
-        <div class="row">
-          <div class="row-title">3D printing</div>
-          <div class="row-value">Print cost, filament use, print time</div>
-        </div>
+
+      <div class="workspace-body">
+        <section class="panel directory-panel" id="active-tools">
+          <div class="section-title">
+            <h2>Active Tools</h2>
+            <span class="chip accent">Launch</span>
+          </div>
+          <div class="tool-list">
+            <a class="tool-row" href="/calculators/led-resistor.html">
+              <div class="tool-main">
+                <span class="tool-tag">Electronics</span>
+                <h3>LED Resistor Calculator</h3>
+                <p class="muted">Series resistor sizing, resistor power dissipation, and recommended margin.</p>
+              </div>
+              <div class="tool-meta">Open tool</div>
+            </a>
+            <a class="tool-row" href="/calculators/lc-resonance.html">
+              <div class="tool-main">
+                <span class="tool-tag">RF</span>
+                <h3>LC Resonance Calculator</h3>
+                <p class="muted">Ideal resonant frequency from inductance and capacitance with practical units.</p>
+              </div>
+              <div class="tool-meta">Open tool</div>
+            </a>
+            <a class="tool-row" href="/calculators/voltage-divider.html">
+              <div class="tool-main">
+                <span class="tool-tag">Basics</span>
+                <h3>Voltage Divider Calculator</h3>
+                <p class="muted">Output voltage, divider current, and total resistance for unloaded dividers.</p>
+              </div>
+              <div class="tool-meta">Open tool</div>
+            </a>
+          </div>
+        </section>
+
+        <aside class="stack">
+          <section class="panel side-panel" id="planned-tools">
+            <div class="section-title">
+              <h2>Planned Tools</h2>
+              <span class="chip">Next</span>
+            </div>
+            <div class="mini-list">
+              <div class="row">
+                <div class="row-title">Electronics</div>
+                <div class="row-value">Ohm's law, RC cutoff</div>
+              </div>
+              <div class="row">
+                <div class="row-title">RF</div>
+                <div class="row-value">Path loss, noise, dBm to watts</div>
+              </div>
+              <div class="row">
+                <div class="row-title">Power</div>
+                <div class="row-value">Battery runtime, wire drop</div>
+              </div>
+              <div class="row">
+                <div class="row-title">3D print</div>
+                <div class="row-value">Print cost, filament use</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel side-panel" id="store-links">
+            <div class="section-title">
+              <h2>Relevant Products</h2>
+              <span class="chip">CTW</span>
+            </div>
+            <div class="link-list">
+              <a href="https://shop.coppertraceworks.com">Bench gadgets</a>
+              <a href="https://shop.coppertraceworks.com">Display kits</a>
+              <a href="https://shop.coppertraceworks.com">3D-printed accessories</a>
+            </div>
+          </section>
+        </aside>
       </div>
     </section>
   </main>
