@@ -207,6 +207,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
   <button class="tab-btn" onclick="switchTab(4)">🔧 Component Models</button>
   <button class="tab-btn" onclick="switchTab(5)">📡 Radar</button>
   <button class="tab-btn" onclick="switchTab(6)">🔋 Pulse Droop</button>
+  <button class="tab-btn" onclick="switchTab(17)">🧱 Decoupling Explorer</button>
   <button class="tab-btn" onclick="switchTab(7)">📶 Link Budget</button>
   <button class="tab-btn" onclick="switchTab(8)">🔄 Unit Converter</button>
   <button class="tab-btn" onclick="switchTab(9)">⚙️ Ohm's Law + Power</button>
@@ -546,6 +547,65 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 </div>
 
+<!-- TAB 17: DECOUPLING EXPLORER -->
+<div class="tab-panel" id="tab-17">
+<div class="two-col sync-scroll">
+  <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
+    <div class="card">
+      <h2>Decoupling Goal</h2>
+      <div class="row">
+        <div class="col"><label>Step current ΔI (A)</label><input type="number" id="dec-di" value="3" step="0.1" min="0.01"/></div>
+        <div class="col"><label>Allowable ripple / droop (mV)</label><input type="number" id="dec-dv" value="30" step="1" min="1"/></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Edge time (ns)</label><input type="number" id="dec-edge" value="5" step="0.1" min="0.1"/></div>
+        <div class="col"><label>Hold-up window (μs)</label><input type="number" id="dec-hold" value="2" step="0.1" min="0.01"/></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Mount / spreading ESL (nH)</label><input type="number" id="dec-mount-esl" value="0.2" step="0.01" min="0"/></div>
+        <div class="col"><label>Rail resistance (mΩ)</label><input type="number" id="dec-rail-r" value="1.5" step="0.1" min="0"/></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Plot start (kHz)</label><input type="number" id="dec-f1" value="10" step="1" min="0.1"/></div>
+        <div class="col"><label>Plot stop (MHz)</label><input type="number" id="dec-f2" value="1000" step="10" min="1"/></div>
+      </div>
+      <button onclick="computeDecouplingExplorer()">Build Decoupling Plot</button>
+    </div>
+    <div class="card">
+      <h2>Cap Banks</h2>
+      <div class="stack-wrap">
+        <table class="stack-table">
+          <thead><tr><th>Bank</th><th>Qty</th><th>C (μF)</th><th>ESR (mΩ)</th><th>ESL (nH)</th></tr></thead>
+          <tbody>
+            <tr><td>HF</td><td><input type="number" id="dec-hf-n" value="6" min="0" step="1"/></td><td><input type="number" id="dec-hf-c" value="0.1" min="0" step="0.01"/></td><td><input type="number" id="dec-hf-esr" value="12" min="0" step="0.1"/></td><td><input type="number" id="dec-hf-esl" value="0.35" min="0" step="0.01"/></td></tr>
+            <tr><td>MF</td><td><input type="number" id="dec-mf-n" value="4" min="0" step="1"/></td><td><input type="number" id="dec-mf-c" value="1" min="0" step="0.01"/></td><td><input type="number" id="dec-mf-esr" value="18" min="0" step="0.1"/></td><td><input type="number" id="dec-mf-esl" value="0.7" min="0" step="0.01"/></td></tr>
+            <tr><td>Bulk</td><td><input type="number" id="dec-bulk-n" value="2" min="0" step="1"/></td><td><input type="number" id="dec-bulk-c" value="47" min="0" step="0.1"/></td><td><input type="number" id="dec-bulk-esr" value="22" min="0" step="0.1"/></td><td><input type="number" id="dec-bulk-esl" value="2.2" min="0" step="0.01"/></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-sm" style="margin-top:.7rem">First-pass PDN shaping only: identical parts are paralleled, then combined with a simple shared mount ESL + rail resistance. It is meant to show where each bank helps and where anti-resonance starts to hurt.</p>
+    </div>
+    <div class="card">
+      <h2>What this tab is showing</h2>
+      <div id="dec-summary" class="text-sm" style="display:flex;flex-direction:column;gap:.45rem;color:var(--text2)"></div>
+    </div>
+  </div>
+  <div class="right-panel" style="display:flex;flex-direction:column;gap:.8rem">
+    <div class="card"><h2>Quick Read</h2><div id="dec-results" class="result-grid"></div></div>
+    <div class="card"><h2>|Z| vs Frequency</h2><div class="chart-wrap" style="height:320px"><canvas id="dec-chart"></canvas></div></div>
+    <div class="card">
+      <h2>Bank Coverage Map</h2>
+      <div id="dec-coverage" style="display:flex;flex-direction:column;gap:.55rem"></div>
+      <p class="text-sm" style="margin-top:.7rem">Each bar is centered on that bank’s self-resonant frequency. Long bars mean lower-frequency coverage. Short bars mean the bank mainly helps near the fast edge.</p>
+    </div>
+    <div class="card stack-wrap">
+      <h2>Bank Details</h2>
+      <table class="stack-table"><thead><tr><th>Bank</th><th>Total C</th><th>Eq ESR</th><th>Eq ESL</th><th>SRF</th><th>Use it for</th></tr></thead><tbody id="dec-bank-body"></tbody></table>
+    </div>
+  </div>
+</div>
+</div>
+
 <!-- TAB 7: LINK BUDGET -->
 <div class="tab-panel" id="tab-7">
 <div style="display:flex;flex-direction:column;gap:.8rem">
@@ -848,7 +908,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 <script>
 const API = `${location.protocol}//${location.hostname}:8086`;
 let spData=null,fixtureData=null,spChartMode='db';
-let spChartInst=null,compChartInst=null,compPhaseInst=null,radarChartInst=null,droopChartInst=null;
+let spChartInst=null,compChartInst=null,compPhaseInst=null,radarChartInst=null,droopChartInst=null,decChartInst=null;
 let radarChartData=null,currentComp='inductor',lbStageId=0;
 
 function toast(msg,err=false){
@@ -867,8 +927,11 @@ function fmtEng(v){
 }
 
 function switchTab(idx){
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
-  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  document.querySelectorAll('.tab-btn').forEach((b)=>{
+    const match=(b.getAttribute('onclick')||'').match(/switchTab\((\d+)\)/);
+    b.classList.toggle('active',match?Number(match[1])===idx:false);
+  });
+  document.querySelectorAll('.tab-panel').forEach((p)=>p.classList.toggle('active',p.id===`tab-${idx}`));
 }
 
 // CTW CALCULATORS
@@ -1179,7 +1242,7 @@ function setComp(type){
 document.addEventListener('DOMContentLoaded',()=>{
   setComp('inductor');buildSmithGrid('smith-grid');buildSmithGrid('comp-smith-grid');
   initLbStages();ucFreqChanged();ucDbmChanged();ucDbChanged();ucZChanged();ucNfChanged();
-  computeDroop();computeRadar();
+  computeDroop();computeRadar();computeDecouplingExplorer();
 });
 async function computeComponent(){
   buildSmithGrid('comp-smith-grid');
@@ -1418,6 +1481,115 @@ function calcConductorImpedance(){
   const widths=[0.6,0.8,1.0,1.2,1.5,2.0].map(m=>w*m);
   const b=2*h; // simple symmetric stripline assumption
   document.getElementById('ci-body').innerHTML=widths.map(ww=>`<tr><td>${ww.toFixed(2)}</td><td>${z0Microstrip(er,h,ww,t).toFixed(2)}</td><td>${z0Stripline(er,b,ww,t).toFixed(2)}</td></tr>`).join('');
+}
+
+function logspace(start,stop,count){
+  const out=[];const a=Math.log10(start),b=Math.log10(stop);
+  for(let i=0;i<count;i++)out.push(Math.pow(10,a+(b-a)*(i/(count-1))));
+  return out;
+}
+function cAdd(a,b){return{re:a.re+b.re,im:a.im+b.im};}
+function cInv(z){const d=z.re*z.re+z.im*z.im;return d>0?{re:z.re/d,im:-z.im/d}:{re:0,im:0};}
+function cAbs(z){return Math.hypot(z.re,z.im);}
+function seriesCapZ(freq,C,ESR,ESL){const w=2*Math.PI*freq;return{re:ESR,im:w*ESL-1/(w*C)};}
+function parallelEsr(banks){let g=0;for(const b of banks){if(b.eqEsr>0)g+=1/b.eqEsr;}return g>0?1/g:Infinity;}
+function bandLabel(freq){if(freq<1e5)return'bulk energy / low-frequency hold-up';if(freq<5e6)return'mid-band switching energy';return'fast-edge / package loop cleanup';}
+function getDecouplingBanks(){
+  return[
+    {key:'HF',color:'#58a6ff',n:parseInt(document.getElementById('dec-hf-n').value||'0',10),c_uF:parseFloat(document.getElementById('dec-hf-c').value)||0,esr_mohm:parseFloat(document.getElementById('dec-hf-esr').value)||0,esl_nH:parseFloat(document.getElementById('dec-hf-esl').value)||0},
+    {key:'MF',color:'#3fb950',n:parseInt(document.getElementById('dec-mf-n').value||'0',10),c_uF:parseFloat(document.getElementById('dec-mf-c').value)||0,esr_mohm:parseFloat(document.getElementById('dec-mf-esr').value)||0,esl_nH:parseFloat(document.getElementById('dec-mf-esl').value)||0},
+    {key:'Bulk',color:'#f0883e',n:parseInt(document.getElementById('dec-bulk-n').value||'0',10),c_uF:parseFloat(document.getElementById('dec-bulk-c').value)||0,esr_mohm:parseFloat(document.getElementById('dec-bulk-esr').value)||0,esl_nH:parseFloat(document.getElementById('dec-bulk-esl').value)||0}
+  ].map(b=>{
+    const totalC=b.c_uF*1e-6*Math.max(0,b.n);
+    const eqEsr=b.n>0?(b.esr_mohm*1e-3)/b.n:Infinity;
+    const eqEsl=b.n>0?(b.esl_nH*1e-9)/b.n:Infinity;
+    return {...b,totalC,eqEsr,eqEsl};
+  }).filter(b=>b.n>0&&b.totalC>0&&isFinite(b.eqEsr)&&isFinite(b.eqEsl));
+}
+function computeDecouplingExplorer(){
+  const di=parseFloat(document.getElementById('dec-di').value)||0;
+  const dv=parseFloat(document.getElementById('dec-dv').value)||0;
+  const edgeNs=parseFloat(document.getElementById('dec-edge').value)||0;
+  const holdUs=parseFloat(document.getElementById('dec-hold').value)||0;
+  const mountEsl=(parseFloat(document.getElementById('dec-mount-esl').value)||0)*1e-9;
+  const railR=(parseFloat(document.getElementById('dec-rail-r').value)||0)*1e-3;
+  const f1=(parseFloat(document.getElementById('dec-f1').value)||10)*1e3;
+  const f2=(parseFloat(document.getElementById('dec-f2').value)||1000)*1e6;
+  const banks=getDecouplingBanks();
+  if(di<=0||dv<=0||edgeNs<=0||holdUs<=0||f1<=0||f2<=f1||banks.length===0){toast('Enter valid decoupling inputs',true);return;}
+  const freqs=logspace(f1,f2,500);
+  const zTarget=(dv*1e-3)/di;
+  const totalCurve=[];
+  let zMin=Infinity,zMinFreq=f1;
+  const bankDatasets=banks.map(b=>({
+    label:`${b.key} bank`,
+    data:freqs.map(f=>({x:f/1e6,y:cAbs(seriesCapZ(f,b.totalC,b.eqEsr,b.eqEsl))})),
+    borderColor:b.color,backgroundColor:'transparent',borderWidth:1,borderDash:[6,4],pointRadius:0
+  }));
+  for(const f of freqs){
+    const w=2*Math.PI*f;
+    let y={re:0,im:0};
+    for(const b of banks)y=cAdd(y,cInv(seriesCapZ(f,b.totalC,b.eqEsr,b.eqEsl)));
+    let z=cInv(y);
+    z={re:z.re+railR,im:z.im+w*mountEsl};
+    const mag=cAbs(z);
+    totalCurve.push(mag);
+    if(mag<zMin){zMin=mag;zMinFreq=f;}
+  }
+  const passIdx=[];
+  totalCurve.forEach((mag,i)=>{if(mag<=zTarget)passIdx.push(i);});
+  const firstPass=passIdx.length?freqs[passIdx[0]]:null;
+  const lastPass=passIdx.length?freqs[passIdx[passIdx.length-1]]:null;
+  const totalC=banks.reduce((s,b)=>s+b.totalC,0);
+  const capOnlyNeed=di*(holdUs*1e-6)/(dv*1e-3);
+  const esrEq=parallelEsr(banks)+railR;
+  const esrStep=di*esrEq;
+  const holdDroop=totalC>0?di*(holdUs*1e-6)/totalC:Infinity;
+  const totalDroop=esrStep+holdDroop;
+  const rg=document.getElementById('dec-results');
+  rg.innerHTML='';
+  [
+    {lbl:'Target impedance',val:fmt(zTarget*1e3,2),unit:'mΩ'},
+    {lbl:'Total installed C',val:fmt(totalC*1e6,2),unit:'μF'},
+    {lbl:'Lowest |Z|',val:fmt(zMin*1e3,2),unit:`mΩ @ ${formatFreq(zMinFreq)}`},
+    {lbl:'Cap-only need',val:fmt(capOnlyNeed*1e6,1),unit:'μF'},
+    {lbl:'Instant ESR step',val:fmt(esrStep*1e3,2),unit:'mV'},
+    {lbl:`${holdUs.toFixed(2)} μs droop est.`,val:fmt(totalDroop*1e3,2),unit:'mV'}
+  ].forEach(c=>{const el=document.createElement('div');el.className='result-card';el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val">${c.val}</div><div class="unit">${c.unit}</div>`;rg.appendChild(el);});
+  document.getElementById('dec-summary').innerHTML=`
+    <div><strong style="color:var(--accent)">Target Z:</strong> ${fmt(zTarget*1e3,2)} mΩ from ${di.toFixed(2)} A / ${dv.toFixed(1)} mV.</div>
+    <div><strong style="color:var(--accent2)">Fast edge:</strong> ${edgeNs.toFixed(2)} ns means the rail needs useful help well up into the tens-to-hundreds of MHz where ESL dominates.</div>
+    <div><strong style="color:var(--text)">Current config stays under target over:</strong> ${firstPass&&lastPass?`${formatFreq(firstPass)} to ${formatFreq(lastPass)}`:'no full-band crossing'}.</div>
+    <div><strong style="color:var(--text)">Time-domain sanity check:</strong> about ${fmt(esrStep*1e3,2)} mV immediate ESR drop plus ${fmt(holdDroop*1e3,2)} mV capacitor droop across ${holdUs.toFixed(2)} μs.</div>`;
+  if(decChartInst)decChartInst.destroy();
+  decChartInst=new Chart(document.getElementById('dec-chart').getContext('2d'),{
+    type:'line',
+    data:{datasets:[
+      {label:'Total rail |Z|',data:freqs.map((f,i)=>({x:f/1e6,y:totalCurve[i]})),borderColor:'#f7c65b',backgroundColor:'rgba(247,198,91,.08)',borderWidth:2,pointRadius:0},
+      {label:'Target',data:freqs.map(f=>({x:f/1e6,y:zTarget})),borderColor:'#f85149',backgroundColor:'transparent',borderDash:[8,4],borderWidth:1.2,pointRadius:0},
+      ...bankDatasets
+    ]},
+    options:{animation:false,responsive:true,maintainAspectRatio:false,parsing:false,
+      plugins:{legend:{labels:{color:'#8b949e',boxWidth:12,font:{size:11}}}},
+      scales:{x:{type:'logarithmic',title:{display:true,text:'Frequency (MHz)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}},
+              y:{type:'logarithmic',title:{display:true,text:'Impedance (Ω)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
+  });
+  document.getElementById('dec-bank-body').innerHTML=banks.map(b=>{
+    const srf=1/(2*Math.PI*Math.sqrt(b.totalC*b.eqEsl));
+    return `<tr><td>${b.key} (${b.n}x)</td><td>${fmt(b.totalC*1e6,3)} μF</td><td>${fmt(b.eqEsr*1e3,2)} mΩ</td><td>${fmt(b.eqEsl*1e9,3)} nH</td><td>${formatFreq(srf)}</td><td>${bandLabel(srf)}</td></tr>`;
+  }).join('');
+  const coverage=document.getElementById('dec-coverage');
+  coverage.innerHTML='';
+  const logMin=Math.log10(f1),logMax=Math.log10(f2),span=logMax-logMin;
+  banks.forEach(b=>{
+    const srf=1/(2*Math.PI*Math.sqrt(b.totalC*b.eqEsl));
+    const left=Math.max(f1,srf/10),right=Math.min(f2,srf*10);
+    const leftPct=Math.max(0,((Math.log10(left)-logMin)/span)*100);
+    const rightPct=Math.max(leftPct+2,((Math.log10(right)-logMin)/span)*100);
+    const wrap=document.createElement('div');
+    wrap.innerHTML=`<div style="display:flex;justify-content:space-between;gap:.6rem;font-size:.8rem;color:var(--text2)"><span>${b.key} bank</span><span>${b.n} parts · SRF ${formatFreq(srf)}</span></div><div style="position:relative;height:18px;border-radius:999px;background:#0d1117;border:1px solid var(--border);overflow:hidden"><div style="position:absolute;left:${leftPct}%;width:${Math.max(3,rightPct-leftPct)}%;top:2px;bottom:2px;border-radius:999px;background:${b.color};box-shadow:0 0 18px ${b.color}55"></div></div>`;
+    coverage.appendChild(wrap);
+  });
 }
 </script>
 </body>
