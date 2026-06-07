@@ -42,11 +42,13 @@ button.danger{background:var(--red)}button.green{background:var(--accent2)}
 .pcb-decor path.trace-soft{opacity:.17;stroke-width:1.35}
 .pcb-decor path.trace-strong{opacity:.58;stroke-width:2.8}
 .pcb-decor path.base-trace{opacity:.7;stroke-width:2.8}
+.pcb-decor path.emitter-trace{opacity:.72;stroke-width:2.9}
 .pcb-decor path.glow{stroke:rgba(240,181,107,.18);stroke-width:10;fill:none}
 .pcb-decor circle.node{fill:rgba(209,138,58,.18);stroke:rgba(240,181,107,.42);stroke-width:1.1}
 .pcb-decor circle.pulse-core{fill:#ffe3b9;filter:drop-shadow(0 0 10px rgba(255,214,153,.95))}
 .pcb-decor circle.pulse-warm{fill:#ffb866;filter:drop-shadow(0 0 14px rgba(209,138,58,.95))}
 .pcb-decor circle.pulse-echo{fill:rgba(255,210,154,.72);filter:drop-shadow(0 0 8px rgba(240,181,107,.72))}
+.pcb-decor .transistor-flash{fill:rgba(255,210,154,.16);stroke:rgba(255,214,153,.7);stroke-width:1.4;filter:drop-shadow(0 0 12px rgba(255,196,110,.65));opacity:.18}
 .pcb-label{fill:rgba(243,244,246,.55);font-size:12px;letter-spacing:1.5px;text-transform:uppercase}
 header,#tab-bar,#content{position:relative;z-index:1}
 header{background:var(--bg2);border-bottom:1px solid var(--border);padding:.6rem 1.2rem;display:flex;align-items:center;gap:1rem;flex-shrink:0;}
@@ -110,14 +112,18 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 <div id="app">
 <div class="pcb-decor" aria-hidden="true">
   <svg class="pcb-header-rail" viewBox="0 0 1600 108" preserveAspectRatio="none">
-    <path class="glow" d="M24 54 H120 M120 54 H182 M186 54 L232 54 L272 28 M272 28 H502 L552 54 H864 L918 20 H1210 L1286 54 H1576"/>
+    <path class="glow" d="M24 54 H120 M120 54 H182 M198 66 L232 78 L272 78 M272 78 H520 L572 54 H862 L926 30 H1204 L1288 54 H1576"/>
     <path class="trace base-trace" d="M24 54 H120"/>
-    <path class="trace trace-strong" d="M272 28 H502 L552 54 H864 L918 20 H1210 L1286 54 H1576"/>
+    <path class="trace emitter-trace" d="M272 78 H520 L572 54 H862 L926 30 H1204 L1288 54 H1576"/>
     <path id="pcb-base-pulse" class="trace base-trace" d="M24 54 H120 L182 54"/>
-    <path id="pcb-top-pulse" class="trace trace-strong" d="M186 54 L232 54 L272 28 H502 L552 54 H864 L918 20 H1210 L1286 54 H1576"/>
-    <path class="trace trace-soft" d="M340 78 H612 L662 44 H972 L1040 72 H1340 L1408 34 H1546"/>
-    <path class="trace trace-soft" d="M396 14 H726 L782 40 H1104 L1162 10 H1468"/>
+    <path id="pcb-emitter-pulse" class="trace emitter-trace" d="M186 54 L196 60 L232 78 L272 78 H520 L572 54 H862 L926 30 H1204 L1288 54 H1576"/>
+    <path class="trace trace-soft" d="M340 90 H606 L662 62 H970 L1048 86 H1328 L1408 48 H1546"/>
+    <path class="trace trace-soft" d="M402 18 H724 L782 44 H1088 L1158 16 H1468"/>
 
+    <circle class="transistor-flash" cx="186" cy="54" r="22">
+      <animate attributeName="opacity" values="0.18;0.18;0.92;0.28;0.18" keyTimes="0;0.58;0.7;0.82;1" dur="5.9s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="20;20;27;23;20" keyTimes="0;0.58;0.7;0.82;1" dur="5.9s" repeatCount="indefinite"/>
+    </circle>
     <g fill="none" stroke="var(--brand)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
       <circle cx="186" cy="54" r="18" opacity=".22"/>
       <line x1="120" y1="54" x2="170" y2="54"/>
@@ -131,32 +137,32 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 
     <circle class="node" cx="120" cy="54" r="5.8"/>
     <circle class="node" cx="182" cy="54" r="5.2"/>
-    <circle class="node" cx="272" cy="28" r="6.2"/>
-    <circle class="node" cx="552" cy="54" r="6.2"/>
-    <circle class="node" cx="918" cy="20" r="6.2"/>
-    <circle class="node" cx="1286" cy="54" r="6.2"/>
+    <circle class="node" cx="232" cy="78" r="5.6"/>
+    <circle class="node" cx="572" cy="54" r="6.2"/>
+    <circle class="node" cx="926" cy="30" r="6.2"/>
+    <circle class="node" cx="1288" cy="54" r="6.2"/>
 
     <text class="pcb-label" x="34" y="36">base drive</text>
-    <text class="pcb-label" x="298" y="18">signal out</text>
+    <text class="pcb-label" x="300" y="98">emitter out</text>
 
     <circle class="pulse-core" r="4.8">
-      <animateMotion dur="2.4s" repeatCount="indefinite" rotate="auto" keyTimes="0;1" keySplines="0.32 0 0.18 1" calcMode="spline">
+      <animateMotion dur="2.2s" repeatCount="indefinite" rotate="auto" keyTimes="0;1" keySplines="0.32 0 0.18 1" calcMode="spline">
         <mpath href="#pcb-base-pulse"/>
       </animateMotion>
     </circle>
     <circle class="pulse-echo" r="3.4">
-      <animateMotion dur="2.4s" repeatCount="indefinite" rotate="auto" begin="-.28s" keyTimes="0;1" keySplines="0.32 0 0.18 1" calcMode="spline">
+      <animateMotion dur="2.2s" repeatCount="indefinite" rotate="auto" begin="-.24s" keyTimes="0;1" keySplines="0.32 0 0.18 1" calcMode="spline">
         <mpath href="#pcb-base-pulse"/>
       </animateMotion>
     </circle>
-    <circle class="pulse-warm" r="4.8">
-      <animateMotion dur="5.8s" repeatCount="indefinite" rotate="auto" begin="1.55s" keyTimes="0;1" keySplines="0.32 0 0.18 1" calcMode="spline">
-        <mpath href="#pcb-top-pulse"/>
+    <circle class="pulse-warm" r="5.1">
+      <animateMotion dur="5.9s" repeatCount="indefinite" rotate="auto" begin="1.3s" keyTimes="0;1" keySplines="0.32 0 0.18 1" calcMode="spline">
+        <mpath href="#pcb-emitter-pulse"/>
       </animateMotion>
     </circle>
-    <circle class="pulse-core" r="3.8">
-      <animateMotion dur="6.9s" repeatCount="indefinite" rotate="auto" begin=".95s" keyTimes="0;1" keySplines="0.32 0 0.18 1" calcMode="spline">
-        <mpath href="#pcb-top-pulse"/>
+    <circle class="pulse-core" r="3.9">
+      <animateMotion dur="6.8s" repeatCount="indefinite" rotate="auto" begin="1.62s" keyTimes="0;1" keySplines="0.32 0 0.18 1" calcMode="spline">
+        <mpath href="#pcb-emitter-pulse"/>
       </animateMotion>
     </circle>
   </svg>
