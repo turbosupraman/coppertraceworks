@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Coax Cable Loss Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate coaxial cable attenuation for common cable types at any frequency and length.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">Coax Loss</span>
+      <span class="chip">RF</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">Cable + Run</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="cable">Cable type</label>
+              <select id="cable">
+                <option value="rg58">RG-58 (50 Ω)</option>
+                <option value="rg8x">RG-8X (50 Ω)</option>
+                <option value="rg213">RG-213 (50 Ω)</option>
+                <option value="lmr240">LMR-240 (50 Ω)</option>
+                <option value="lmr400" selected>LMR-400 (50 Ω)</option>
+                <option value="lmr600">LMR-600 (50 Ω)</option>
+                <option value="rg6">RG-6 (75 Ω)</option>
+                <option value="custom">Custom (enter dB/100ft)</option>
+              </select>
+            </div>
+            <div id="customRow" style="display:none">
+              <label for="customLoss">Loss at ref frequency (dB/100ft)</label>
+              <input id="customLoss" type="number" step="any" value="2.5">
+              <label for="customFreq" style="margin-top:0.4rem">Reference frequency (MHz)</label>
+              <input id="customFreq" type="number" step="any" value="100">
+            </div>
+            <div>
+              <label for="freq">Frequency</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="freq" type="number" step="any" value="144" style="flex:1">
+                <select id="funit">
+                  <option value="1" selected>MHz</option>
+                  <option value="1e3">GHz</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="len">Cable length</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="len" type="number" step="any" value="50" style="flex:1">
+                <select id="lunit">
+                  <option value="ft" selected>ft</option>
+                  <option value="m">m</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Model</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>Loss(f) = Loss_ref × √(f / f_ref)</code></p>
+            <p style="margin-top:0.4rem; font-size:0.78rem; color:var(--text2)">Loss scales with √f due to skin effect. Reference values are nominal manufacturer specs.</p>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Select a cable, enter frequency and length, then press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Cable reference (dB/100ft)</h2>
+            <span class="chip">@ 100 MHz</span>
+          </div>
+          <div class="mini-list">
+            <div class="row"><div class="row-title">RG-58</div><div class="row-value">5.4 dB</div></div>
+            <div class="row"><div class="row-title">RG-8X</div><div class="row-value">3.9 dB</div></div>
+            <div class="row"><div class="row-title">LMR-240</div><div class="row-value">2.6 dB</div></div>
+            <div class="row"><div class="row-title">LMR-400</div><div class="row-value">1.5 dB</div></div>
+            <div class="row"><div class="row-title">LMR-600</div><div class="row-value">1.0 dB</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+// Loss per 100ft at reference frequency, [loss_dB_per_100ft, ref_freq_MHz]
+const CABLES = {
+  rg58:   { name: 'RG-58',   loss: 5.4,  ref: 100 },
+  rg8x:   { name: 'RG-8X',   loss: 3.9,  ref: 100 },
+  rg213:  { name: 'RG-213',  loss: 4.8,  ref: 100 },
+  lmr240: { name: 'LMR-240', loss: 2.6,  ref: 100 },
+  lmr400: { name: 'LMR-400', loss: 1.5,  ref: 100 },
+  lmr600: { name: 'LMR-600', loss: 1.0,  ref: 100 },
+  rg6:    { name: 'RG-6',    loss: 3.2,  ref: 100 },
+};
+
+document.getElementById('cable').addEventListener('change', function() {
+  document.getElementById('customRow').style.display = this.value === 'custom' ? '' : 'none';
+});
+
+function calculate() {
+  const cableKey = document.getElementById('cable').value;
+  const freqRaw = parseFloat(document.getElementById('freq').value);
+  const fmul = parseFloat(document.getElementById('funit').value);
+  const lenRaw = parseFloat(document.getElementById('len').value);
+  const lunit = document.getElementById('lunit').value;
+  const out = document.getElementById('result');
+
+  if (isNaN(freqRaw) || isNaN(lenRaw) || freqRaw <= 0 || lenRaw <= 0) {
+    out.innerHTML = 'Enter valid frequency and length.'; return;
+  }
+
+  const f_MHz = freqRaw * fmul;
+  const len_ft = lunit === 'm' ? lenRaw * 3.28084 : lenRaw;
+
+  let loss_per_100ft_at_ref, ref_freq_MHz;
+  if (cableKey === 'custom') {
+    loss_per_100ft_at_ref = parseFloat(document.getElementById('customLoss').value);
+    ref_freq_MHz = parseFloat(document.getElementById('customFreq').value);
+    if (isNaN(loss_per_100ft_at_ref) || isNaN(ref_freq_MHz)) { out.innerHTML = 'Enter custom loss and reference frequency.'; return; }
+  } else {
+    const cab = CABLES[cableKey];
+    loss_per_100ft_at_ref = cab.loss;
+    ref_freq_MHz = cab.ref;
+  }
+
+  const loss_at_f = loss_per_100ft_at_ref * Math.sqrt(f_MHz / ref_freq_MHz);
+  const total_loss = (len_ft / 100) * loss_at_f;
+  const loss_per_m = loss_at_f / 30.48;
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">Total cable loss</div><div class="val">${total_loss.toFixed(2)} dB</div></div>` +
+    `<div class="result-card"><div class="lbl">Loss per 100 ft</div><div class="val">${loss_at_f.toFixed(2)} dB</div></div>` +
+    `<div class="result-card"><div class="lbl">Loss per meter</div><div class="val">${loss_per_m.toFixed(3)} dB/m</div></div>` +
+    `<div class="result-card"><div class="lbl">Power at end of run</div><div class="val">${(100 * Math.pow(10, -total_loss/10)).toFixed(2)}% of input</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>

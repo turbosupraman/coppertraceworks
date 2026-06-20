@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ADC SNR / ENOB Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate ADC SNR, ENOB, dynamic range, and noise floor from bit depth and measured performance.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">ADC SNR / ENOB</span>
+      <span class="chip">Signal Chain</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Ideal ADC</h2>
+            <span class="chip accent">From bit depth</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="bits">Resolution (bits)</label>
+              <input id="bits" type="number" step="1" min="1" max="32" value="12">
+            </div>
+            <div>
+              <label for="Vref">Full-scale range (V p-p)</label>
+              <input id="Vref" type="number" step="any" value="3.3">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calcIdeal()">Calculate ideal</button>
+          </div>
+          <div class="result-screen" id="res_ideal" style="margin-top:0.8rem">Enter bit depth and press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Measured performance</h2>
+            <span class="chip accent">SNR / SINAD → ENOB</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="snr_meas">Measured SNR or SINAD (dB)</label>
+              <input id="snr_meas" type="number" step="any" value="70">
+            </div>
+            <div>
+              <label for="sfdr">SFDR (dBc, optional)</label>
+              <input id="sfdr" type="number" step="any" placeholder="e.g. 80">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calcENOB()">Calculate ENOB</button>
+          </div>
+          <div class="result-screen" id="res_enob" style="margin-top:0.8rem">Enter measured SNR and press Calculate.</div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equations</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>SNR_ideal = 6.02·N + 1.76 dB</code></p>
+            <p style="margin-top:0.4rem"><code>ENOB = (SNR_meas – 1.76) / 6.02</code></p>
+            <p style="margin-top:0.4rem"><code>DR = 20·log₁₀(2ᴺ) = 6.02·N dB</code></p>
+            <p style="margin-top:0.4rem"><code>LSB = V_FS / 2ᴺ</code></p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Reference table</h2>
+            <span class="chip">Ideal SNR</span>
+          </div>
+          <div class="mini-list">
+            <div class="row"><div class="row-title">8-bit</div><div class="row-value">49.9 dB</div></div>
+            <div class="row"><div class="row-title">12-bit</div><div class="row-value">74.0 dB</div></div>
+            <div class="row"><div class="row-title">16-bit</div><div class="row-value">98.1 dB</div></div>
+            <div class="row"><div class="row-title">24-bit</div><div class="row-value">146.2 dB</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+function calcIdeal() {
+  const N = parseInt(document.getElementById('bits').value);
+  const Vfs = parseFloat(document.getElementById('Vref').value);
+  const out = document.getElementById('res_ideal');
+  if (isNaN(N) || N < 1 || N > 32 || isNaN(Vfs) || Vfs <= 0) {
+    out.innerHTML = 'Enter valid bit depth and full-scale voltage.'; return;
+  }
+  const snr = 6.02 * N + 1.76;
+  const dr = 6.02 * N;
+  const levels = Math.pow(2, N);
+  const lsb_mV = (Vfs / levels) * 1000;
+  const lsb_uV = lsb_mV * 1000;
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">Ideal SNR</div><div class="val">${snr.toFixed(2)} dB</div></div>` +
+    `<div class="result-card"><div class="lbl">Dynamic range</div><div class="val">${dr.toFixed(2)} dB</div></div>` +
+    `<div class="result-card"><div class="lbl">Quantization levels</div><div class="val">${levels.toLocaleString()}</div></div>` +
+    `<div class="result-card"><div class="lbl">1 LSB</div><div class="val">${lsb_mV < 1 ? lsb_uV.toFixed(2) + ' µV' : lsb_mV.toFixed(3) + ' mV'}</div></div>` +
+    `</div>`;
+}
+
+function calcENOB() {
+  const snr = parseFloat(document.getElementById('snr_meas').value);
+  const sfdrRaw = document.getElementById('sfdr').value;
+  const out = document.getElementById('res_enob');
+  if (isNaN(snr)) { out.innerHTML = 'Enter a valid SNR value.'; return; }
+  const enob = (snr - 1.76) / 6.02;
+  const noise_floor = -snr;
+
+  let sfdrLine = '';
+  if (sfdrRaw !== '') {
+    const sfdr = parseFloat(sfdrRaw);
+    if (!isNaN(sfdr)) {
+      sfdrLine = `<div class="result-card"><div class="lbl">SFDR</div><div class="val">${sfdr.toFixed(1)} dBc</div></div>`;
+    }
+  }
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">ENOB</div><div class="val">${enob.toFixed(2)} bits</div></div>` +
+    `<div class="result-card"><div class="lbl">Measured SNR</div><div class="val">${snr.toFixed(2)} dB</div></div>` +
+    `<div class="result-card"><div class="lbl">Noise floor (rel. to FS)</div><div class="val">${noise_floor.toFixed(2)} dBFS</div></div>` +
+    sfdrLine +
+    `</div>`;
+}
+</script>
+</body>
+</html>

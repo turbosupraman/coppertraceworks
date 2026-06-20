@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>Calculators | Copper Trace Works</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Copper Trace Works provides simple engineering calculators and maker electronics products.">
+  <meta name="description" content="Free engineering calculator tools for electronics, RF, PCB design, power, and fabrication. Runs in the browser with no backend required.">
   <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
@@ -34,84 +34,202 @@
       <div class="hero-grid">
         <div class="stack">
           <div class="eyebrow">Tool catalog</div>
-          <h1>Static calculators with a technical workbench UI.</h1>
-          <p class="lead">These tools run in the browser and do not require a server. The layout intentionally follows the dense instrument-panel feel of the RF simulator reference you shared.</p>
+          <h1>Engineering calculators for the bench.</h1>
+          <p class="lead">All tools run in the browser. No install, no account, no backend. Pick a tool and get a number.</p>
         </div>
-
         <div class="status-grid">
           <div class="metric">
-            <span class="metric-label">Release set</span>
-            <div class="metric-value">3 tools</div>
-            <div class="small">LED resistor, LC resonance, voltage divider</div>
+            <span class="metric-label">Available now</span>
+            <div class="metric-value">16 tools</div>
+            <div class="small">Electronics, RF, PCB, power, fabrication</div>
           </div>
           <div class="metric">
             <span class="metric-label">Execution</span>
             <div class="metric-value">Browser</div>
-            <div class="small">Fast and easy to host on a static platform</div>
+            <div class="small">Static — fast to load, easy to host</div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section card-grid">
-      <article class="card">
-        <div class="section-title">
-          <h2>LED Resistor</h2>
-          <span class="chip accent">Electronics</span>
-        </div>
-        <p class="muted">Calculate the required series resistor, power dissipation, and a safer wattage margin.</p>
-        <div class="button-row">
-          <a class="button-secondary" href="/calculators/led-resistor.html">Open tool</a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="section-title">
-          <h2>LC Resonance</h2>
-          <span class="chip accent">RF</span>
-        </div>
-        <p class="muted">Convert L and C into resonant frequency with unit handling for practical bench work.</p>
-        <div class="button-row">
-          <a class="button-secondary" href="/calculators/lc-resonance.html">Open tool</a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="section-title">
-          <h2>Voltage Divider</h2>
-          <span class="chip accent">Basics</span>
-        </div>
-        <p class="muted">Calculate unloaded divider output voltage and divider current for quick design checks.</p>
-        <div class="button-row">
-          <a class="button-secondary" href="/calculators/voltage-divider.html">Open tool</a>
-        </div>
-      </article>
-    </section>
-
-    <section class="section panel">
-      <div class="section-title">
-        <h2>Planned next additions</h2>
-        <span class="chip">Roadmap</span>
+    <!-- Electronics -->
+    <section class="section">
+      <div class="section-title" style="margin-bottom:0.6rem">
+        <h2>Electronics</h2>
+        <span class="chip">Basics</span>
       </div>
-      <div class="mini-list">
-        <div class="row">
-          <div class="row-title">Electronics</div>
-          <div class="row-value">Ohm's law, RC cutoff</div>
-        </div>
-        <div class="row">
-          <div class="row-title">RF</div>
-          <div class="row-value">Path loss, thermal noise, dBm to watts</div>
-        </div>
-        <div class="row">
-          <div class="row-title">Power</div>
-          <div class="row-value">Battery runtime, wire voltage drop</div>
-        </div>
-        <div class="row">
-          <div class="row-title">3D printing</div>
-          <div class="row-value">Print cost, filament use, print time</div>
-        </div>
+      <div class="card-grid">
+        <article class="card">
+          <div class="section-title">
+            <h2>Ohm's Law</h2>
+            <span class="chip accent">V · I · R · P</span>
+          </div>
+          <p class="muted">Enter any two of voltage, current, resistance, or power. Solve for the other two.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/ohms-law.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>LED Resistor</h2>
+            <span class="chip accent">Series R</span>
+          </div>
+          <p class="muted">Calculate the required series resistor, power dissipation, and a safe wattage margin.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/led-resistor.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>Voltage Divider</h2>
+            <span class="chip accent">Resistive</span>
+          </div>
+          <p class="muted">Calculate unloaded divider output voltage and divider current for quick design checks.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/voltage-divider.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>RC Cutoff</h2>
+            <span class="chip accent">Filter</span>
+          </div>
+          <p class="muted">First-order RC filter –3 dB frequency, time constant, and period from R and C values.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/rc-cutoff.html">Open tool</a></div>
+        </article>
       </div>
     </section>
+
+    <!-- RF -->
+    <section class="section">
+      <div class="section-title" style="margin-bottom:0.6rem">
+        <h2>RF &amp; Microwave</h2>
+        <span class="chip">Signal chain</span>
+      </div>
+      <div class="card-grid">
+        <article class="card">
+          <div class="section-title">
+            <h2>LC Resonance</h2>
+            <span class="chip accent">RF</span>
+          </div>
+          <p class="muted">Convert L and C into resonant frequency with unit handling for practical bench work.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/lc-resonance.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>dBm / W / V</h2>
+            <span class="chip accent">Power</span>
+          </div>
+          <p class="muted">Convert between dBm, dBW, milliwatts, watts, and RMS volts into 50 Ω or 75 Ω.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/dbm-converter.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>Thermal Noise</h2>
+            <span class="chip accent">kTB + NF</span>
+          </div>
+          <p class="muted">Noise floor from bandwidth, temperature, and noise figure. Includes noise voltage into 50 Ω.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/thermal-noise.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>Free-Space Path Loss</h2>
+            <span class="chip accent">FSPL</span>
+          </div>
+          <p class="muted">Friis transmission path loss for link budget calculations. Includes antenna gain offsets.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/path-loss.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>Coax Cable Loss</h2>
+            <span class="chip accent">Attenuation</span>
+          </div>
+          <p class="muted">Cable loss for common types (RG-58, LMR-240, LMR-400 and more) at any frequency and length.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/coax-loss.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>RF Cascade</h2>
+            <span class="chip accent">NF · Gain · IIP3</span>
+          </div>
+          <p class="muted">Multi-stage receive chain analysis using Friis. Cascaded noise figure, total gain, and IIP3.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/cascade.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>Smith Chart</h2>
+            <span class="chip accent">Matching</span>
+          </div>
+          <p class="muted">Interactive Smith chart for impedance plotting and L-network matching network design.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/smith-chart.html">Open tool</a></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- PCB / Signal Chain -->
+    <section class="section">
+      <div class="section-title" style="margin-bottom:0.6rem">
+        <h2>PCB &amp; Signal Chain</h2>
+        <span class="chip">Design tools</span>
+      </div>
+      <div class="card-grid">
+        <article class="card">
+          <div class="section-title">
+            <h2>Microstrip Z₀</h2>
+            <span class="chip accent">PCB trace</span>
+          </div>
+          <p class="muted">Characteristic impedance from trace width, substrate height, and εr. Also solves for trace width.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/microstrip.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>ADC SNR / ENOB</h2>
+            <span class="chip accent">ADC</span>
+          </div>
+          <p class="muted">Ideal ADC SNR from bit depth, ENOB from measured SNR or SINAD, dynamic range, and LSB size.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/adc-snr.html">Open tool</a></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Power -->
+    <section class="section">
+      <div class="section-title" style="margin-bottom:0.6rem">
+        <h2>Power &amp; Wiring</h2>
+        <span class="chip">Bench tools</span>
+      </div>
+      <div class="card-grid">
+        <article class="card">
+          <div class="section-title">
+            <h2>Battery Runtime</h2>
+            <span class="chip accent">Power</span>
+          </div>
+          <p class="muted">Estimated runtime from capacity (mAh/Ah), voltage, current draw, and usable capacity fraction.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/battery-runtime.html">Open tool</a></div>
+        </article>
+        <article class="card">
+          <div class="section-title">
+            <h2>Wire Voltage Drop</h2>
+            <span class="chip accent">AWG</span>
+          </div>
+          <p class="muted">Voltage drop, power loss, and total resistance for copper or aluminum wire runs by AWG and length.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/wire-drop.html">Open tool</a></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Fabrication -->
+    <section class="section">
+      <div class="section-title" style="margin-bottom:0.6rem">
+        <h2>Fabrication</h2>
+        <span class="chip">Maker tools</span>
+      </div>
+      <div class="card-grid">
+        <article class="card">
+          <div class="section-title">
+            <h2>3D Print Cost</h2>
+            <span class="chip accent">FDM</span>
+          </div>
+          <p class="muted">Material cost, electricity cost, and total with overhead from filament weight, print time, and rates.</p>
+          <div class="button-row"><a class="button-secondary" href="/calculators/3d-print-cost.html">Open tool</a></div>
+        </article>
+      </div>
+    </section>
+
   </main>
 
   <footer class="footer">

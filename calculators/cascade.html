@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RF Cascade Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate cascaded noise figure, gain, and IIP3 for multi-stage RF receive chains using the Friis formula.">
+  <link rel="stylesheet" href="/assets/style.css">
+  <style>
+    .cascade-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+    .cascade-table th { background:var(--bg3); color:var(--accent2); text-align:left; padding:0.5rem 0.6rem; border-bottom:1px solid var(--border); }
+    .cascade-table td { padding:0.45rem 0.6rem; border-bottom:1px solid var(--border); }
+    .cascade-table tr:last-child td { border-bottom:0; }
+    .cascade-table input[type="text"], .cascade-table input[type="number"] {
+      background:var(--bg3); border:1px solid var(--border); color:var(--text);
+      border-radius:4px; padding:0.25rem 0.4rem; font-size:0.82rem; width:100%;
+    }
+    .cascade-table .del-btn { background:var(--bg4); border:1px solid var(--border); color:var(--red);
+      border-radius:4px; padding:0.2rem 0.5rem; cursor:pointer; font-size:0.78rem; }
+    .cascade-table .del-btn:hover { background:var(--red); color:#fff; }
+    .highlight { color:var(--accent2); font-weight:700; font-family:monospace; }
+    .warn { color:var(--warn); }
+    .sys-row td { background:rgba(209,138,58,0.08); font-weight:700; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">RF Cascade</span>
+      <span class="chip">NF · Gain · IIP3</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+
+    <div class="panel" style="margin-bottom:1rem">
+      <div class="section-title">
+        <h2>Stage editor</h2>
+        <span class="chip accent">Friis cascade</span>
+      </div>
+      <p class="muted" style="font-size:0.82rem;margin-bottom:0.8rem">Enter gain, NF, and IIP3 for each stage in order from input to output. IIP3 is optional — leave blank to skip.</p>
+      <div style="overflow-x:auto">
+        <table class="cascade-table">
+          <thead>
+            <tr>
+              <th style="width:28px">#</th>
+              <th>Stage name</th>
+              <th>Gain (dB)</th>
+              <th>NF (dB)</th>
+              <th>IIP3 in (dBm)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="stageBody"></tbody>
+        </table>
+      </div>
+      <div class="button-row" style="margin-top:0.8rem">
+        <button class="button" onclick="calculate()">Calculate cascade</button>
+        <button class="button-secondary" onclick="addStage()">+ Add stage</button>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:1rem">
+      <div class="section-title">
+        <h2>System summary</h2>
+        <span class="chip accent">Computed</span>
+      </div>
+      <div id="summaryOut" class="result-screen">Add stages and press Calculate.</div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title">
+        <h2>Per-stage detail</h2>
+        <span class="chip">Cumulative from input</span>
+      </div>
+      <div id="stageDetail" style="overflow-x:auto"></div>
+    </div>
+
+    <div class="panel" style="margin-top:1rem">
+      <div class="section-title">
+        <h2>Equations</h2>
+        <span class="chip">Reference</span>
+      </div>
+      <div class="formula-box">
+        <p><code>F_sys = F₁ + (F₂–1)/G₁ + (F₃–1)/(G₁G₂) + ···</code></p>
+        <p style="margin-top:0.4rem"><code>1/IIP3_sys = 1/IIP3₁ + G₁/IIP3₂ + G₁G₂/IIP3₃ + ···</code></p>
+        <p style="margin-top:0.4rem; font-size:0.78rem; color:var(--text2)">IIP3 values are input-referred. All power values are linear mW in the calculation.</p>
+      </div>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+let stageCount = 0;
+
+function dBLin(dB) { return Math.pow(10, dB / 10); }
+function linDB(lin) { return 10 * Math.log10(lin); }
+
+const DEFAULTS = [
+  { name: 'BPF / LNA input',  gain: -1.5, nf: 1.5, iip3: '' },
+  { name: 'LNA',              gain: 18,   nf: 1.2, iip3: -5  },
+  { name: 'Interstage filter',gain: -2,   nf: 2,   iip3: '' },
+  { name: 'Mixer',            gain: 7,    nf: 8,   iip3: 10  },
+];
+
+function addStage(defaults) {
+  stageCount++;
+  const d = defaults || { name: 'Stage ' + stageCount, gain: 0, nf: 3, iip3: '' };
+  const tbody = document.getElementById('stageBody');
+  const tr = document.createElement('tr');
+  tr.id = 'stage-' + stageCount;
+  tr.innerHTML =
+    `<td style="color:var(--text2)">${stageCount}</td>` +
+    `<td><input type="text" value="${d.name}"></td>` +
+    `<td><input type="number" step="any" value="${d.gain}"></td>` +
+    `<td><input type="number" step="any" min="0" value="${d.nf}"></td>` +
+    `<td><input type="number" step="any" placeholder="—" value="${d.iip3}"></td>` +
+    `<td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+
+function getStages() {
+  const rows = document.querySelectorAll('#stageBody tr');
+  const stages = [];
+  for (const row of rows) {
+    const cells = row.querySelectorAll('input');
+    const name = cells[0].value || 'Stage';
+    const gain = parseFloat(cells[1].value);
+    const nf = parseFloat(cells[2].value);
+    const iip3str = cells[3].value.trim();
+    const iip3 = iip3str === '' ? null : parseFloat(iip3str);
+    if (isNaN(gain) || isNaN(nf)) continue;
+    stages.push({ name, gain, nf, iip3 });
+  }
+  return stages;
+}
+
+function calculate() {
+  const stages = getStages();
+  const summaryOut = document.getElementById('summaryOut');
+  const detailOut = document.getElementById('stageDetail');
+
+  if (stages.length === 0) {
+    summaryOut.innerHTML = 'No stages found. Add at least one stage.';
+    detailOut.innerHTML = '';
+    return;
+  }
+
+  // Per-stage cumulative
+  const cum = [];
+  let F_cum = dBLin(stages[0].nf);
+  let G_cum_lin = dBLin(stages[0].gain);
+  let G_prod = 1; // product of gains seen BEFORE the current stage (for IIP3)
+  let inv_IIP3_cum = 0;
+
+  for (let i = 0; i < stages.length; i++) {
+    const st = stages[i];
+    if (i === 0) {
+      F_cum = dBLin(st.nf);
+      G_cum_lin = dBLin(st.gain);
+      G_prod = 1;
+    } else {
+      F_cum += (dBLin(st.nf) - 1) / G_cum_lin;
+      G_cum_lin *= dBLin(st.gain);
+    }
+
+    if (st.iip3 !== null && !isNaN(st.iip3)) {
+      const iip3_mW = dBLin(st.iip3);
+      inv_IIP3_cum += G_prod / iip3_mW;
+    }
+    G_prod *= dBLin(st.gain);
+
+    const NF_cum = linDB(F_cum);
+    const G_cum_dB = linDB(G_cum_lin);
+    const IIP3_dBm = inv_IIP3_cum > 0 ? linDB(1 / inv_IIP3_cum) : null;
+    const OIP3_dBm = IIP3_dBm !== null ? IIP3_dBm + G_cum_dB : null;
+    cum.push({ NF_cum, G_cum_dB, IIP3_dBm, OIP3_dBm });
+  }
+
+  const last = cum[cum.length - 1];
+
+  // Summary
+  summaryOut.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">System NF</div><div class="val">${last.NF_cum.toFixed(2)} dB</div></div>` +
+    `<div class="result-card"><div class="lbl">Total gain</div><div class="val">${last.G_cum_dB.toFixed(2)} dB</div></div>` +
+    (last.IIP3_dBm !== null ? `<div class="result-card"><div class="lbl">Input IIP3</div><div class="val">${last.IIP3_dBm.toFixed(2)} dBm</div></div>` : '') +
+    (last.OIP3_dBm !== null ? `<div class="result-card"><div class="lbl">Output OIP3</div><div class="val">${last.OIP3_dBm.toFixed(2)} dBm</div></div>` : '') +
+    `<div class="result-card"><div class="lbl">Stages</div><div class="val">${stages.length}</div></div>` +
+    `</div>`;
+
+  // Detail table
+  let html = `<table class="cascade-table">
+    <thead><tr>
+      <th>Stage</th><th>Gain (dB)</th><th>NF (dB)</th><th>IIP3 in (dBm)</th>
+      <th>Cum. gain</th><th>Cum. NF</th><th>Cum. IIP3 in</th><th>Cum. OIP3 out</th>
+    </tr></thead><tbody>`;
+
+  stages.forEach((st, i) => {
+    const c = cum[i];
+    html += `<tr>
+      <td>${st.name}</td>
+      <td class="highlight">${st.gain.toFixed(2)}</td>
+      <td class="highlight">${st.nf.toFixed(2)}</td>
+      <td>${st.iip3 !== null && !isNaN(st.iip3) ? st.iip3.toFixed(2) : '—'}</td>
+      <td class="highlight">${c.G_cum_dB.toFixed(2)}</td>
+      <td class="${c.NF_cum > 5 ? 'warn' : 'highlight'}">${c.NF_cum.toFixed(2)}</td>
+      <td>${c.IIP3_dBm !== null ? c.IIP3_dBm.toFixed(2) : '—'}</td>
+      <td>${c.OIP3_dBm !== null ? c.OIP3_dBm.toFixed(2) : '—'}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  detailOut.innerHTML = html;
+}
+
+// Load defaults
+DEFAULTS.forEach(d => addStage(d));
+</script>
+</body>
+</html>

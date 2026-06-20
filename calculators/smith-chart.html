@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Smith Chart | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive Smith chart for RF impedance plotting and L-network matching network design.">
+  <link rel="stylesheet" href="/assets/style.css">
+  <style>
+    #smith-canvas { display:block; border-radius:var(--radius); border:1px solid var(--border); cursor:crosshair; max-width:100%; }
+    .point-list { font-family:monospace; font-size:0.8rem; }
+    .point-entry { display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0; border-top:1px solid var(--border); gap:0.5rem; }
+    .point-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .match-result { font-family:monospace; font-size:0.84rem; color:var(--accent2); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">Smith Chart</span>
+      <span class="chip">RF</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:1rem;align-items:start">
+
+      <!-- Smith Chart canvas -->
+      <div class="panel">
+        <div class="section-title">
+          <h2>Smith Chart</h2>
+          <span class="chip" id="z0label">Z₀ = 50 Ω</span>
+        </div>
+        <canvas id="smith-canvas" width="500" height="500"></canvas>
+        <div style="margin-top:0.5rem;font-size:0.76rem;color:var(--text2)">
+          Click the chart to read off the normalized impedance at that point.
+        </div>
+        <div id="click-readout" style="font-family:monospace;font-size:0.82rem;color:var(--accent2);margin-top:0.25rem;min-height:1.2rem"></div>
+      </div>
+
+      <!-- Right controls -->
+      <div class="stack">
+
+        <!-- Z0 -->
+        <div class="panel">
+          <div class="section-title"><h2>Reference impedance</h2></div>
+          <div style="display:flex;gap:0.4rem;align-items:center">
+            <label for="z0inp" style="margin:0;flex-shrink:0">Z₀ (Ω)</label>
+            <input id="z0inp" type="number" step="any" value="50" style="flex:1">
+            <button class="button-secondary" style="padding:0.4rem 0.7rem" onclick="redrawChart()">Set</button>
+          </div>
+        </div>
+
+        <!-- Plot point -->
+        <div class="panel">
+          <div class="section-title"><h2>Plot impedance</h2><span class="chip accent">Z = R + jX</span></div>
+          <div class="input-grid">
+            <div>
+              <label for="zR">R (Ω)</label>
+              <input id="zR" type="number" step="any" value="50">
+            </div>
+            <div>
+              <label for="zX">X (Ω, + inductive)</label>
+              <input id="zX" type="number" step="any" value="25">
+            </div>
+            <div>
+              <label for="ptLabel">Label</label>
+              <input id="ptLabel" type="text" placeholder="e.g. ZL" value="Z1">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="plotPoint()">Plot point</button>
+            <button class="button-secondary" onclick="clearPoints()">Clear all</button>
+          </div>
+          <div class="point-list" id="pointList" style="margin-top:0.6rem"></div>
+        </div>
+
+        <!-- Matching network -->
+        <div class="panel">
+          <div class="section-title"><h2>L-network matching</h2><span class="chip accent">LP + HP</span></div>
+          <p class="muted" style="font-size:0.8rem;margin-bottom:0.6rem">Real impedances. Matches source RS to load RL at frequency f.</p>
+          <div class="input-grid">
+            <div>
+              <label for="mRS">Source RS (Ω)</label>
+              <input id="mRS" type="number" step="any" value="50">
+            </div>
+            <div>
+              <label for="mRL">Load RL (Ω)</label>
+              <input id="mRL" type="number" step="any" value="200">
+            </div>
+            <div>
+              <label for="mFreq">Frequency</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="mFreq" type="number" step="any" value="100" style="flex:1">
+                <select id="mFunit">
+                  <option value="1e6" selected>MHz</option>
+                  <option value="1e9">GHz</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="solveMatch()">Solve + plot</button>
+          </div>
+          <div id="matchOut" style="margin-top:0.7rem"></div>
+        </div>
+
+        <!-- Reference -->
+        <div class="panel">
+          <div class="section-title"><h2>Key points</h2><span class="chip">Reference</span></div>
+          <div class="mini-list">
+            <div class="row"><div class="row-title">Center (×)</div><div class="row-value">Z = Z₀, Γ = 0</div></div>
+            <div class="row"><div class="row-title">Right edge</div><div class="row-value">Open circuit, Γ = +1</div></div>
+            <div class="row"><div class="row-title">Left edge</div><div class="row-value">Short circuit, Γ = −1</div></div>
+            <div class="row"><div class="row-title">Upper half</div><div class="row-value">Inductive (X > 0)</div></div>
+            <div class="row"><div class="row-title">Lower half</div><div class="row-value">Capacitive (X &lt; 0)</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+const canvas = document.getElementById('smith-canvas');
+const ctx = canvas.getContext('2d');
+const W = 500, H = 500;
+const CX = W / 2, CY = H / 2;
+const CR = 218; // chart radius in pixels
+
+let Z0 = 50;
+let plotPoints = [];
+let matchPaths = [];
+
+// Color palette
+const COL = {
+  bg: '#161b22',
+  grid: 'rgba(48,54,61,0.85)',
+  gridFaint: 'rgba(48,54,61,0.45)',
+  axis: 'rgba(80,90,100,0.9)',
+  outer: '#d18a3a',
+  text: '#8b949e',
+  accent: '#f0b56b',
+  red: '#f85149',
+  green: '#3fb950',
+  blue: '#58a6ff',
+};
+
+// --- Coordinate transforms ---
+function gammaToPixel(Gr, Gi) {
+  return { x: CX + Gr * CR, y: CY - Gi * CR };
+}
+
+function pixelToGamma(px, py) {
+  return { Gr: (px - CX) / CR, Gi: -(py - CY) / CR };
+}
+
+function zNormToGamma(r, x) {
+  const denom = (r + 1) * (r + 1) + x * x;
+  const Gr = (r * r + x * x - 1) / denom;
+  const Gi = 2 * x / denom;
+  return { Gr, Gi };
+}
+
+function gammaToZNorm(Gr, Gi) {
+  const d = (1 - Gr) * (1 - Gr) + Gi * Gi;
+  if (d < 1e-12) return { r: 1e9, x: 0 };
+  const r = (1 - Gr * Gr - Gi * Gi) / d;
+  const x = 2 * Gi / d;
+  return { r, x };
+}
+
+// --- Draw Smith chart ---
+function drawChart() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = COL.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Clip to unit circle
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX, CY, CR, 0, 2 * Math.PI);
+  ctx.clip();
+
+  // Background inside chart
+  ctx.fillStyle = '#0f1318';
+  ctx.fillRect(0, 0, W, H);
+
+  // Constant-r circles
+  const rValues = [0.1, 0.2, 0.5, 1, 2, 5, 10];
+  for (const r of rValues) {
+    const cxc = CX + (r / (r + 1)) * CR;
+    const rad = CR / (r + 1);
+    ctx.beginPath();
+    ctx.arc(cxc, CY, rad, 0, 2 * Math.PI);
+    ctx.strokeStyle = r === 1 ? COL.axis : COL.grid;
+    ctx.lineWidth = r === 1 ? 0.9 : 0.55;
+    ctx.stroke();
+  }
+
+  // Constant-x arcs
+  const xValues = [0.2, 0.5, 1, 2, 5];
+  for (const x of xValues) {
+    for (const sign of [1, -1]) {
+      const xv = sign * x;
+      const cxc = CX + CR; // at Gr=1 in chart coords
+      const cyc = CY - (1 / xv) * CR;
+      const rad = Math.abs(CR / xv);
+      ctx.beginPath();
+      ctx.arc(cxc, cyc, rad, 0, 2 * Math.PI);
+      ctx.strokeStyle = Math.abs(x) === 1 ? COL.axis : COL.grid;
+      ctx.lineWidth = Math.abs(x) === 1 ? 0.9 : 0.55;
+      ctx.stroke();
+    }
+  }
+
+  // Real axis
+  ctx.beginPath();
+  ctx.moveTo(CX - CR, CY);
+  ctx.lineTo(CX + CR, CY);
+  ctx.strokeStyle = COL.axis;
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+
+  ctx.restore(); // end clip
+
+  // Outer circle
+  ctx.beginPath();
+  ctx.arc(CX, CY, CR, 0, 2 * Math.PI);
+  ctx.strokeStyle = COL.outer;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Labels outside chart
+  ctx.font = '10px monospace';
+  ctx.fillStyle = COL.text;
+  ctx.textAlign = 'center';
+
+  // r labels on real axis
+  const rLabels = [0.2, 0.5, 1, 2, 5];
+  for (const r of rLabels) {
+    const gx = r / (r + 1); // Gr at the rightmost point of the r-circle = (r/(r+1) + 1/(r+1)) = 1 — actually the leftmost point
+    // The rightmost point of constant-r circle is at Gr = r/(r+1) + 1/(r+1) = 1
+    // The leftmost point is at Gr = r/(r+1) - 1/(r+1) = (r-1)/(r+1)
+    const Gr_left = (r - 1) / (r + 1);
+    const pt = gammaToPixel(Gr_left, 0);
+    ctx.fillText(r.toString(), pt.x, pt.y + 12);
+  }
+
+  // x labels
+  const xLabels = [0.5, 1, 2];
+  for (const x of xLabels) {
+    // Point on x-arc that's on the outer circle
+    const g = zNormToGamma(0, x);
+    const pt = gammaToPixel(g.Gr, g.Gi);
+    ctx.fillText('j' + x, pt.x + 8, pt.y - 3);
+    const gn = zNormToGamma(0, -x);
+    const ptn = gammaToPixel(gn.Gr, gn.Gi);
+    ctx.fillText('-j' + x, ptn.x + 8, ptn.y + 10);
+  }
+
+  // Center marker
+  ctx.beginPath();
+  ctx.arc(CX, CY, 3, 0, 2 * Math.PI);
+  ctx.fillStyle = COL.accent;
+  ctx.fill();
+  ctx.fillStyle = COL.text;
+  ctx.textAlign = 'center';
+  ctx.fillText('×', CX, CY - 6);
+
+  // Key point labels on real axis
+  ctx.fillStyle = COL.text;
+  ctx.textAlign = 'center';
+  ctx.fillText('SC', CX - CR - 2, CY - 8);
+  ctx.fillText('OC', CX + CR + 2, CY - 8);
+  ctx.fillText('Z₀', CX, CY + CR + 14);
+
+  // Draw matching paths
+  for (const path of matchPaths) {
+    drawPath(path);
+  }
+
+  // Draw plotted points
+  for (const pt of plotPoints) {
+    const g = zNormToGamma(pt.r / Z0, pt.x / Z0);
+    const px = gammaToPixel(g.Gr, g.Gi);
+    drawMarker(px.x, px.y, pt.color, pt.label);
+  }
+}
+
+function drawPath(path) {
+  const steps = 120;
+
+  // Shunt arc: constant conductance, susceptance changes
+  ctx.beginPath();
+  let first = true;
+  for (let i = 0; i <= steps; i++) {
+    const b = path.b_start + (path.b_end - path.b_start) * i / steps;
+    const y = { g: path.g, b };
+    const z = admittanceToImpedance(y.g, y.b);
+    const gamma = zNormToGamma(z.r, z.x);
+    const px = gammaToPixel(gamma.Gr, gamma.Gi);
+    if (first) { ctx.moveTo(px.x, px.y); first = false; }
+    else ctx.lineTo(px.x, px.y);
+  }
+  ctx.strokeStyle = path.shuntColor;
+  ctx.lineWidth = 1.8;
+  ctx.setLineDash([4, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Series arc: constant resistance, reactance changes
+  ctx.beginPath();
+  first = true;
+  for (let i = 0; i <= steps; i++) {
+    const x = path.x_mid + (path.x_end - path.x_mid) * i / steps;
+    const gamma = zNormToGamma(path.r_mid, x);
+    const px = gammaToPixel(gamma.Gr, gamma.Gi);
+    if (first) { ctx.moveTo(px.x, px.y); first = false; }
+    else ctx.lineTo(px.x, px.y);
+  }
+  ctx.strokeStyle = path.seriesColor;
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+}
+
+function admittanceToImpedance(g, b) {
+  const d = g * g + b * b;
+  if (d < 1e-20) return { r: 1e9, x: 0 };
+  return { r: g / d, x: -b / d };
+}
+
+function drawMarker(px, py, color, label) {
+  ctx.beginPath();
+  ctx.arc(px, py, 5, 0, 2 * Math.PI);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  if (label) {
+    ctx.font = 'bold 11px monospace';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'left';
+    ctx.fillText(label, px + 7, py - 4);
+  }
+}
+
+function redrawChart() {
+  Z0 = parseFloat(document.getElementById('z0inp').value) || 50;
+  document.getElementById('z0label').textContent = 'Z₀ = ' + Z0 + ' Ω';
+  drawChart();
+}
+
+function plotPoint() {
+  const R = parseFloat(document.getElementById('zR').value);
+  const X = parseFloat(document.getElementById('zX').value) || 0;
+  const label = document.getElementById('ptLabel').value.trim() || ('Z' + (plotPoints.length + 1));
+
+  if (isNaN(R) || R < 0) { alert('R must be ≥ 0.'); return; }
+
+  const colors = [COL.accent, COL.blue, COL.green, COL.red, '#c084fc', '#34d399', '#fb923c'];
+  const color = colors[plotPoints.length % colors.length];
+  plotPoints.push({ r: R, x: X, label, color });
+  updatePointList();
+  drawChart();
+}
+
+function clearPoints() {
+  plotPoints = [];
+  matchPaths = [];
+  document.getElementById('pointList').innerHTML = '';
+  document.getElementById('matchOut').innerHTML = '';
+  drawChart();
+}
+
+function updatePointList() {
+  const list = document.getElementById('pointList');
+  list.innerHTML = plotPoints.map((pt, i) =>
+    `<div class="point-entry">` +
+    `<span class="point-dot" style="background:${pt.color}"></span>` +
+    `<span style="flex:1">${pt.label}: ${pt.r}${pt.x >= 0 ? '+' : ''}j${pt.x} Ω</span>` +
+    `<span style="color:var(--text2)">Γ=${fmtGamma(pt.r/Z0, pt.x/Z0)}</span>` +
+    `</div>`
+  ).join('');
+}
+
+function fmtGamma(r, x) {
+  const g = zNormToGamma(r, x);
+  const mag = Math.sqrt(g.Gr * g.Gr + g.Gi * g.Gi);
+  const ang = Math.atan2(g.Gi, g.Gr) * 180 / Math.PI;
+  return mag.toFixed(3) + '∠' + ang.toFixed(1) + '°';
+}
+
+function fmtComp(H, f_Hz) {
+  if (H > 0) {
+    const L_H = H;
+    const nH = L_H * 1e9, uH = L_H * 1e6;
+    return nH < 1000 ? nH.toFixed(2) + ' nH' : uH.toFixed(3) + ' µH';
+  } else {
+    const C_F = -1 / (H * 2 * Math.PI * f_Hz * 2 * Math.PI * f_Hz); // not right for raw reactance
+    return '?';
+  }
+}
+
+function fmtReactance(X_ohm, f_Hz) {
+  if (X_ohm > 0) {
+    // Inductive
+    const L = X_ohm / (2 * Math.PI * f_Hz);
+    const nH = L * 1e9, uH = L * 1e6;
+    const Lstr = uH < 1 ? nH.toFixed(2) + ' nH' : uH.toFixed(3) + ' µH';
+    return `L = ${Lstr}`;
+  } else {
+    // Capacitive
+    const C = 1 / (Math.abs(X_ohm) * 2 * Math.PI * f_Hz);
+    const pF = C * 1e12, nF = C * 1e9;
+    const Cstr = pF < 1000 ? pF.toFixed(2) + ' pF' : nF.toFixed(3) + ' nF';
+    return `C = ${Cstr}`;
+  }
+}
+
+function fmtSusceptance(B_S, f_Hz) {
+  // B = 1/X, positive B = capacitive
+  if (B_S > 0) {
+    // Capacitive shunt
+    const C = B_S / (2 * Math.PI * f_Hz);
+    const pF = C * 1e12, nF = C * 1e9;
+    const Cstr = pF < 1000 ? pF.toFixed(2) + ' pF' : nF.toFixed(3) + ' nF';
+    return `C = ${Cstr}`;
+  } else {
+    // Inductive shunt
+    const L = 1 / (Math.abs(B_S) * 2 * Math.PI * f_Hz);
+    const nH = L * 1e9, uH = L * 1e6;
+    const Lstr = uH < 1 ? nH.toFixed(2) + ' nH' : uH.toFixed(3) + ' µH';
+    return `L = ${Lstr}`;
+  }
+}
+
+function solveMatch() {
+  const RS = parseFloat(document.getElementById('mRS').value);
+  const RL = parseFloat(document.getElementById('mRL').value);
+  const f_raw = parseFloat(document.getElementById('mFreq').value);
+  const f_mul = parseFloat(document.getElementById('mFunit').value);
+  const out = document.getElementById('matchOut');
+
+  if ([RS, RL, f_raw].some(isNaN) || RS <= 0 || RL <= 0 || f_raw <= 0) {
+    out.innerHTML = '<p class="muted">Enter valid RS, RL, and frequency.</p>'; return;
+  }
+
+  const f = f_raw * f_mul;
+  const w = 2 * Math.PI * f;
+
+  if (Math.abs(RS - RL) < 0.01) {
+    out.innerHTML = '<p class="muted">RS ≈ RL — no matching needed.</p>';
+    plotPoints = plotPoints.filter(p => p.label !== 'ZS' && p.label !== 'ZL');
+    plotPoints.push({ r: RS, x: 0, label: 'ZS=ZL', color: COL.green });
+    updatePointList(); drawChart(); return;
+  }
+
+  // Determine which is high and which is low
+  const R_hi = Math.max(RS, RL);
+  const R_lo = Math.min(RS, RL);
+  const Q = Math.sqrt(R_hi / R_lo - 1);
+
+  // Series and shunt reactance magnitudes
+  const X_series = Q * R_lo; // series element reactance magnitude
+  const X_shunt = R_hi / Q;  // shunt element reactance magnitude
+
+  // Two L-network solutions for matching R_hi to R_lo:
+  // The series element is on the R_hi side, shunt is on the R_lo side.
+  // Solution 1 (LP): series L on R_hi side, shunt C on R_lo side
+  // Solution 2 (HP): series C on R_hi side, shunt L on R_lo side
+
+  // Whether RS or RL is high determines element placement
+  const seriesOnSource = RS > RL;
+
+  // LP solution
+  const lp = {
+    series: { ohm: +X_series, onSource: seriesOnSource },
+    shunt:  { ohm: -X_shunt, onLoad: !seriesOnSource }, // -X = capacitive
+  };
+  // HP solution
+  const hp = {
+    series: { ohm: -X_series, onSource: seriesOnSource },
+    shunt:  { ohm: +X_shunt, onLoad: !seriesOnSource }, // +X susceptance = inductive
+  };
+
+  function fmtSol(series, shunt) {
+    const seriesSide = seriesOnSource ? 'source side' : 'load side';
+    const shuntSide = seriesOnSource ? 'load side' : 'source side';
+    const seriesEl = fmtReactance(series.ohm, f);
+    const shuntEl = fmtSusceptance(-1 / shunt.ohm, f); // B = -1/X for shunt
+    return `<div style="margin:0.3rem 0">
+      <div class="match-result">Series (${seriesSide}): X = ${series.ohm > 0 ? '+' : ''}${series.ohm.toFixed(2)} Ω → ${seriesEl}</div>
+      <div class="match-result">Shunt (${shuntSide}): X = ${shunt.ohm > 0 ? '+' : ''}${shunt.ohm.toFixed(2)} Ω → ${fmtReactance(shunt.ohm, f)}</div>
+    </div>`;
+  }
+
+  out.innerHTML = `
+    <div style="margin-bottom:0.5rem;color:var(--text2);font-size:0.8rem">Q = ${Q.toFixed(3)} · Bandwidth ≈ ${(Math.max(RS,RL)/Q/1e6).toFixed(2)} MHz (approx)</div>
+    <div style="font-weight:700;color:var(--accent2);margin-bottom:0.2rem">Low-pass solution</div>
+    ${fmtSol(lp.series, lp.shunt)}
+    <div style="font-weight:700;color:var(--blue, #58a6ff);margin-top:0.6rem;margin-bottom:0.2rem">High-pass solution</div>
+    ${fmtSol(hp.series, hp.shunt)}
+  `;
+
+  // Plot ZS and ZL on chart
+  matchPaths = [];
+  plotPoints = plotPoints.filter(p => p.label !== 'ZS' && p.label !== 'ZL');
+  plotPoints.push({ r: RS, x: 0, label: 'ZS', color: COL.green });
+  plotPoints.push({ r: RL, x: 0, label: 'ZL', color: COL.red });
+
+  // Plot LP matching path
+  // LP: series L on R_hi side + shunt C on R_lo side
+  // Path starts at ZL/Z0, add shunt C (move along const-g arc), then series L (const-r arc) to ZS/Z0
+  const zL_n = RL / Z0;
+  const zS_n = RS / Z0;
+
+  // LP path
+  // Shunt cap goes on the R_lo side
+  // After shunt, intermediate normalized admittance: y_int = 1/zL_n + jB_shunt
+  // where B_shunt = 1/X_shunt_norm... let's compute
+  const B_shunt_LP = -1 / (X_shunt / Z0); // normalized susceptance (cap = negative reactance → positive B)
+  const g_load = Z0 / RL;
+  // b_start = 0 (at ZL, purely real), b_end = B_shunt_LP
+  const { r: r_int_LP, x: x_int_LP } = admittanceToImpedance(g_load, B_shunt_LP);
+
+  matchPaths.push({
+    // Shunt arc from ZL to intermediate
+    g: g_load,
+    b_start: 0,
+    b_end: seriesOnSource ? B_shunt_LP : -B_shunt_LP, // direction depends on which side is high
+    // Series arc from intermediate to ZS
+    r_mid: r_int_LP,
+    x_mid: seriesOnSource ? x_int_LP : -x_int_LP,
+    x_end: zS_n,
+    shuntColor: COL.red + 'cc',
+    seriesColor: COL.accent + 'cc',
+  });
+
+  updatePointList();
+  drawChart();
+}
+
+// Click readout
+canvas.addEventListener('click', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  const scaleY = H / rect.height;
+  const px = (e.clientX - rect.left) * scaleX;
+  const py = (e.clientY - rect.top) * scaleY;
+  const { Gr, Gi } = pixelToGamma(px, py);
+  const mag2 = Gr * Gr + Gi * Gi;
+  if (mag2 > 1.02) { document.getElementById('click-readout').textContent = '(outside chart)'; return; }
+  const { r, x } = gammaToZNorm(Gr, Gi);
+  const Z_R = r * Z0;
+  const Z_X = x * Z0;
+  const mag = Math.sqrt(mag2);
+  const ang = Math.atan2(Gi, Gr) * 180 / Math.PI;
+  document.getElementById('click-readout').textContent =
+    `Z ≈ ${Z_R.toFixed(1)}${Z_X >= 0 ? '+' : ''}j${Z_X.toFixed(1)} Ω  |  Γ = ${mag.toFixed(3)}∠${ang.toFixed(1)}°`;
+});
+
+// Initial draw
+drawChart();
+</script>
+</body>
+</html>

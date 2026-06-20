@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Ohm's Law Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Solve for voltage, current, resistance, or power using Ohm's Law.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">Ohm's Law</span>
+      <span class="chip">Electronics</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">Enter any two</span>
+          </div>
+          <p class="muted" style="margin-bottom:0.8rem;font-size:0.82rem;">Leave the two values you want to solve for blank. Enter any other two.</p>
+          <div class="input-grid">
+            <div>
+              <label for="V">Voltage, V (volts)</label>
+              <input id="V" type="number" step="any" placeholder="e.g. 12">
+            </div>
+            <div>
+              <label for="I">Current, I (amps)</label>
+              <input id="I" type="number" step="any" placeholder="e.g. 0.5">
+            </div>
+            <div>
+              <label for="R">Resistance, R (ohms)</label>
+              <input id="R" type="number" step="any" placeholder="e.g. 24">
+            </div>
+            <div>
+              <label for="P">Power, P (watts)</label>
+              <input id="P" type="number" step="any" placeholder="e.g. 6">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+            <button class="button-secondary" onclick="clearAll()">Clear</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equations</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>V = I × R</code></p>
+            <p style="margin-top:0.4rem"><code>P = V × I = I² × R = V² / R</code></p>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter any two values and press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Usage note</h2>
+            <span class="chip">Practical</span>
+          </div>
+          <div class="note-box">
+            Enter exactly two of the four values. The remaining two are computed. Providing three or more may produce inconsistent results — the calculator uses the first valid pair it finds.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+function fmt(n) {
+  if (Math.abs(n) >= 1e6) return (n / 1e6).toPrecision(4) + ' M';
+  if (Math.abs(n) >= 1e3) return (n / 1e3).toPrecision(4) + ' k';
+  if (Math.abs(n) >= 1) return n.toPrecision(4);
+  if (Math.abs(n) >= 1e-3) return (n * 1e3).toPrecision(4) + ' m';
+  if (Math.abs(n) >= 1e-6) return (n * 1e6).toPrecision(4) + ' µ';
+  return n.toPrecision(4);
+}
+
+function clearAll() {
+  ['V','I','R','P'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('result').innerHTML = 'Enter any two values and press Calculate.';
+}
+
+function calculate() {
+  const vals = {};
+  ['V','I','R','P'].forEach(id => {
+    const v = parseFloat(document.getElementById(id).value);
+    if (!isNaN(v) && v !== 0) vals[id] = v;
+  });
+
+  const out = document.getElementById('result');
+  const keys = Object.keys(vals);
+
+  let V, I, R, P;
+
+  if (keys.length < 2) { out.innerHTML = 'Enter at least two values.'; return; }
+
+  if (vals.V !== undefined && vals.I !== undefined) {
+    V = vals.V; I = vals.I; R = V / I; P = V * I;
+  } else if (vals.V !== undefined && vals.R !== undefined) {
+    V = vals.V; R = vals.R; I = V / R; P = V * V / R;
+  } else if (vals.V !== undefined && vals.P !== undefined) {
+    V = vals.V; P = vals.P; I = P / V; R = V * V / P;
+  } else if (vals.I !== undefined && vals.R !== undefined) {
+    I = vals.I; R = vals.R; V = I * R; P = I * I * R;
+  } else if (vals.I !== undefined && vals.P !== undefined) {
+    I = vals.I; P = vals.P; V = P / I; R = P / (I * I);
+  } else if (vals.R !== undefined && vals.P !== undefined) {
+    R = vals.R; P = vals.P; I = Math.sqrt(P / R); V = Math.sqrt(P * R);
+  } else {
+    out.innerHTML = 'Could not find a solvable pair.'; return;
+  }
+
+  if ([V,I,R,P].some(x => !isFinite(x) || x < 0)) {
+    out.innerHTML = 'Check inputs — result is invalid.'; return;
+  }
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">Voltage</div><div class="val">${fmt(V)} V</div></div>` +
+    `<div class="result-card"><div class="lbl">Current</div><div class="val">${fmt(I)} A</div></div>` +
+    `<div class="result-card"><div class="lbl">Resistance</div><div class="val">${fmt(R)} Ω</div></div>` +
+    `<div class="result-card"><div class="lbl">Power</div><div class="val">${fmt(P)} W</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>

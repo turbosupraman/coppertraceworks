@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RC Cutoff Frequency | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate RC filter cutoff frequency, time constant, and period.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">RC Cutoff</span>
+      <span class="chip">Electronics</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">RC Filter</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="R">Resistance, R</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="R" type="number" step="any" value="1" style="flex:1">
+                <select id="Runit">
+                  <option value="1">Ω</option>
+                  <option value="1e3" selected>kΩ</option>
+                  <option value="1e6">MΩ</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="C">Capacitance, C</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="C" type="number" step="any" value="100">
+                <select id="Cunit">
+                  <option value="1e-12">pF</option>
+                  <option value="1e-9" selected>nF</option>
+                  <option value="1e-6">µF</option>
+                  <option value="1e-3">mF</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equations</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>fc = 1 / (2π × R × C)</code></p>
+            <p style="margin-top:0.4rem"><code>τ = R × C</code></p>
+            <p style="margin-top:0.4rem"><code>T = 1 / fc</code></p>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter R and C values and press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Usage note</h2>
+            <span class="chip">Practical</span>
+          </div>
+          <div class="note-box">
+            This is the –3 dB frequency for a first-order RC low-pass or high-pass filter. The time constant τ describes the charge/discharge rate of the capacitor through the resistor.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+function fmtFreq(hz) {
+  if (hz >= 1e9) return (hz / 1e9).toPrecision(4) + ' GHz';
+  if (hz >= 1e6) return (hz / 1e6).toPrecision(4) + ' MHz';
+  if (hz >= 1e3) return (hz / 1e3).toPrecision(4) + ' kHz';
+  return hz.toPrecision(4) + ' Hz';
+}
+function fmtTime(s) {
+  if (s >= 1) return s.toPrecision(4) + ' s';
+  if (s >= 1e-3) return (s * 1e3).toPrecision(4) + ' ms';
+  if (s >= 1e-6) return (s * 1e6).toPrecision(4) + ' µs';
+  if (s >= 1e-9) return (s * 1e9).toPrecision(4) + ' ns';
+  return (s * 1e12).toPrecision(4) + ' ps';
+}
+
+function calculate() {
+  const R = parseFloat(document.getElementById('R').value) * parseFloat(document.getElementById('Runit').value);
+  const C = parseFloat(document.getElementById('C').value) * parseFloat(document.getElementById('Cunit').value);
+  const out = document.getElementById('result');
+
+  if (isNaN(R) || isNaN(C) || R <= 0 || C <= 0) {
+    out.innerHTML = 'Enter valid positive R and C values.'; return;
+  }
+
+  const tau = R * C;
+  const fc = 1 / (2 * Math.PI * tau);
+  const T = 1 / fc;
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">Cutoff frequency (–3 dB)</div><div class="val">${fmtFreq(fc)}</div></div>` +
+    `<div class="result-card"><div class="lbl">Time constant τ</div><div class="val">${fmtTime(tau)}</div></div>` +
+    `<div class="result-card"><div class="lbl">Period at cutoff</div><div class="val">${fmtTime(T)}</div></div>` +
+    `<div class="result-card"><div class="lbl">Angular frequency ω</div><div class="val">${(2 * Math.PI * fc).toPrecision(4)} rad/s</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>

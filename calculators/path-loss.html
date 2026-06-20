@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Free-Space Path Loss | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate free-space path loss (FSPL) for RF link budget calculations.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">Path Loss</span>
+      <span class="chip">RF</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">Friis FSPL</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="freq">Frequency</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="freq" type="number" step="any" value="2400" style="flex:1">
+                <select id="funit">
+                  <option value="1e6">MHz</option>
+                  <option value="1e9">GHz</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="dist">Distance</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="dist" type="number" step="any" value="1" style="flex:1">
+                <select id="dunit">
+                  <option value="1">m</option>
+                  <option value="1e3" selected>km</option>
+                  <option value="1609.34">miles</option>
+                  <option value="1852">nmi</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="Gtx">TX antenna gain (dBi)</label>
+              <input id="Gtx" type="number" step="any" value="0">
+            </div>
+            <div>
+              <label for="Grx">RX antenna gain (dBi)</label>
+              <input id="Grx" type="number" step="any" value="0">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equation</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>FSPL = 20·log₁₀(d) + 20·log₁₀(f) + 20·log₁₀(4π/c)</code></p>
+            <p style="margin-top:0.4rem"><code>= 20·log₁₀(d_km) + 20·log₁₀(f_MHz) + 32.45</code></p>
+            <p style="margin-top:0.6rem; font-size:0.78rem; color:var(--text2)">Link budget: P_rx = P_tx + G_tx – FSPL + G_rx</p>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter frequency and distance, then press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Common bands</h2>
+            <span class="chip">Quick ref</span>
+          </div>
+          <div class="mini-list">
+            <div class="row"><div class="row-title">433 MHz, 1 km</div><div class="row-value">85.2 dB</div></div>
+            <div class="row"><div class="row-title">915 MHz, 1 km</div><div class="row-value">91.7 dB</div></div>
+            <div class="row"><div class="row-title">2.4 GHz, 1 km</div><div class="row-value">100.1 dB</div></div>
+            <div class="row"><div class="row-title">5.8 GHz, 1 km</div><div class="row-value">107.7 dB</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+const c = 3e8;
+
+function calculate() {
+  const fRaw = parseFloat(document.getElementById('freq').value);
+  const fMul = parseFloat(document.getElementById('funit').value);
+  const dRaw = parseFloat(document.getElementById('dist').value);
+  const dMul = parseFloat(document.getElementById('dunit').value);
+  const Gtx = parseFloat(document.getElementById('Gtx').value) || 0;
+  const Grx = parseFloat(document.getElementById('Grx').value) || 0;
+  const out = document.getElementById('result');
+
+  if (isNaN(fRaw) || isNaN(dRaw) || fRaw <= 0 || dRaw <= 0) {
+    out.innerHTML = 'Enter positive frequency and distance.'; return;
+  }
+
+  const f = fRaw * fMul;
+  const d = dRaw * dMul;
+  const lambda = c / f;
+  const fspl_linear = Math.pow((4 * Math.PI * d) / lambda, 2);
+  const fspl_dB = 10 * Math.log10(fspl_linear);
+  const effective_loss = fspl_dB - Gtx - Grx;
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">Free-space path loss</div><div class="val">${fspl_dB.toFixed(2)} dB</div></div>` +
+    `<div class="result-card"><div class="lbl">Effective path loss (with gain)</div><div class="val">${effective_loss.toFixed(2)} dB</div></div>` +
+    `<div class="result-card"><div class="lbl">Wavelength</div><div class="val">${lambda >= 1 ? lambda.toFixed(3) + ' m' : (lambda*100).toFixed(3) + ' cm'}</div></div>` +
+    `<div class="result-card"><div class="lbl">Frequency</div><div class="val">${f >= 1e9 ? (f/1e9).toPrecision(4)+' GHz' : (f/1e6).toPrecision(4)+' MHz'}</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>

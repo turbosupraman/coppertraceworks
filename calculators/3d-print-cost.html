@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>3D Print Cost Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Estimate 3D printing cost from filament weight, print time, and electricity rate.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">3D Print Cost</span>
+      <span class="chip">Fabrication</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">Material + Time</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="mass">Filament used (g)</label>
+              <input id="mass" type="number" step="any" value="50">
+            </div>
+            <div>
+              <label for="spool">Spool size (g)</label>
+              <input id="spool" type="number" step="any" value="1000">
+            </div>
+            <div>
+              <label for="price">Filament cost ($ per spool)</label>
+              <input id="price" type="number" step="any" value="22">
+            </div>
+            <div>
+              <label for="ptime">Print time (hours)</label>
+              <input id="ptime" type="number" step="any" value="4">
+            </div>
+            <div>
+              <label for="watts">Printer power draw (W)</label>
+              <input id="watts" type="number" step="any" value="150">
+            </div>
+            <div>
+              <label for="rate">Electricity rate ($/kWh)</label>
+              <input id="rate" type="number" step="any" value="0.13">
+            </div>
+            <div>
+              <label for="markup">Overhead / markup (%)</label>
+              <input id="markup" type="number" step="any" value="20">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equations</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>Material = (mass / spool) × price</code></p>
+            <p style="margin-top:0.4rem"><code>Electricity = (W / 1000) × hours × rate</code></p>
+            <p style="margin-top:0.4rem"><code>Total = (material + electricity) × (1 + markup/100)</code></p>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter print details and press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Usage note</h2>
+            <span class="chip">Practical</span>
+          </div>
+          <div class="note-box">
+            Filament mass is shown in your slicer output. Printer wattage varies: bed heating accounts for most of the draw during the first layer. Typical FDM printers average 80–200 W over a full print. Overhead covers wear, failed prints, and time.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+function calculate() {
+  const mass = parseFloat(document.getElementById('mass').value);
+  const spool = parseFloat(document.getElementById('spool').value);
+  const price = parseFloat(document.getElementById('price').value);
+  const ptime = parseFloat(document.getElementById('ptime').value);
+  const watts = parseFloat(document.getElementById('watts').value);
+  const rate = parseFloat(document.getElementById('rate').value);
+  const markup = parseFloat(document.getElementById('markup').value) || 0;
+  const out = document.getElementById('result');
+
+  if ([mass, spool, price, ptime, watts, rate].some(isNaN) || mass <= 0 || spool <= 0 || price <= 0 || ptime <= 0 || watts <= 0 || rate <= 0) {
+    out.innerHTML = 'Enter valid positive values.'; return;
+  }
+
+  const mat_cost = (mass / spool) * price;
+  const elec_cost = (watts / 1000) * ptime * rate;
+  const subtotal = mat_cost + elec_cost;
+  const total = subtotal * (1 + markup / 100);
+  const cost_per_g = mat_cost / mass;
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">Material cost</div><div class="val">$${mat_cost.toFixed(3)}</div></div>` +
+    `<div class="result-card"><div class="lbl">Electricity cost</div><div class="val">$${elec_cost.toFixed(3)}</div></div>` +
+    `<div class="result-card"><div class="lbl">Subtotal</div><div class="val">$${subtotal.toFixed(3)}</div></div>` +
+    `<div class="result-card"><div class="lbl">Total with ${markup}% overhead</div><div class="val">$${total.toFixed(3)}</div></div>` +
+    `<div class="result-card"><div class="lbl">Filament cost per gram</div><div class="val">$${cost_per_g.toFixed(4)}/g</div></div>` +
+    `<div class="result-card"><div class="lbl">Energy used</div><div class="val">${((watts/1000)*ptime).toFixed(3)} kWh</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>

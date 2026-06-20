@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Wire Voltage Drop Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate voltage drop and power loss for wire runs by AWG, length, and current.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">Wire Drop</span>
+      <span class="chip">Power</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">AWG + Run</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="awg">Wire gauge (AWG)</label>
+              <select id="awg">
+                <option value="0000">4/0 (0000)</option>
+                <option value="000">3/0 (000)</option>
+                <option value="00">2/0 (00)</option>
+                <option value="0">1/0 (0)</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+                <option value="12" selected>12</option>
+                <option value="14">14</option>
+                <option value="16">16</option>
+                <option value="18">18</option>
+                <option value="20">20</option>
+                <option value="22">22</option>
+                <option value="24">24</option>
+                <option value="26">26</option>
+                <option value="28">28</option>
+                <option value="30">30</option>
+              </select>
+            </div>
+            <div>
+              <label for="mat">Material</label>
+              <select id="mat">
+                <option value="1.724e-8">Copper</option>
+                <option value="2.82e-8">Aluminum</option>
+              </select>
+            </div>
+            <div>
+              <label for="len">One-way length</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="len" type="number" step="any" value="10" style="flex:1">
+                <select id="lunit">
+                  <option value="ft" selected>ft</option>
+                  <option value="m">m</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="I">Current (A)</label>
+              <input id="I" type="number" step="any" value="10">
+            </div>
+            <div>
+              <label for="Vs">Source voltage (V)</label>
+              <input id="Vs" type="number" step="any" value="12">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equations</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>R_wire = 2 × ρ × L / A</code></p>
+            <p style="margin-top:0.4rem"><code>V_drop = I × R_wire</code></p>
+            <p style="margin-top:0.4rem"><code>P_loss = I² × R_wire</code></p>
+            <p style="margin-top:0.4rem; font-size:0.78rem; color:var(--text2)">Factor of 2 accounts for round trip (both conductors).</p>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter wire size, length, and current, then press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Usage note</h2>
+            <span class="chip">Practical</span>
+          </div>
+          <div class="note-box">
+            Length entered is one-way; the calculator doubles it for the return conductor. Resistance values are for solid wire at 20 °C. Stranded wire of the same AWG has slightly higher resistance. Ampacity (safe current) limits are not checked here — consult NEC tables for current ratings.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+function awgToAreaM2(awg) {
+  const n = parseFloat(awg);
+  // Map special AWG designations
+  const num = awg === '0000' ? -3 : awg === '000' ? -2 : awg === '00' ? -1 : awg === '0' ? 0 : n;
+  const d_mm = 0.127 * Math.pow(92, (36 - num) / 39);
+  return Math.PI * Math.pow(d_mm / 2000, 2); // m²
+}
+
+function awgToOhmPerM(awg, rho) {
+  const A = awgToAreaM2(awg);
+  return rho / A; // ohm/m
+}
+
+function calculate() {
+  const awg = document.getElementById('awg').value;
+  const rho = parseFloat(document.getElementById('mat').value);
+  const lenRaw = parseFloat(document.getElementById('len').value);
+  const lunit = document.getElementById('lunit').value;
+  const I = parseFloat(document.getElementById('I').value);
+  const Vs = parseFloat(document.getElementById('Vs').value);
+  const out = document.getElementById('result');
+
+  if ([lenRaw, I, Vs].some(isNaN) || lenRaw <= 0 || I <= 0 || Vs <= 0) {
+    out.innerHTML = 'Enter valid positive values.'; return;
+  }
+
+  const len_m = lunit === 'ft' ? lenRaw * 0.3048 : lenRaw;
+  const total_len_m = len_m * 2; // round trip
+  const ohm_per_m = awgToOhmPerM(awg, rho);
+  const R_total = ohm_per_m * total_len_m;
+  const V_drop = I * R_total;
+  const P_loss = I * I * R_total;
+  const pct_drop = (V_drop / Vs) * 100;
+  const V_at_load = Vs - V_drop;
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">Voltage drop</div><div class="val">${V_drop.toFixed(3)} V</div></div>` +
+    `<div class="result-card"><div class="lbl">% of source</div><div class="val">${pct_drop.toFixed(2)} %</div></div>` +
+    `<div class="result-card"><div class="lbl">Voltage at load</div><div class="val">${V_at_load.toFixed(3)} V</div></div>` +
+    `<div class="result-card"><div class="lbl">Wire resistance (round trip)</div><div class="val">${R_total.toFixed(4)} Ω</div></div>` +
+    `<div class="result-card"><div class="lbl">Power lost in wire</div><div class="val">${P_loss.toFixed(3)} W</div></div>` +
+    `<div class="result-card"><div class="lbl">Wire resistance per meter</div><div class="val">${(ohm_per_m*1000).toFixed(4)} mΩ/m</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Battery Runtime Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Estimate battery runtime from capacity and current draw.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">Battery Runtime</span>
+      <span class="chip">Power</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">Capacity + Load</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="cap">Battery capacity</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="cap" type="number" step="any" value="2000" style="flex:1">
+                <select id="capunit">
+                  <option value="1" selected>mAh</option>
+                  <option value="1000">Ah</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="volt">Nominal voltage (V)</label>
+              <input id="volt" type="number" step="any" value="3.7">
+            </div>
+            <div>
+              <label for="current">Average current draw</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="current" type="number" step="any" value="100" style="flex:1">
+                <select id="iunit">
+                  <option value="0.001" selected>mA</option>
+                  <option value="1">A</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="eff">Usable capacity (%)</label>
+              <input id="eff" type="number" step="any" value="80" min="1" max="100">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equation</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>t = (C_mAh × η) / I_mA</code></p>
+            <p style="margin-top:0.4rem; font-size:0.78rem; color:var(--text2)">η = usable fraction. Lithium cells typically derate to 80%. Lead-acid to 50%.</p>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter battery capacity and current draw, then press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Usage note</h2>
+            <span class="chip">Practical</span>
+          </div>
+          <div class="note-box">
+            Real runtimes are shorter than ideal due to Peukert's effect (discharge rate), temperature, age, and cutoff voltage. Use 80% usable capacity for Li-ion. For lead-acid at high discharge rates, 50% is more realistic.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+function fmtTime(hours) {
+  if (hours < 1/60) return (hours * 3600).toFixed(1) + ' sec';
+  if (hours < 1) return (hours * 60).toFixed(1) + ' min';
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return h + ' h ' + m + ' min';
+}
+
+function calculate() {
+  const cap_mAh = parseFloat(document.getElementById('cap').value) * parseFloat(document.getElementById('capunit').value);
+  const volt = parseFloat(document.getElementById('volt').value);
+  const I_A = parseFloat(document.getElementById('current').value) * parseFloat(document.getElementById('iunit').value);
+  const eff = parseFloat(document.getElementById('eff').value) / 100;
+  const out = document.getElementById('result');
+
+  if ([cap_mAh, volt, I_A, eff].some(isNaN) || cap_mAh <= 0 || I_A <= 0 || eff <= 0) {
+    out.innerHTML = 'Enter valid positive values.'; return;
+  }
+
+  const I_mA = I_A * 1000;
+  const usable_mAh = cap_mAh * eff;
+  const runtime_h = usable_mAh / I_mA;
+  const energy_Wh = (cap_mAh / 1000) * volt;
+  const usable_Wh = energy_Wh * eff;
+  const power_W = I_A * volt;
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">Estimated runtime</div><div class="val">${fmtTime(runtime_h)}</div></div>` +
+    `<div class="result-card"><div class="lbl">Usable capacity</div><div class="val">${usable_mAh.toFixed(0)} mAh</div></div>` +
+    `<div class="result-card"><div class="lbl">Battery energy</div><div class="val">${energy_Wh.toFixed(2)} Wh</div></div>` +
+    `<div class="result-card"><div class="lbl">Usable energy</div><div class="val">${usable_Wh.toFixed(2)} Wh</div></div>` +
+    `<div class="result-card"><div class="lbl">Load power</div><div class="val">${(power_W*1000).toFixed(1)} mW</div></div>` +
+    `<div class="result-card"><div class="lbl">C-rate</div><div class="val">${(I_mA/cap_mAh).toFixed(3)} C</div></div>` +
+    `</div>`;
+}
+</script>
+</body>
+</html>

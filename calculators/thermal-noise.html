@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Thermal Noise / Noise Floor | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate thermal noise power, noise floor, and noise voltage for RF and electronics systems.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">Thermal Noise</span>
+      <span class="chip">RF</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">kTB + NF</span>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label for="BW">Bandwidth</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="BW" type="number" step="any" value="1" style="flex:1">
+                <select id="BWunit">
+                  <option value="1">Hz</option>
+                  <option value="1e3">kHz</option>
+                  <option value="1e6" selected>MHz</option>
+                  <option value="1e9">GHz</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="NF">Noise figure, NF (dB)</label>
+              <input id="NF" type="number" step="any" value="3">
+            </div>
+            <div>
+              <label for="T">Temperature</label>
+              <div style="display:flex;gap:0.4rem">
+                <input id="T" type="number" step="any" value="290" style="flex:1">
+                <select id="Tunit">
+                  <option value="K" selected>K</option>
+                  <option value="C">°C</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Equations</h2>
+            <span class="chip">Reference</span>
+          </div>
+          <div class="formula-box">
+            <p><code>P_noise = k × T × B</code></p>
+            <p style="margin-top:0.4rem"><code>N_floor = –174 + 10·log₁₀(B_Hz) + NF</code></p>
+            <p style="margin-top:0.4rem"><code>V_noise = √(4 × k × T × B × R)</code></p>
+            <p style="margin-top:0.4rem; font-size:0.78rem; color:var(--text2)">k = 1.38×10⁻²³ J/K · T₀ = 290 K → –174 dBm/Hz</p>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Enter bandwidth and noise figure, then press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Noise voltage</h2>
+            <span class="chip">50 Ω source</span>
+          </div>
+          <div class="result-screen" id="result2" style="min-height:60px">—</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Usage note</h2>
+            <span class="chip">Practical</span>
+          </div>
+          <div class="note-box">
+            The noise floor is the minimum detectable signal level. Add system gain and NF to this value to find the receiver sensitivity. Standard reference temperature T₀ = 290 K corresponds to –174 dBm/Hz.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+const k = 1.380649e-23;
+
+function calculate() {
+  const BWraw = parseFloat(document.getElementById('BW').value);
+  const BWmul = parseFloat(document.getElementById('BWunit').value);
+  const NF_dB = parseFloat(document.getElementById('NF').value);
+  const Traw = parseFloat(document.getElementById('T').value);
+  const Tunit = document.getElementById('Tunit').value;
+  const out = document.getElementById('result');
+  const out2 = document.getElementById('result2');
+
+  if ([BWraw, NF_dB, Traw].some(isNaN)) { out.innerHTML = 'Enter valid inputs.'; return; }
+
+  const BW = BWraw * BWmul;
+  const T_K = Tunit === 'C' ? Traw + 273.15 : Traw;
+  if (T_K <= 0 || BW <= 0) { out.innerHTML = 'Temperature and bandwidth must be positive.'; return; }
+
+  const P_thermal_W = k * T_K * BW;
+  const P_thermal_mW = P_thermal_W * 1000;
+  const P_thermal_dBm = 10 * Math.log10(P_thermal_mW);
+  const noise_floor_dBm = P_thermal_dBm + NF_dB;
+
+  // kTB at T0=290K reference
+  const ref_floor = -174 + 10 * Math.log10(BW) + NF_dB;
+
+  // Noise voltage in 50 ohm
+  const R = 50;
+  const V_noise = Math.sqrt(4 * k * T_K * BW * R) * 1e6; // µV
+
+  out.innerHTML =
+    `<div class="result-grid">` +
+    `<div class="result-card"><div class="lbl">Thermal noise power</div><div class="val">${P_thermal_dBm.toFixed(2)} dBm</div></div>` +
+    `<div class="result-card"><div class="lbl">Noise floor (with NF)</div><div class="val">${noise_floor_dBm.toFixed(2)} dBm</div></div>` +
+    `<div class="result-card"><div class="lbl">Noise density</div><div class="val">${(P_thermal_dBm - 10*Math.log10(BW)).toFixed(2)} dBm/Hz</div></div>` +
+    `<div class="result-card"><div class="lbl">Thermal power (W)</div><div class="val">${P_thermal_W.toExponential(3)} W</div></div>` +
+    `</div>`;
+
+  out2.innerHTML = `<div style="font-family:monospace;color:var(--accent2)">${V_noise.toFixed(3)} µV<span style="color:var(--text2);font-size:0.78rem;font-family:inherit"> rms into 50 Ω</span></div>`;
+}
+</script>
+</body>
+</html>

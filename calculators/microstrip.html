@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Microstrip Impedance Calculator | Copper Trace Works</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate microstrip trace impedance from width, substrate height, and dielectric constant, or find trace width for a target impedance.">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/">Copper Trace <span>Works</span></a>
+      <div class="brand-meta">Engineering calculator tools and maker-built hardware</div>
+    </div>
+    <div class="header-actions">
+      <span class="chip accent">Microstrip Z₀</span>
+      <span class="chip">PCB</span>
+    </div>
+  </header>
+  <nav class="tabbar" aria-label="Primary">
+    <a href="/">Home</a>
+    <a class="active" href="/calculators/">Calculators</a>
+    <a href="/about.html">About</a>
+    <a href="https://shop.coppertraceworks.com">Shop</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+  <main class="page">
+    <section class="split-layout">
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Mode</h2>
+            <span class="chip">Select direction</span>
+          </div>
+          <div style="display:flex;gap:0.6rem;margin-bottom:0.6rem">
+            <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer">
+              <input type="radio" name="mode" value="forward" checked onchange="setMode(this.value)"> W, h, Er → Z₀
+            </label>
+            <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer">
+              <input type="radio" name="mode" value="reverse" onchange="setMode(this.value)"> Z₀, h, Er → W
+            </label>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Inputs</h2>
+            <span class="chip accent">Substrate</span>
+          </div>
+          <div class="input-grid">
+            <div id="rowW">
+              <label for="W">Trace width, W (mm)</label>
+              <input id="W" type="number" step="any" value="1.9">
+            </div>
+            <div id="rowZ0" style="display:none">
+              <label for="Z0target">Target impedance, Z₀ (Ω)</label>
+              <input id="Z0target" type="number" step="any" value="50">
+            </div>
+            <div>
+              <label for="h">Substrate height, h (mm)</label>
+              <input id="h" type="number" step="any" value="1.6">
+            </div>
+            <div>
+              <label for="Er">Relative permittivity, εr</label>
+              <select id="Er">
+                <option value="4.5" selected>FR4 (~4.5)</option>
+                <option value="3.55">Rogers RO4003C (3.55)</option>
+                <option value="2.94">Rogers RO4350B (2.94)</option>
+                <option value="2.2">PTFE / RT/duroid (2.2)</option>
+                <option value="10.2">Rogers RT/duroid 6010 (10.2)</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <div id="customErRow" style="display:none">
+              <label for="ErCustom">Custom εr</label>
+              <input id="ErCustom" type="number" step="any" value="4.5">
+            </div>
+          </div>
+          <div class="button-row">
+            <button class="button" onclick="calculate()">Calculate</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Model</h2>
+            <span class="chip">Hammerstad</span>
+          </div>
+          <div class="formula-box">
+            <p style="font-size:0.82rem"><code>Z₀ = (60/√εr_eff) · ln(8h/W + W/4h)  [W/h ≤ 1]</code></p>
+            <p style="margin-top:0.35rem;font-size:0.82rem"><code>Z₀ = 120π / (√εr_eff · (W/h + 1.393 + 0.667·ln(W/h+1.444)))  [W/h > 1]</code></p>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="chip accent">Computed</span>
+          </div>
+          <div class="result-screen" id="result">Select mode, enter values, and press Calculate.</div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h2>Common targets</h2>
+            <span class="chip">Quick ref</span>
+          </div>
+          <div class="mini-list">
+            <div class="row"><div class="row-title">50 Ω on FR4 1.6mm</div><div class="row-value">W ≈ 2.9 mm</div></div>
+            <div class="row"><div class="row-title">75 Ω on FR4 1.6mm</div><div class="row-value">W ≈ 1.4 mm</div></div>
+            <div class="row"><div class="row-title">50 Ω on RO4003 0.8mm</div><div class="row-value">W ≈ 1.8 mm</div></div>
+            <div class="row"><div class="row-title">100 Ω differential</div><div class="row-value">~50 Ω each trace</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 Copper Trace Works LLC. Hobbyist electronics, calculator tools, and maker-built products.</p>
+      <p>Products and calculators are provided for hobbyist, educational, and experimental use unless otherwise stated.</p>
+    </div>
+  </footer>
+</div>
+<script>
+function setMode(mode) {
+  document.getElementById('rowW').style.display = mode === 'forward' ? '' : 'none';
+  document.getElementById('rowZ0').style.display = mode === 'reverse' ? '' : 'none';
+}
+
+document.getElementById('Er').addEventListener('change', function() {
+  document.getElementById('customErRow').style.display = this.value === 'custom' ? '' : 'none';
+});
+
+function getEr() {
+  const sel = document.getElementById('Er').value;
+  return sel === 'custom' ? parseFloat(document.getElementById('ErCustom').value) : parseFloat(sel);
+}
+
+function calcErEff(wh, Er) {
+  const base = (Er + 1) / 2 + (Er - 1) / 2 * (1 / Math.sqrt(1 + 12 / wh));
+  if (wh <= 1) return base + (Er - 1) / 2 * 0.04 * Math.pow(1 - wh, 2);
+  return base;
+}
+
+function calcZ0(W, h, Er) {
+  const wh = W / h;
+  const er_eff = calcErEff(wh, Er);
+  let z0;
+  if (wh <= 1) {
+    z0 = (60 / Math.sqrt(er_eff)) * Math.log(8 / wh + wh / 4);
+  } else {
+    z0 = (120 * Math.PI) / (Math.sqrt(er_eff) * (wh + 1.393 + 0.667 * Math.log(wh + 1.444)));
+  }
+  return { z0, er_eff };
+}
+
+function calcWidth(Z0target, h, Er) {
+  let A = (Z0target / 60) * Math.sqrt((Er + 1) / 2) + ((Er - 1) / (Er + 1)) * (0.23 + 0.11 / Er);
+  let wh_narrow = 8 * Math.exp(A) / (Math.exp(2 * A) - 2);
+
+  let B = (377 * Math.PI) / (2 * Z0target * Math.sqrt(Er));
+  let wh_wide = (2 / Math.PI) * (B - 1 - Math.log(2 * B - 1) + ((Er - 1) / (2 * Er)) * (Math.log(B - 1) + 0.39 - 0.61 / Er));
+
+  const wh = wh_narrow <= 2 ? wh_narrow : wh_wide;
+  return wh * h;
+}
+
+function calculate() {
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const h = parseFloat(document.getElementById('h').value);
+  const Er = getEr();
+  const out = document.getElementById('result');
+
+  if (isNaN(h) || isNaN(Er) || h <= 0 || Er <= 1) {
+    out.innerHTML = 'Enter valid substrate height and εr.'; return;
+  }
+
+  if (mode === 'forward') {
+    const W = parseFloat(document.getElementById('W').value);
+    if (isNaN(W) || W <= 0) { out.innerHTML = 'Enter a valid trace width.'; return; }
+    const { z0, er_eff } = calcZ0(W, h, Er);
+    const wh = W / h;
+    out.innerHTML =
+      `<div class="result-grid">` +
+      `<div class="result-card"><div class="lbl">Characteristic impedance Z₀</div><div class="val">${z0.toFixed(2)} Ω</div></div>` +
+      `<div class="result-card"><div class="lbl">Effective εr</div><div class="val">${er_eff.toFixed(3)}</div></div>` +
+      `<div class="result-card"><div class="lbl">W/h ratio</div><div class="val">${wh.toFixed(3)}</div></div>` +
+      `<div class="result-card"><div class="lbl">Velocity factor</div><div class="val">${(1/Math.sqrt(er_eff)).toFixed(4)}</div></div>` +
+      `</div>`;
+  } else {
+    const Z0t = parseFloat(document.getElementById('Z0target').value);
+    if (isNaN(Z0t) || Z0t <= 0) { out.innerHTML = 'Enter a valid target impedance.'; return; }
+    const W = calcWidth(Z0t, h, Er);
+    const { z0, er_eff } = calcZ0(W, h, Er);
+    out.innerHTML =
+      `<div class="result-grid">` +
+      `<div class="result-card"><div class="lbl">Required trace width W</div><div class="val">${W.toFixed(3)} mm</div></div>` +
+      `<div class="result-card"><div class="lbl">Achieved Z₀ (verify)</div><div class="val">${z0.toFixed(2)} Ω</div></div>` +
+      `<div class="result-card"><div class="lbl">Effective εr</div><div class="val">${er_eff.toFixed(3)}</div></div>` +
+      `<div class="result-card"><div class="lbl">W/h ratio</div><div class="val">${(W/h).toFixed(3)}</div></div>` +
+      `</div>`;
+  }
+}
+</script>
+</body>
+</html>
