@@ -305,40 +305,38 @@ function drawChart() {
   }
 }
 
-function drawPath(path) {
+function drawArc(arc, color, dashed) {
   const steps = 120;
-
-  // Shunt arc: constant conductance, susceptance changes
   ctx.beginPath();
   let first = true;
-  for (let i = 0; i <= steps; i++) {
-    const b = path.b_start + (path.b_end - path.b_start) * i / steps;
-    const y = { g: path.g, b };
-    const z = admittanceToImpedance(y.g, y.b);
-    const gamma = zNormToGamma(z.r, z.x);
-    const px = gammaToPixel(gamma.Gr, gamma.Gi);
-    if (first) { ctx.moveTo(px.x, px.y); first = false; }
-    else ctx.lineTo(px.x, px.y);
+  if (arc.type === 'series') {
+    for (let i = 0; i <= steps; i++) {
+      const x = arc.x_start + (arc.x_end - arc.x_start) * i / steps;
+      const gamma = zNormToGamma(arc.r, x);
+      const px = gammaToPixel(gamma.Gr, gamma.Gi);
+      if (first) { ctx.moveTo(px.x, px.y); first = false; }
+      else ctx.lineTo(px.x, px.y);
+    }
+  } else {
+    for (let i = 0; i <= steps; i++) {
+      const b = arc.b_start + (arc.b_end - arc.b_start) * i / steps;
+      const z = admittanceToImpedance(arc.g, b);
+      const gamma = zNormToGamma(z.r, z.x);
+      const px = gammaToPixel(gamma.Gr, gamma.Gi);
+      if (first) { ctx.moveTo(px.x, px.y); first = false; }
+      else ctx.lineTo(px.x, px.y);
+    }
   }
-  ctx.strokeStyle = path.shuntColor;
+  ctx.strokeStyle = color;
   ctx.lineWidth = 1.8;
-  ctx.setLineDash([4, 3]);
+  if (dashed) ctx.setLineDash([5, 3]);
   ctx.stroke();
   ctx.setLineDash([]);
+}
 
-  // Series arc: constant resistance, reactance changes
-  ctx.beginPath();
-  first = true;
-  for (let i = 0; i <= steps; i++) {
-    const x = path.x_mid + (path.x_end - path.x_mid) * i / steps;
-    const gamma = zNormToGamma(path.r_mid, x);
-    const px = gammaToPixel(gamma.Gr, gamma.Gi);
-    if (first) { ctx.moveTo(px.x, px.y); first = false; }
-    else ctx.lineTo(px.x, px.y);
-  }
-  ctx.strokeStyle = path.seriesColor;
-  ctx.lineWidth = 1.8;
-  ctx.stroke();
+function drawPath(path) {
+  drawArc(path.arc1, path.color1, false);
+  drawArc(path.arc2, path.color2, true);
 }
 
 function admittanceToImpedance(g, b) {
@@ -410,48 +408,21 @@ function fmtGamma(r, x) {
   return mag.toFixed(3) + '∠' + ang.toFixed(1) + '°';
 }
 
-function fmtComp(H, f_Hz) {
-  if (H > 0) {
-    const L_H = H;
-    const nH = L_H * 1e9, uH = L_H * 1e6;
-    return nH < 1000 ? nH.toFixed(2) + ' nH' : uH.toFixed(3) + ' µH';
-  } else {
-    const C_F = -1 / (H * 2 * Math.PI * f_Hz * 2 * Math.PI * f_Hz); // not right for raw reactance
-    return '?';
-  }
-}
-
-function fmtReactance(X_ohm, f_Hz) {
+function fmtEl(X_ohm, f_Hz) {
+  const X = Math.abs(X_ohm);
   if (X_ohm > 0) {
-    // Inductive
-    const L = X_ohm / (2 * Math.PI * f_Hz);
-    const nH = L * 1e9, uH = L * 1e6;
-    const Lstr = uH < 1 ? nH.toFixed(2) + ' nH' : uH.toFixed(3) + ' µH';
-    return `L = ${Lstr}`;
+    const L = X / (2 * Math.PI * f_Hz);
+    return L >= 1e-6 ? `L = ${(L*1e6).toPrecision(3)} µH` : `L = ${(L*1e9).toPrecision(3)} nH`;
   } else {
-    // Capacitive
-    const C = 1 / (Math.abs(X_ohm) * 2 * Math.PI * f_Hz);
-    const pF = C * 1e12, nF = C * 1e9;
-    const Cstr = pF < 1000 ? pF.toFixed(2) + ' pF' : nF.toFixed(3) + ' nF';
-    return `C = ${Cstr}`;
+    const C = 1 / (X * 2 * Math.PI * f_Hz);
+    return C >= 1e-9 ? `C = ${(C*1e9).toPrecision(3)} nF` : `C = ${(C*1e12).toPrecision(3)} pF`;
   }
 }
 
-function fmtSusceptance(B_S, f_Hz) {
-  // B = 1/X, positive B = capacitive
-  if (B_S > 0) {
-    // Capacitive shunt
-    const C = B_S / (2 * Math.PI * f_Hz);
-    const pF = C * 1e12, nF = C * 1e9;
-    const Cstr = pF < 1000 ? pF.toFixed(2) + ' pF' : nF.toFixed(3) + ' nF';
-    return `C = ${Cstr}`;
-  } else {
-    // Inductive shunt
-    const L = 1 / (Math.abs(B_S) * 2 * Math.PI * f_Hz);
-    const nH = L * 1e9, uH = L * 1e6;
-    const Lstr = uH < 1 ? nH.toFixed(2) + ' nH' : uH.toFixed(3) + ' µH';
-    return `L = ${Lstr}`;
-  }
+function zToY(r, x) {
+  const d = r * r + x * x;
+  if (d < 1e-20) return { g: 1e10, b: 0 };
+  return { g: r / d, b: -x / d };
 }
 
 function solveMatch() {
@@ -466,95 +437,82 @@ function solveMatch() {
   }
 
   const f = f_raw * f_mul;
-  const w = 2 * Math.PI * f;
 
   if (Math.abs(RS - RL) < 0.01) {
     out.innerHTML = '<p class="muted">RS ≈ RL — no matching needed.</p>';
-    plotPoints = plotPoints.filter(p => p.label !== 'ZS' && p.label !== 'ZL');
+    plotPoints = plotPoints.filter(p => !['ZS','ZL'].includes(p.label));
     plotPoints.push({ r: RS, x: 0, label: 'ZS=ZL', color: COL.green });
     updatePointList(); drawChart(); return;
   }
 
-  // Determine which is high and which is low
   const R_hi = Math.max(RS, RL);
   const R_lo = Math.min(RS, RL);
   const Q = Math.sqrt(R_hi / R_lo - 1);
+  const X_series = Q * R_lo;  // series element |reactance|
+  const X_shunt  = R_hi / Q;  // shunt element |reactance|
+  const X_series_n = X_series / Z0;
+  const B_shunt_n  = Z0 / X_shunt;  // normalized |susceptance| of shunt element
 
-  // Series and shunt reactance magnitudes
-  const X_series = Q * R_lo; // series element reactance magnitude
-  const X_shunt = R_hi / Q;  // shunt element reactance magnitude
+  // Topology: shunt on HIGH-Z side, series between shunt node and LOW-Z side.
+  // For RS > RL: shunt on source side, series between source node and RL.
+  //   Path from ZL toward ZS: series element first, then shunt.
+  // For RL > RS: shunt on load side, series between load node and RS.
+  //   Path from ZL toward ZS: shunt element first, then series.
+  const highIsSource = RS > RL;
+  const sideLow  = highIsSource ? 'load'   : 'source';
+  const sideHigh = highIsSource ? 'source' : 'load';
 
-  // Two L-network solutions for matching R_hi to R_lo:
-  // The series element is on the R_hi side, shunt is on the R_lo side.
-  // Solution 1 (LP): series L on R_hi side, shunt C on R_lo side
-  // Solution 2 (HP): series C on R_hi side, shunt L on R_lo side
-
-  // Whether RS or RL is high determines element placement
-  const seriesOnSource = RS > RL;
-
-  // LP solution
-  const lp = {
-    series: { ohm: +X_series, onSource: seriesOnSource },
-    shunt:  { ohm: -X_shunt, onLoad: !seriesOnSource }, // -X = capacitive
-  };
-  // HP solution
-  const hp = {
-    series: { ohm: -X_series, onSource: seriesOnSource },
-    shunt:  { ohm: +X_shunt, onLoad: !seriesOnSource }, // +X susceptance = inductive
-  };
-
-  function fmtSol(series, shunt) {
-    const seriesSide = seriesOnSource ? 'source side' : 'load side';
-    const shuntSide = seriesOnSource ? 'load side' : 'source side';
-    const seriesEl = fmtReactance(series.ohm, f);
-    const shuntEl = fmtSusceptance(-1 / shunt.ohm, f); // B = -1/X for shunt
-    return `<div style="margin:0.3rem 0">
-      <div class="match-result">Series (${seriesSide}): X = ${series.ohm > 0 ? '+' : ''}${series.ohm.toFixed(2)} Ω → ${seriesEl}</div>
-      <div class="match-result">Shunt (${shuntSide}): X = ${shunt.ohm > 0 ? '+' : ''}${shunt.ohm.toFixed(2)} Ω → ${fmtReactance(shunt.ohm, f)}</div>
-    </div>`;
-  }
+  const zL_n = RL / Z0;
 
   out.innerHTML = `
-    <div style="margin-bottom:0.5rem;color:var(--text2);font-size:0.8rem">Q = ${Q.toFixed(3)} · Bandwidth ≈ ${(Math.max(RS,RL)/Q/1e6).toFixed(2)} MHz (approx)</div>
-    <div style="font-weight:700;color:var(--accent2);margin-bottom:0.2rem">Low-pass solution</div>
-    ${fmtSol(lp.series, lp.shunt)}
-    <div style="font-weight:700;color:var(--blue, #58a6ff);margin-top:0.6rem;margin-bottom:0.2rem">High-pass solution</div>
-    ${fmtSol(hp.series, hp.shunt)}
+    <div style="margin-bottom:0.4rem;color:var(--text2);font-size:0.8rem">Q = ${Q.toFixed(3)}</div>
+    <div style="font-weight:700;color:var(--accent2);margin-bottom:0.2rem">Low-pass L-network</div>
+    <div class="match-result">Series L (${sideLow} side): X = +${X_series.toFixed(2)} Ω → ${fmtEl(+X_series, f)}</div>
+    <div class="match-result">Shunt C (${sideHigh} side): X = -${X_shunt.toFixed(2)} Ω → ${fmtEl(-X_shunt, f)}</div>
+    <div style="font-weight:700;color:#58a6ff;margin-top:0.6rem;margin-bottom:0.2rem">High-pass L-network</div>
+    <div class="match-result">Series C (${sideLow} side): X = -${X_series.toFixed(2)} Ω → ${fmtEl(-X_series, f)}</div>
+    <div class="match-result">Shunt L (${sideHigh} side): X = +${X_shunt.toFixed(2)} Ω → ${fmtEl(+X_shunt, f)}</div>
   `;
 
-  // Plot ZS and ZL on chart
   matchPaths = [];
-  plotPoints = plotPoints.filter(p => p.label !== 'ZS' && p.label !== 'ZL');
+  plotPoints = plotPoints.filter(p => !['ZS','ZL'].includes(p.label));
   plotPoints.push({ r: RS, x: 0, label: 'ZS', color: COL.green });
   plotPoints.push({ r: RL, x: 0, label: 'ZL', color: COL.red });
 
-  // Plot LP matching path
-  // LP: series L on R_hi side + shunt C on R_lo side
-  // Path starts at ZL/Z0, add shunt C (move along const-g arc), then series L (const-r arc) to ZS/Z0
-  const zL_n = RL / Z0;
-  const zS_n = RS / Z0;
-
-  // LP path
-  // Shunt cap goes on the R_lo side
-  // After shunt, intermediate normalized admittance: y_int = 1/zL_n + jB_shunt
-  // where B_shunt = 1/X_shunt_norm... let's compute
-  const B_shunt_LP = -1 / (X_shunt / Z0); // normalized susceptance (cap = negative reactance → positive B)
-  const g_load = Z0 / RL;
-  // b_start = 0 (at ZL, purely real), b_end = B_shunt_LP
-  const { r: r_int_LP, x: x_int_LP } = admittanceToImpedance(g_load, B_shunt_LP);
-
-  matchPaths.push({
-    // Shunt arc from ZL to intermediate
-    g: g_load,
-    b_start: 0,
-    b_end: seriesOnSource ? B_shunt_LP : -B_shunt_LP, // direction depends on which side is high
-    // Series arc from intermediate to ZS
-    r_mid: r_int_LP,
-    x_mid: seriesOnSource ? x_int_LP : -x_int_LP,
-    x_end: zS_n,
-    shuntColor: COL.red + 'cc',
-    seriesColor: COL.accent + 'cc',
-  });
+  if (highIsSource) {
+    // RS > RL: path = series first (constant r=zL_n), then shunt (constant g)
+    // LP: series L (+x), then shunt C (b toward 0)
+    const y_lp = zToY(zL_n, +X_series_n);
+    matchPaths.push({
+      arc1: { type:'series', r: zL_n, x_start: 0, x_end: +X_series_n },
+      arc2: { type:'shunt',  g: y_lp.g, b_start: y_lp.b, b_end: 0 },
+      color1: COL.accent + 'cc', color2: COL.red + 'bb',
+    });
+    // HP: series C (-x), then shunt L (b toward 0)
+    const y_hp = zToY(zL_n, -X_series_n);
+    matchPaths.push({
+      arc1: { type:'series', r: zL_n, x_start: 0, x_end: -X_series_n },
+      arc2: { type:'shunt',  g: y_hp.g, b_start: y_hp.b, b_end: 0 },
+      color1: '#58a6ffcc', color2: '#58a6ff88',
+    });
+  } else {
+    // RL > RS: path = shunt first (constant g=1/zL_n), then series (constant r)
+    const g_load = 1 / zL_n;
+    // LP: shunt C (b → +B_shunt_n), then series L (x → 0)
+    const z_lp = admittanceToImpedance(g_load, +B_shunt_n);
+    matchPaths.push({
+      arc1: { type:'shunt',  g: g_load, b_start: 0, b_end: +B_shunt_n },
+      arc2: { type:'series', r: z_lp.r, x_start: z_lp.x, x_end: 0 },
+      color1: COL.accent + 'cc', color2: COL.red + 'bb',
+    });
+    // HP: shunt L (b → -B_shunt_n), then series C (x → 0)
+    const z_hp = admittanceToImpedance(g_load, -B_shunt_n);
+    matchPaths.push({
+      arc1: { type:'shunt',  g: g_load, b_start: 0, b_end: -B_shunt_n },
+      arc2: { type:'series', r: z_hp.r, x_start: z_hp.x, x_end: 0 },
+      color1: '#58a6ffcc', color2: '#58a6ff88',
+    });
+  }
 
   updatePointList();
   drawChart();
