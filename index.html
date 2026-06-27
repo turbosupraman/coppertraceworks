@@ -1597,36 +1597,62 @@ function renderRadarChart(){
   });
 }
 
-// PULSE DROOP
-async function computeDroop(){
-  const body={I_A:parseFloat(document.getElementById('d-I').value)||5,pulse_width_us:parseFloat(document.getElementById('d-pw').value)||10,delta_V_mV:parseFloat(document.getElementById('d-dv').value)||50,V_supply:parseFloat(document.getElementById('d-vs').value)||5,ESR_mohm:parseFloat(document.getElementById('d-esr').value)||10,C_given_uF:parseFloat(document.getElementById('d-cgiven').value)||null};
-  if(!isFinite(body.C_given_uF))body.C_given_uF=null;
-  try{
-    const res=await fetch(API+'/api/pulse-droop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await res.json();if(!res.ok)throw new Error(data.detail);
-    const rg=document.getElementById('droop-results');rg.innerHTML='';
-    const cards=[{lbl:'Required Cap',val:fmt(data.C_required_uF,1),unit:'μF'},{lbl:'ESR Droop',val:fmt(data.dV_ESR_mV,2),unit:'mV'},{lbl:'Cap Droop Budget',val:fmt(data.dV_cap_budget_mV,2),unit:'mV'}];
-    if(data.actual_droop_mV!=null){cards.push({lbl:'Actual Total Droop',val:fmt(data.actual_droop_mV,2),unit:'mV'});cards.push({lbl:'Cap Droop',val:fmt(data.actual_droop_cap_mV,2),unit:'mV'});cards.push({lbl:'ESR Droop',val:fmt(data.actual_droop_esr_mV,2),unit:'mV'});cards.push({lbl:'Droop %',val:fmt(data.droop_pct,3),unit:'%'});}
-    for(const c of cards){
-      const ok=c.lbl==='Actual Total Droop'&&data.actual_droop_mV<=data.allowable_mV+0.01;
-      const el=document.createElement('div');el.className='result-card';
-      el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val" style="color:${ok?'var(--accent2)':c.lbl==='Required Cap'?'var(--accent)':'var(--text)'}">${c.val}</div><div class="unit">${c.unit}</div>`;
-      rg.appendChild(el);
-    }
-    if(droopChartInst)droopChartInst.destroy();
-    droopChartInst=new Chart(document.getElementById('droop-chart').getContext('2d'),{
-      type:'line',data:{datasets:[
-        {label:'Total Droop',data:data.cap_sweep_uF.map((c,i)=>({x:c,y:data.droop_total_mV[i]})),borderColor:'#f0883e',backgroundColor:'rgba(240,136,62,.08)',fill:true,borderWidth:1.5,pointRadius:0},
-        {label:'Cap Droop Only',data:data.cap_sweep_uF.map((c,i)=>({x:c,y:data.droop_cap_only_mV[i]})),borderColor:'#58a6ff',backgroundColor:'transparent',borderWidth:1,borderDash:[4,4],pointRadius:0},
-        {label:'Limit',data:data.cap_sweep_uF.map(c=>({x:c,y:data.allowable_mV})),borderColor:'#f85149',backgroundColor:'transparent',borderWidth:1,borderDash:[8,4],pointRadius:0}
-      ]},
-      options:{animation:false,responsive:true,maintainAspectRatio:false,parsing:false,
-        plugins:{legend:{labels:{color:'#8b949e',boxWidth:12,font:{size:11}}}},
-        scales:{x:{type:'logarithmic',title:{display:true,text:'Cap Value (μF)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}},
-                y:{type:'logarithmic',title:{display:true,text:'Droop (mV)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
-    });
-    document.getElementById('droop-eq-sub').innerHTML=`C = (${body.I_A} A × ${body.pulse_width_us} μs) / (${body.delta_V_mV} mV − ${fmt(data.dV_ESR_mV,2)} mV<sub>ESR</sub>) = <strong style="color:var(--accent)">${fmt(data.C_required_uF,1)} μF</strong>`;
-  }catch(e){toast('Droop error: '+e.message,true);}
+// PULSE DROOP — client-side, no API call
+function computeDroop(){
+  const I_A=parseFloat(document.getElementById('d-I').value)||5;
+  const pw=parseFloat(document.getElementById('d-pw').value)||10;
+  const dv=parseFloat(document.getElementById('d-dv').value)||50;
+  const vs=parseFloat(document.getElementById('d-vs').value)||5;
+  const esr=parseFloat(document.getElementById('d-esr').value)||10;
+  const cg=parseFloat(document.getElementById('d-cgiven').value);
+  const cGiven=isFinite(cg)&&cg>0?cg:null;
+  // dV_ESR (mV) = I_A * ESR_mohm / 1000 * 1000 = I_A * ESR_mohm
+  const dV_ESR_mV=I_A*esr;
+  const dV_cap_budget_mV=Math.max(dv-dV_ESR_mV,0.001);
+  // C_required (uF) = I_A * pulse_width_us / (dV_budget_mV / 1000) * 1e6 * 1e-6
+  // Simplifies: C_uF = I_A * pw_us * 1000 / dV_cap_budget_mV
+  const C_req=I_A*pw*1000/dV_cap_budget_mV;
+  // Sweep: log-spaced from 0.1 to 100000 uF, ~60 points
+  const n=60;const capSweep=[];
+  for(let i=0;i<n;i++)capSweep.push(Math.pow(10,-1+i*(5.0)/(n-1)));
+  const totalDroop=capSweep.map(c=>({
+    x:c,y:I_A*pw*1000/c + dV_ESR_mV
+  }));
+  const capDroopOnly=capSweep.map(c=>({
+    x:c,y:I_A*pw*1000/c
+  }));
+  const limitLine=capSweep.map(c=>({x:c,y:dv}));
+  // Results
+  const rg=document.getElementById('droop-results');rg.innerHTML='';
+  const cards=[{lbl:'Required Cap',val:fmt(C_req,1),unit:'uF',style:'accent'},{lbl:'ESR Droop',val:fmt(dV_ESR_mV,2),unit:'mV',style:'text'},{lbl:'Cap Droop Budget',val:fmt(dV_cap_budget_mV,2),unit:'mV',style:'text'}];
+  if(cGiven){
+    const actDroopTotal=I_A*pw*1000/cGiven+dV_ESR_mV;
+    const actDroopCap=I_A*pw*1000/cGiven;
+    const actDroopPct=actDroopTotal/(vs*10);
+    cards.push({lbl:'Actual Total Droop',val:fmt(actDroopTotal,2),unit:'mV',style:actDroopTotal<=dv+0.01?'accent2':'danger'});
+    cards.push({lbl:'Cap Droop Only',val:fmt(actDroopCap,2),unit:'mV',style:'text'});
+    cards.push({lbl:'ESR Droop (actual)',val:fmt(dV_ESR_mV,2),unit:'mV',style:'text'});
+    cards.push({lbl:'Droop %',val:fmt(actDroopPct,3),unit:'%',style:'text'});
+  }
+  for(const c of cards){
+    const el=document.createElement('div');el.className='result-card';
+    const colorMap={accent:'var(--accent)',accent2:'var(--accent2)',danger:'#f85149',text:'var(--text)'};
+    el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val" style="color:${colorMap[c.style]||'var(--text)'}">${c.val}</div><div class="unit">${c.unit}</div>`;
+    rg.appendChild(el);
+  }
+  if(droopChartInst)droopChartInst.destroy();
+  droopChartInst=new Chart(document.getElementById('droop-chart').getContext('2d'),{
+    type:'line',data:{datasets:[
+      {label:'Total Droop',data:totalDroop,borderColor:'#f0883e',backgroundColor:'rgba(240,136,62,.08)',fill:true,borderWidth:1.5,pointRadius:0},
+      {label:'Cap Droop Only',data:capDroopOnly,borderColor:'#58a6ff',backgroundColor:'transparent',borderWidth:1,borderDash:[4,4],pointRadius:0},
+      {label:'Limit',data:limitLine,borderColor:'#f85149',backgroundColor:'transparent',borderWidth:1,borderDash:[8,4],pointRadius:0}
+    ]},
+    options:{animation:false,responsive:true,maintainAspectRatio:false,parsing:false,
+      plugins:{legend:{labels:{color:'#8b949e',boxWidth:12,font:{size:11}}}},
+      scales:{x:{type:'logarithmic',title:{display:true,text:'Cap Value (uF)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}},
+              y:{type:'logarithmic',title:{display:true,text:'Droop (mV)',color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
+  });
+  document.getElementById('droop-eq-sub').innerHTML=`C = (${fmt(I_A,2)} A x ${fmt(pw,2)} us) / (${fmt(dv,1)} mV - ${fmt(dV_ESR_mV,2)} mV<sub>ESR</sub>) = <strong style="color:var(--accent)">${fmt(C_req,1)} uF</strong>`;
 }
 
 // LINK BUDGET
