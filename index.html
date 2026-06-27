@@ -2090,15 +2090,17 @@ function ciRenderGraphic(state,current,recommended){
   const lowerDielectric=`<rect x="52" y="${dielectricTop}" width="244" height="${170-dielectricTop}" rx="10" fill="#7f8187" opacity="0.82"/>`;
   const solderMask=state.type==='soldermask' ? `<rect x="52" y="58" width="244" height="10" rx="4" fill="#1ea672" opacity="0.92"/><rect x="140" y="68" width="68" height="7" rx="3" fill="#44c488" opacity="0.82"/>` : '';
   const embeddedFill=state.type==='embedded' ? `<rect x="52" y="${bandY-24}" width="244" height="24" rx="10" fill="#8b8f97" opacity="0.65"/>` : '';
-  const traceWidth=ciClamp(28 + current.w2Mil*6.8,36,124);
-  const traceX=174-traceWidth/2;
+  // Fixed-proportion schematic — trace, gap, and grounds are always
+  // the same visual size so the diagram stays readable at all dimensions.
+  // The labels carry the actual computed values (W1, W2, S, H1, etc.).
+  const _tw=48,_gap=24,_gw=56;  // trace, gap, ground in SVG units
+  const traceX=174-_tw/2;
+  const traceTop=bandY-14;
   const trace=isStripline
-    ? `<rect x="${traceX}" y="${bandY-7}" width="${traceWidth}" height="14" rx="4" fill="#d18a3a" stroke="#ffd08f" stroke-width="2"/>`
-    : `<path d="M${traceX} ${bandY} L${traceX+14} ${bandY-14} H${traceX+traceWidth-14} L${traceX+traceWidth} ${bandY} Z" fill="#d18a3a" stroke="#ffd08f" stroke-width="2"/>`;
-  // slide grounds outward as trace grows (18px min gap from trace edge)
-  const _mg=18,_gw=56;
-  const sideGrounds=isCPW ? `<rect x="${traceX-_mg-_gw}" y="${bandY-10}" width="${_gw}" height="10" rx="3" fill="#f0b56b" opacity="0.95"/><rect x="${traceX+traceWidth+_mg}" y="${bandY-10}" width="${_gw}" height="10" rx="3" fill="#f0b56b" opacity="0.95"/><text x="${traceX-_mg-_gw/2}" y="${bandY-16}" text-anchor="middle" fill="#f0b56b" font-size="11">GND</text><text x="${traceX+traceWidth+_mg+_gw/2}" y="${bandY-16}" text-anchor="middle" fill="#f0b56b" font-size="11">GND</text>` : '';
-  const gapLabel=isCPW ? `<line x1="${traceX-_mg}" y1="${bandY-5}" x2="${traceX}" y2="${bandY-5}" stroke="#9ae6b4" stroke-dasharray="4 3"/><line x1="${traceX+traceWidth}" y1="${bandY-5}" x2="${traceX+traceWidth+_mg}" y2="${bandY-5}" stroke="#9ae6b4" stroke-dasharray="4 3"/><text x="174" y="${bandY-14}" text-anchor="middle" fill="#9ae6b4" font-size="11">S ${fmt(state.gapMil,2)} mil</text>` : '';
+    ? `<rect x="${traceX}" y="${bandY-7}" width="${_tw}" height="14" rx="4" fill="#d18a3a" stroke="#ffd08f" stroke-width="2"/>`
+    : `<path d="M${traceX} ${bandY} L${traceX+14} ${traceTop} H${traceX+_tw-14} L${traceX+_tw} ${bandY} Z" fill="#d18a3a" stroke="#ffd08f" stroke-width="2"/>`;
+  const sideGrounds=isCPW ? `<rect x="${traceX-_gap-_gw}" y="${bandY-10}" width="${_gw}" height="10" rx="3" fill="#f0b56b" opacity="0.95"/><rect x="${traceX+_tw+_gap}" y="${bandY-10}" width="${_gw}" height="10" rx="3" fill="#f0b56b" opacity="0.95"/><text x="${traceX-_gap-_gw/2}" y="${bandY-16}" text-anchor="middle" fill="#f0b56b" font-size="11">GND</text><text x="${traceX+_tw+_gap+_gw/2}" y="${bandY-16}" text-anchor="middle" fill="#f0b56b" font-size="11">GND</text>` : '';
+  const gapLabel=isCPW ? `<line x1="${traceX-_gap}" y1="${bandY-5}" x2="${traceX}" y2="${bandY-5}" stroke="#9ae6b4" stroke-dasharray="4 3"/><line x1="${traceX+_tw}" y1="${bandY-5}" x2="${traceX+_tw+_gap}" y2="${bandY-5}" stroke="#9ae6b4" stroke-dasharray="4 3"/><text x="174" y="${bandY-14}" text-anchor="middle" fill="#9ae6b4" font-size="11">S ${fmt(state.gapMil,2)} mil</text>` : '';
   const topLegend=isStripline ? '<text x="64" y="30" fill="#c4ccd8" font-size="11">top reference plane</text>' : (family==='cpw'||family==='gcpw' ? '<text x="64" y="48" fill="#c4ccd8" font-size="11">same-layer grounds</text>' : '<text x="64" y="48" fill="#c4ccd8" font-size="11">air / cover</text>');
   const h2Label=(state.type==='embedded'||isStripline) ? `<line x1="88" y1="48" x2="88" y2="${bandY}" stroke="#b7bdc9" stroke-dasharray="4 4"/><text x="46" y="${(48+bandY)/2}" fill="#e6edf3" font-size="12">H2</text>` : '';
   const h1Label=(family==='cpw') ? '' : `<line x1="270" y1="${dielectricTop}" x2="270" y2="170" stroke="#b7bdc9" stroke-dasharray="4 4"/><text x="278" y="${(dielectricTop+184)/2}" fill="#e6edf3" font-size="12">H1</text>`;
@@ -2119,10 +2121,10 @@ function ciRenderGraphic(state,current,recommended){
     ${gapLabel}
     ${lowerDielectric}
     ${bottomPlane}
-    <line x1="${traceX}" y1="196" x2="${traceX+traceWidth}" y2="196" stroke="#b7bdc9" stroke-dasharray="4 3"/>
-    <text x="${traceX+traceWidth/2}" y="212" text-anchor="middle" fill="#e6edf3" font-size="12">W2 ${fmt(current.w2Mil,2)} mil</text>
-    <text x="${traceX+traceWidth/2}" y="28" text-anchor="middle" fill="#f0b56b" font-size="12">W1 ${fmt(current.baseWidthMil,2)} mil</text>
-    <line x1="${traceX}" y1="34" x2="${traceX+traceWidth}" y2="34" stroke="#f0b56b" stroke-dasharray="4 3"/>
+    <line x1="${traceX}" y1="196" x2="${traceX+_tw}" y2="196" stroke="#b7bdc9" stroke-dasharray="4 3"/>
+    <text x="${traceX+_tw/2}" y="212" text-anchor="middle" fill="#e6edf3" font-size="12">W2 ${fmt(current.w2Mil,2)} mil</text>
+    <text x="${traceX+_tw/2}" y="28" text-anchor="middle" fill="#f0b56b" font-size="12">W1 ${fmt(current.baseWidthMil,2)} mil</text>
+    <line x1="${traceX}" y1="34" x2="${traceX+_tw}" y2="34" stroke="#f0b56b" stroke-dasharray="4 3"/>
     ${h2Label}
     ${h1Label}
     ${topLegend}
