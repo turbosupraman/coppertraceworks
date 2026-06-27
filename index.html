@@ -242,7 +242,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
   <button class="tab-btn" onclick="switchTab(13)">🕳️ Via Properties</button>
   <button class="tab-btn" onclick="switchTab(14)">⚡ Min Copper Spacing</button>
   <button class="tab-btn" onclick="switchTab(15)">🧲 Diff Pair / Xtalk</button>
-  <button class="tab-btn" onclick="switchTab(7)">📶 Link Budget</button>
+  <button class="tab-btn" onclick="switchTab(7)">📶 RF Cascade Analyzer</button>
   <button class="tab-btn" onclick="switchTab(8)">🔄 Unit Converter</button>
   <button class="tab-btn" onclick="switchTab(9)">⚙️ Ohm's Law + Power</button>
   <button class="tab-btn" onclick="switchTab(10)">⏱️ RC Cutoff</button>
@@ -640,12 +640,12 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 </div>
 
-<!-- TAB 7: LINK BUDGET -->
+<!-- TAB 7: RF CASCADE ANALYZER -->
 <div class="tab-panel" id="tab-7">
 <div style="display:flex;flex-direction:column;gap:.8rem">
   <div class="row" style="align-items:flex-start;gap:.8rem;flex-wrap:wrap">
     <div class="card" style="min-width:280px">
-      <h2>System Setup</h2>
+      <h2>Cascade System Setup</h2>
       <div class="col">
         <div class="row">
           <div class="col"><label>Input Power (dBm)</label><input type="number" id="lb-pin" value="-100" step="0.5"/></div>
@@ -1821,20 +1821,58 @@ async function importLbCascade(event){
     if(event?.target)event.target.value='';
   }
 }
-async function computeLinkBudget(){
+// RF CASCADE ANALYZER — client-side
+const LB_CONST={K_B:1.380649e-23,T0:290};
+function computeLinkBudget(){
   const stages=getLbStages();if(stages.length===0){toast('Add at least one stage',true);return;}
-  const body={stages,input_power_dbm:parseFloat(document.getElementById('lb-pin').value)||-100,freq_ghz:parseFloat(document.getElementById('lb-freq').value)||2.4,bandwidth_mhz:parseFloat(document.getElementById('lb-bw').value)||20,T_K:parseFloat(document.getElementById('lb-T').value)||290};
-  try{
-    const res=await fetch(API+'/api/link-budget',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await res.json();if(!res.ok)throw new Error(data.detail);
-    const sg=document.getElementById('lb-summary');sg.innerHTML='';
-    const sumCards=[{lbl:'Total Gain',val:fmt(data.total_gain_db,2),unit:'dB'},{lbl:'Cascaded NF',val:fmt(data.total_nf_db,2),unit:'dB'},{lbl:'IIP3 (input)',val:fmt(data.iip3_total_dbm,2),unit:'dBm'},{lbl:'OIP3 (output)',val:fmt(data.oip3_total_dbm,2),unit:'dBm'},{lbl:'kTB Noise',val:fmt(data.ktb_dbm,1),unit:'dBm'},{lbl:'Output Signal',val:fmt(data.output_signal_dbm,2),unit:'dBm'}];
-    for(const c of sumCards){const el=document.createElement('div');el.className='result-card';el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val">${c.val}</div><div class="unit">${c.unit}</div>`;sg.appendChild(el);}
-    const tbody=document.getElementById('lb-table-body');tbody.innerHTML='';
-    for(const s of data.stages){
-      tbody.innerHTML+=`<tr><td>${s.stage}</td><td>${s.name}</td><td class="${s.gain_db>=0?'pos':'neg'}">${fmt(s.gain_db,2)}</td><td>${fmt(s.nf_db,2)}</td><td>${fmt(s.iip3_dbm,1)}</td><td class="${s.cum_gain_db>=0?'pos':'neg'}">${fmt(s.cum_gain_db,2)}</td><td>${fmt(s.signal_out_dbm,2)}</td><td>${fmt(s.output_noise_dbm,2)}</td><td class="${s.snr_db>=0?'pos':'neg'}">${fmt(s.snr_db,2)}</td></tr>`;
-    }
-  }catch(e){toast('Link budget error: '+e.message,true);}
+  const pin=parseFloat(document.getElementById('lb-pin').value)||-100;
+  const bwHz=(parseFloat(document.getElementById('lb-bw').value)||20)*1e6;
+  // kTB noise floor
+  const kTbW=LB_CONST.K_B*LB_CONST.T0*bwHz;
+  const kTbDbm=10*Math.log10(kTbW*1000);
+  // Cascade computation
+  let cumGainLin=1,cumFLin=1,cumIip3Inv=0;
+  const rows=[];
+  for(let i=0;i<stages.length;i++){
+    const s=stages[i];
+    const gLin=Math.pow(10,s.gain_db/10);
+    const fLin=Math.pow(10,s.nf_db/10);
+    const iip3Lin=Math.pow(10,s.iip3_dbm/10);
+    // Friis: cumulative noise figure
+    cumFLin=cumFLin+(fLin-1)/cumGainLin;
+    // IIP3 cascade: 1/IIP3 += G_prev / IIP3_stage
+    cumIip3Inv+=cumGainLin/iip3Lin;
+    cumGainLin*=gLin;
+    const cumGainDb=10*Math.log10(cumGainLin);
+    const nfDb=10*Math.log10(cumFLin);
+    const iip3Dbm=10*Math.log10(1/cumIip3Inv);
+    // Output signal & noise
+    const sigOutDbm=pin+cumGainDb;
+    const noiseOutDbm=10*Math.log10(kTbW*cumFLin*cumGainLin*1000);
+    const snrDb=sigOutDbm-noiseOutDbm;
+    rows.push({stage:i+1,name:s.name,gain_db:s.gain_db,nf_db:s.nf_db,iip3_dbm:s.iip3_dbm,cum_gain_db:cumGainDb,signal_out_dbm:sigOutDbm,output_noise_dbm:noiseOutDbm,snr_db:snrDb});
+  }
+  const totalGain=rows[rows.length-1].cum_gain_db;
+  const totalNf=10*Math.log10(cumFLin);
+  const totalIip3=10*Math.log10(1/cumIip3Inv);
+  const totalOip3=totalIip3+totalGain;
+  // Render summary
+  const sg=document.getElementById('lb-summary');sg.innerHTML='';
+  const sumCards=[
+    {l:'Total Gain',v:fmt(totalGain,2),u:'dB'},
+    {l:'Cascaded NF',v:fmt(totalNf,2),u:'dB'},
+    {l:'IIP3 (input)',v:fmt(totalIip3,2),u:'dBm'},
+    {l:'OIP3 (output)',v:fmt(totalOip3,2),u:'dBm'},
+    {l:'kTB Noise',v:fmt(kTbDbm,1),u:'dBm'},
+    {l:'Output Signal',v:fmt(rows[rows.length-1].signal_out_dbm,2),u:'dBm'}
+  ];
+  for(const c of sumCards){const el=document.createElement('div');el.className='result-card';
+    el.innerHTML='<div class="lbl">'+c.l+'</div><div class="val">'+c.v+'</div><div class="unit">'+c.u+'</div>';sg.appendChild(el);}
+  // Render table
+  const tbody=document.getElementById('lb-table-body');tbody.innerHTML='';
+  for(const r of rows){
+    tbody.innerHTML+='<tr><td>'+r.stage+'</td><td>'+r.name+'</td><td class="'+(r.gain_db>=0?'pos':'neg')+'">'+fmt(r.gain_db,2)+'</td><td>'+fmt(r.nf_db,2)+'</td><td>'+fmt(r.iip3_dbm,1)+'</td><td class="'+(r.cum_gain_db>=0?'pos':'neg')+'">'+fmt(r.cum_gain_db,2)+'</td><td>'+fmt(r.signal_out_dbm,2)+'</td><td>'+fmt(r.output_noise_dbm,2)+'</td><td class="'+(r.snr_db>=0?'pos':'neg')+'">'+fmt(r.snr_db,2)+'</td></tr>';
+  }
 }
 
 // UNIT CONVERTER
