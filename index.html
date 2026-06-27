@@ -1158,7 +1158,7 @@ const API = location.protocol === 'file:'
   : `${location.origin}/rf`;
 let spData=null,fixtureData=null,spChartMode='db';
 let spChartInst=null,compChartInst=null,compPhaseInst=null,radarChartInst=null,droopChartInst=null,decChartInst=null,ciChartInst=null;
-let radarChartData=null,currentComp='inductor',lbStageId=0;
+let currentComp='inductor',lbStageId=0;
 
 function toast(msg,err=false){
   const t=document.getElementById('toast');
@@ -1567,28 +1567,86 @@ function chartOpts(xlabel,ylabel){
 }
 
 // RADAR
-async function computeRadar(){
-  const body={tx_power_dbm:parseFloat(document.getElementById('r-ptx').value)||30,tx_gain_dbi:parseFloat(document.getElementById('r-gtx').value)||20,rx_gain_dbi:parseFloat(document.getElementById('r-grx').value)||20,freq_ghz:parseFloat(document.getElementById('r-freq').value)||10,rcs_dbsm:parseFloat(document.getElementById('r-rcs').value)||0,snr_required_db:parseFloat(document.getElementById('r-snr').value)||13,noise_figure_db:parseFloat(document.getElementById('r-nf').value)||5,bandwidth_mhz:parseFloat(document.getElementById('r-bw').value)||1,fmcw_bandwidth_mhz:parseFloat(document.getElementById('r-fmcw-bw').value)||500,fmcw_sweep_time_ms:parseFloat(document.getElementById('r-fmcw-t').value)||1,target_velocity_mps:parseFloat(document.getElementById('r-vel').value)||10};
-  try{
-    const res=await fetch(API+'/api/radar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await res.json();if(!res.ok)throw new Error(data.detail);
-    const rg=document.getElementById('radar-results');rg.innerHTML='';
-    const cards=[{lbl:'Max Range',val:fmt(data.R_max_km,2),unit:'km'},{lbl:'Max Range',val:fmt(data.R_max_m,0),unit:'m'},{lbl:'Noise Floor',val:fmt(data.noise_power_dbm,1),unit:'dBm'},{lbl:'Pr @ 1 km',val:fmt(data.Pr_at_1km_dbm,1),unit:'dBm'},{lbl:'Wavelength',val:fmt(data.wavelength_m*100,2),unit:'cm'},{lbl:'Range Res.',val:fmt(data.range_resolution_m,3),unit:'m'},{lbl:'Vel. Res.',val:fmt(data.velocity_resolution_mps,3),unit:'m/s'},{lbl:'Doppler Freq',val:fmtEng(data.doppler_freq_hz),unit:'Hz'}];
-    for(const c of cards){const el=document.createElement('div');el.className='result-card';el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val">${c.val}</div><div class="unit">${c.unit}</div>`;rg.appendChild(el);}
-    radarChartData=data;renderRadarChart();
-    const eq=data.eq_values||{};
-    document.getElementById('radar-substituted').innerHTML=`<strong style="color:var(--text2)">With your values:</strong> Pt=${eq.Pt_dbm} dBm, Gt=${eq.Gt_dbi} dBi, Gr=${eq.Gr_dbi} dBi, λ=${eq.lambda_m} cm, σ=${eq.sigma_m2} m² → <strong style="color:var(--accent)">Rmax = ${fmt(data.R_max_km,3)} km</strong>`;
-  }catch(e){toast('Radar error: '+e.message,true);}
+// RADAR — client-side, no API call
+const C0=299792458,K_B=1.380649e-23,T0=290;
+function computeRadar(){
+  const ptx=parseFloat(document.getElementById('r-ptx').value)||30;
+  const gtx=parseFloat(document.getElementById('r-gtx').value)||20;
+  const grx=parseFloat(document.getElementById('r-grx').value)||20;
+  const fghz=parseFloat(document.getElementById('r-freq').value)||10;
+  const rcs=parseFloat(document.getElementById('r-rcs').value)||0;
+  const snr=parseFloat(document.getElementById('r-snr').value)||13;
+  const nf=parseFloat(document.getElementById('r-nf').value)||5;
+  const bw=parseFloat(document.getElementById('r-bw').value)||1;
+  const fmcwBw=parseFloat(document.getElementById('r-fmcw-bw').value)||500;
+  const fmcwT=parseFloat(document.getElementById('r-fmcw-t').value)||1;
+  const vel=parseFloat(document.getElementById('r-vel').value)||10;
+  const lam=C0/(fghz*1e9);
+  const ptW=Math.pow(10,ptx/10)/1000;   // dBm to Watts
+  const gtLin=Math.pow(10,gtx/10);
+  const grLin=Math.pow(10,grx/10);
+  const sigLin=Math.pow(10,rcs/10);
+  const fLin=Math.pow(10,nf/10);
+  const snrLin=Math.pow(10,snr/10);
+  const bwHz=bw*1e6;
+  // Noise floor (dBm)
+  const nFloorW=K_B*T0*bwHz*fLin;
+  const nFloorDbm=10*Math.log10(nFloorW*1000);
+  // Radar range equation
+  const num=ptW*gtLin*grLin*lam*lam*sigLin;
+  const den=(4*Math.PI)*(4*Math.PI)*(4*Math.PI)*K_B*T0*bwHz*fLin*snrLin;  // (4π)^3
+  const rMaxM=Math.pow(num/den,0.25);
+  const rMaxKm=rMaxM/1000;
+  // Pr at 1 km
+  const r1km=1000;
+  const pr1W=ptW*gtLin*grLin*lam*lam*sigLin/Math.pow(4*Math.PI,3)/Math.pow(r1km,4);
+  const pr1Dbm=10*Math.log10(Math.max(pr1W*1000,1e-30));
+  // FMCW
+  const fmcwBwHz=fmcwBw*1e6;
+  const fmcwTs=fmcwT/1000;
+  const dr=C0/(2*fmcwBwHz);
+  const dv=lam/(2*fmcwTs);
+  const fd=2*vel/lam;
+  // Sweep
+  const maxR=Math.max(rMaxM*10,10000);
+  const n=100;const ranges=[];
+  for(let i=0;i<n;i++)ranges.push(1+Math.pow(maxR, i/(n-1))-1);
+  const prCurve=ranges.map(r=>{
+    const p=ptW*gtLin*grLin*lam*lam*sigLin/Math.pow(4*Math.PI,3)/Math.pow(r,4);
+    return 10*Math.log10(Math.max(p*1000,1e-30));
+  });
+  // Render results
+  const rg=document.getElementById('radar-results');rg.innerHTML='';
+  const cards=[
+    {l:'Max Range',v:fmt(rMaxKm,2),u:'km'},
+    {l:'Max Range',v:fmt(rMaxM,0),u:'m'},
+    {l:'Noise Floor',v:fmt(nFloorDbm,1),u:'dBm'},
+    {l:'Pr @ 1 km',v:fmt(pr1Dbm,1),u:'dBm'},
+    {l:'Wavelength',v:fmt(lam*100,2),u:'cm'},
+    {l:'Range Res.',v:fmt(dr,3),u:'m'},
+    {l:'Vel. Res.',v:fmt(dv,3),u:'m/s'},
+    {l:'Doppler Freq',v:fmtEng(fd),u:'Hz'}
+  ];
+  for(const c of cards){
+    const el=document.createElement('div');el.className='result-card';
+    el.innerHTML='<div class="lbl">'+c.l+'</div><div class="val">'+c.v+'</div><div class="unit">'+c.u+'</div>';
+    rg.appendChild(el);
+  }
+  // Store for chart render
+  window._radarData={ranges,prCurve,nFloorDbm};
+  renderRadarChart();
+  document.getElementById('radar-substituted').innerHTML='<strong style="color:var(--text2)">With your values:</strong> Pt='+fmt(ptx,1)+' dBm, Gt='+fmt(gtx,1)+' dBi, Gr='+fmt(grx,1)+' dBi, λ='+fmt(lam*100,2)+' cm, σ='+fmt(rcs,1)+' dBsm → <strong style="color:var(--accent)">Rmax = '+fmt(rMaxKm,3)+' km</strong>';
 }
 function renderRadarChart(){
-  if(!radarChartData)return;
+  const d=window._radarData;
+  if(!d)return;
   const useLog=document.getElementById('radar-log-range')?.checked??true;
-  const rangesKm=radarChartData.ranges_m.map(r=>r/1000);
+  const rangesKm=d.ranges.map(r=>r/1000);
   if(radarChartInst)radarChartInst.destroy();
   radarChartInst=new Chart(document.getElementById('radar-chart').getContext('2d'),{
     type:'line',data:{datasets:[
-      {label:'Received Power',data:rangesKm.map((r,i)=>({x:r,y:radarChartData.Pr_curve_dbm[i]})),borderColor:'#58a6ff',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0},
-      {label:'Noise Floor',data:rangesKm.map(r=>({x:r,y:radarChartData.noise_floor_dbm})),borderColor:'#f85149',backgroundColor:'transparent',borderWidth:1,borderDash:[5,5],pointRadius:0}
+      {label:'Received Power',data:rangesKm.map((r,i)=>({x:r,y:d.prCurve[i]})),borderColor:'#58a6ff',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0},
+      {label:'Noise Floor',data:rangesKm.map(r=>({x:r,y:d.nFloorDbm})),borderColor:'#f85149',backgroundColor:'transparent',borderWidth:1,borderDash:[5,5],pointRadius:0}
     ]},
     options:{animation:false,responsive:true,maintainAspectRatio:false,parsing:false,
       plugins:{legend:{labels:{color:'#8b949e',boxWidth:12,font:{size:11}}}},
