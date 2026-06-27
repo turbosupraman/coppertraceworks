@@ -1141,7 +1141,9 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 <div id="toast"></div>
 
 <script>
-const API = `${location.protocol}//${location.hostname}:8086`;
+const API = location.protocol === 'file:'
+  ? 'http://127.0.0.1:8086'
+  : `${location.origin}/rf`;
 let spData=null,fixtureData=null,spChartMode='db';
 let spChartInst=null,compChartInst=null,compPhaseInst=null,radarChartInst=null,droopChartInst=null,decChartInst=null,ciChartInst=null;
 let radarChartData=null,currentComp='inductor',lbStageId=0;
