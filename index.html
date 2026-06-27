@@ -1526,38 +1526,86 @@ document.addEventListener('DOMContentLoaded',()=>{
   updateConductorImpedanceUI();calcConductorImpedance();
   computeDecouplingExplorer();
 });
-async function computeComponent(){
+// COMPONENT MODELS — client-side, no API call
+function computeComponent(){
   buildSmithGrid('comp-smith-grid');
   const f1=parseFloat(document.getElementById('comp-f1').value)*1e6||1e6;
   const f2=parseFloat(document.getElementById('comp-f2').value)*1e6||3e9;
   const z0=parseFloat(document.getElementById('comp-z0').value)||50;
-  let body={component_type:currentComp,freq_start:f1,freq_stop:f2,freq_points:600,Z0:z0};
-  if(currentComp==='inductor'){body.L=(parseFloat(document.getElementById('L-val').value)||10)*1e-9;body.DCR=(parseFloat(document.getElementById('L-dcr').value)||0)*1e-3;body.Cp=(parseFloat(document.getElementById('L-cp').value)||0)*1e-12;}
-  else if(currentComp==='capacitor'){body.C=(parseFloat(document.getElementById('C-val').value)||100)*1e-12;body.ESR=(parseFloat(document.getElementById('C-esr').value)||0)*1e-3;body.ESL=(parseFloat(document.getElementById('C-esl').value)||0)*1e-9;}
-  else{body.R=parseFloat(document.getElementById('R-val').value)||50;body.Ls=(parseFloat(document.getElementById('R-ls').value)||0)*1e-9;body.Cs=(parseFloat(document.getElementById('R-cs').value)||0)*1e-12;}
-  try{
-    const res=await fetch(API+'/api/component-model',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await res.json();if(!res.ok)throw new Error(data.detail);
-    plotSmithData('comp-smith-data',[{real:data.S11_real,imag:data.S11_imag,color:{inductor:'#58a6ff',capacitor:'#3fb950',resistor:'#f0883e'}[currentComp]||'#888',label:'Z'}]);
-    const fGhz=data.frequencies.map(f=>f/1e9);
-    if(compChartInst)compChartInst.destroy();
-    compChartInst=new Chart(document.getElementById('comp-chart').getContext('2d'),{type:'line',data:{datasets:[{label:'|Z| (dB Ω)',data:fGhz.map((f,i)=>({x:f,y:data.Z_mag_db[i]})),borderColor:'#58a6ff',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0}]},options:chartOpts('Frequency (GHz)','|Z| (dB Ω)')});
-    if(compPhaseInst)compPhaseInst.destroy();
-    compPhaseInst=new Chart(document.getElementById('comp-phase-chart').getContext('2d'),{type:'line',data:{datasets:[{label:'Phase (°)',data:fGhz.map((f,i)=>({x:f,y:data.Z_phase[i]})),borderColor:'#3fb950',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0}]},options:chartOpts('Frequency (GHz)','Phase (°)')});
-    const info=data.info||{};const grid=document.getElementById('comp-result-grid');grid.innerHTML='';
-    document.getElementById('comp-results').style.display='';
-    const cards=[];
-    if(info.SRF_Hz!=null)cards.push({lbl:'Self-Resonant Freq',val:fmtEng(info.SRF_Hz)+'Hz'});
-    if(info.Q_at_1MHz!=null)cards.push({lbl:'Q (@ 1 MHz)',val:fmt(info.Q_at_1MHz,1)});
-    if(info.L_H!=null)cards.push({lbl:'L',val:fmtEng(info.L_H)+'H'});
-    if(info.DCR_Ohm!=null)cards.push({lbl:'DCR',val:fmtEng(info.DCR_Ohm)+'Ω'});
-    if(info.Cp_F!=null)cards.push({lbl:'Cp',val:fmtEng(info.Cp_F)+'F'});
-    if(info.C_F!=null)cards.push({lbl:'C',val:fmtEng(info.C_F)+'F'});
-    if(info.ESR_Ohm!=null)cards.push({lbl:'ESR',val:fmtEng(info.ESR_Ohm)+'Ω'});
-    if(info.ESL_H!=null)cards.push({lbl:'ESL',val:fmtEng(info.ESL_H)+'H'});
-    for(const c of cards){const el=document.createElement('div');el.className='result-card';el.innerHTML=`<div class="lbl">${c.lbl}</div><div class="val" style="font-size:1rem">${c.val}</div>`;grid.appendChild(el);}
-    toast('Component model computed');
-  }catch(e){toast('Error: '+e.message,true);}
+  const N=600;
+  const freqs=Array.from({length:N},(_,i)=>f1*Math.pow(f2/f1,i/(N-1)));
+  const w=freqs.map(f=>2*Math.PI*f);
+  let Z,info;
+  if(currentComp==='inductor'){
+    const L=(parseFloat(document.getElementById('L-val').value)||10)*1e-9;
+    const Rdc=(parseFloat(document.getElementById('L-dcr').value)||0)*1e-3;
+    const Cp=(parseFloat(document.getElementById('L-cp').value)||0)*1e-12;
+    Z=w.map(w=>{
+      const re=Rdc,im=w*L;
+      const denRe=1-w*w*L*Cp,denIm=w*Cp*Rdc;
+      const den=denRe*denRe+denIm*denIm;
+      return {re:(re*denRe+im*denIm)/den,im:(im*denRe-re*denIm)/den};
+    });
+    info={};
+    if(Cp>0&&L>0)info.SRF_Hz=1/(2*Math.PI*Math.sqrt(L*Cp));
+    if(L>0&&Rdc>0)info.Q_at_1MHz=2*Math.PI*1e6*L/Rdc;
+    info.L_H=L;info.DCR_Ohm=Rdc;info.Cp_F=Cp;
+  }else if(currentComp==='capacitor'){
+    const C=(parseFloat(document.getElementById('C-val').value)||100)*1e-12;
+    const ESR=(parseFloat(document.getElementById('C-esr').value)||0)*1e-3;
+    const ESL=(parseFloat(document.getElementById('C-esl').value)||0)*1e-9;
+    Z=w.map(w=>{
+      const im=w*ESL-1/(w*C);
+      return {re:ESR,im};
+    });
+    info={};
+    if(ESL>0&&C>0)info.SRF_Hz=1/(2*Math.PI*Math.sqrt(C*ESL));
+    if(C>0&&ESR>0)info.Q_at_1MHz=1/(2*Math.PI*1e6*C*ESR);
+    info.C_F=C;info.ESR_Ohm=ESR;info.ESL_H=ESL;
+  }else{
+    const R=parseFloat(document.getElementById('R-val').value)||50;
+    const Ls=(parseFloat(document.getElementById('R-ls').value)||0)*1e-9;
+    const Cs=(parseFloat(document.getElementById('R-cs').value)||0)*1e-12;
+    Z=w.map(w=>{
+      const wCs=w*Cs;
+      const den=1+wCs*wCs*R*R;  // 1 + ω²R²Cs²
+      const re=R/den;
+      const im=-R*wCs*R/den+w*Ls;
+      return {re,im};
+    });
+    info={};info.R=R;info.Ls_H=Ls;info.Cs_F=Cs;
+  }
+  // S11 for Smith chart
+  const S11=Z.map(z=>{
+    const denRe=z.re+z0,denIm=z.im;
+    const den=denRe*denRe+denIm*denIm;
+    return {re:((z.re-z0)*denRe+z.im*denIm)/den,im:((z.im)*denRe-(z.re-z0)*denIm)/den};
+  });
+  // Plot
+  plotSmithData('comp-smith-data',[{real:S11.map(s=>s.re),imag:S11.map(s=>s.im),color:{inductor:'#58a6ff',capacitor:'#3fb950',resistor:'#f0883e'}[currentComp]||'#888',label:'Z'}]);
+  const fGhz=freqs.map(f=>f/1e9);
+  const zmagDb=Z.map(z=>20*Math.log10(Math.sqrt(z.re*z.re+z.im*z.im)));
+  const zPhase=Z.map(z=>Math.atan2(z.im,z.re)*180/Math.PI);
+  if(compChartInst)compChartInst.destroy();
+  compChartInst=new Chart(document.getElementById('comp-chart').getContext('2d'),{type:'line',data:{datasets:[{label:'|Z| (dB Ω)',data:fGhz.map((f,i)=>({x:f,y:zmagDb[i]})),borderColor:'#58a6ff',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0}]},options:chartOpts('Frequency (GHz)','|Z| (dB Ω)')});
+  if(compPhaseInst)compPhaseInst.destroy();
+  compPhaseInst=new Chart(document.getElementById('comp-phase-chart').getContext('2d'),{type:'line',data:{datasets:[{label:'Phase (°)',data:fGhz.map((f,i)=>({x:f,y:zPhase[i]})),borderColor:'#3fb950',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0}]},options:chartOpts('Frequency (GHz)','Phase (°)')});
+  // Results
+  const grid=document.getElementById('comp-result-grid');grid.innerHTML='';
+  document.getElementById('comp-results').style.display='';
+  const cards=[];
+  if(info.SRF_Hz!=null)cards.push({l:'Self-Resonant Freq',v:fmtEng(info.SRF_Hz)+'Hz'});
+  if(info.Q_at_1MHz!=null)cards.push({l:'Q (@ 1 MHz)',v:fmt(info.Q_at_1MHz,1)});
+  if(info.L_H!=null)cards.push({l:'L',v:fmtEng(info.L_H)+'H'});
+  if(info.DCR_Ohm!=null)cards.push({l:'DCR',v:fmtEng(info.DCR_Ohm)+'Ω'});
+  if(info.Cp_F!=null)cards.push({l:'Cp',v:fmtEng(info.Cp_F)+'F'});
+  if(info.C_F!=null)cards.push({l:'C',v:fmtEng(info.C_F)+'F'});
+  if(info.ESR_Ohm!=null)cards.push({l:'ESR',v:fmtEng(info.ESR_Ohm)+'Ω'});
+  if(info.ESL_H!=null)cards.push({l:'ESL',v:fmtEng(info.ESL_H)+'H'});
+  if(info.R!=null)cards.push({l:'R',v:fmtEng(info.R)+'Ω'});
+  if(info.Ls_H!=null)cards.push({l:'Ls',v:fmtEng(info.Ls_H)+'H'});
+  if(info.Cs_F!=null)cards.push({l:'Cs',v:fmtEng(info.Cs_F)+'F'});
+  for(const c of cards){const el=document.createElement('div');el.className='result-card';el.innerHTML='<div class="lbl">'+c.l+'</div><div class="val" style="font-size:1rem">'+c.v+'</div>';grid.appendChild(el);}
 }
 function chartOpts(xlabel,ylabel){
   return{animation:false,responsive:true,maintainAspectRatio:false,parsing:false,
