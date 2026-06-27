@@ -1974,24 +1974,28 @@ function ciCalcBareMicrostrip(dk,hMm,wMm,tMm,model){
     ? ciCalcBareMicrostripIpc2141(dk,hMm,wMm,tMm)
     : ciCalcBareMicrostripWheeler(dk,hMm,wMm,tMm);
 }
-function ciEllipticK(k){
+function ciKratio(k){
+  // Complete elliptic integral ratio K(k)/K'(k) via Hilberg approximation
+  // Piecewise: for k² ≤ 0.5 use K/K' = π / ln(2·(1+√(k'))/(1-√(k')))
+  //            for k² > 0.5 use reciprocal: K/K' = (1/π)·ln(2·(1+√(k))/(1-√(k)))
+  // Better than 0.001% accuracy across 0 ≤ k ≤ 0.999 — sufficient for PCB impedance work
   const kk=ciClamp(Math.abs(k),1e-9,0.999999999);
-  let a=1,b=Math.sqrt(1-kk*kk);
-  for(let i=0;i<8;i++){
-    const nextA=(a+b)/2;
-    const nextB=Math.sqrt(a*b);
-    a=nextA;
-    b=nextB;
+  const ksq=kk*kk;
+  if(ksq<=0.5){
+    const kp=Math.sqrt(1-ksq);
+    const skp=Math.sqrt(kp);
+    return Math.PI/Math.log(2*(1+skp)/(1-skp));
+  }else{
+    const sk=Math.sqrt(kk);
+    return (1/Math.PI)*Math.log(2*(1+sk)/(1-sk));
   }
-  return Math.PI/(2*a);
 }
 function ciCalcCPW(dk,wMm,gMm){
   const b=Math.max(wMm+2*gMm,1e-9);
   const k=ciClamp(wMm/b,1e-9,0.999999999);
-  const kp=Math.sqrt(1-k*k);
-  const kk=ciEllipticK(k),kkp=ciEllipticK(kp);
+  // Z0 = (30π/√εeff) · (K'(k)/K(k)) = (30π/√εeff) / (K(k)/K'(k))
   const eeff=(1+dk)/2;
-  const z0=(30*Math.PI/Math.sqrt(eeff))*(kkp/kk);
+  const z0=(30*Math.PI/Math.sqrt(eeff))/ciKratio(k);
   return {z0,eeff};
 }
 function ciCalcGCPW(dk,wMm,gMm,hMm){
@@ -1999,12 +2003,13 @@ function ciCalcGCPW(dk,wMm,gMm,hMm){
   const b=Math.max(wMm+2*gMm,1e-9);
   const h=Math.max(hMm,1e-9);
   const k=ciClamp(a/b,1e-9,0.999999999);
-  const kp=Math.sqrt(1-k*k);
   const kl=ciClamp(Math.tanh(Math.PI*a/(4*h))/Math.tanh(Math.PI*b/(4*h)),1e-9,0.999999999);
-  const klp=Math.sqrt(1-kl*kl);
-  const Kk=ciEllipticK(k),Kkp=ciEllipticK(kp),Kkl=ciEllipticK(kl),Kklp=ciEllipticK(klp);
-  const eeff=(1 + ((dk*Kkp*Kkl)/(Kk*Kklp))) / (1 + ((Kkp*Kkl)/(Kk*Kklp)));
-  const z0=(60*Math.PI/Math.sqrt(eeff))*(1/((Kk/Kkp)+(Kkl/Kklp)));
+  // Wadell's GCPW formulation via K(k)/K'(k) ratios
+  const rk=ciKratio(k);    // K(k)/K'(k) — line geometry ratio
+  const rkl=ciKratio(kl);  // K(kl)/K'(kl) — ground-plane loading ratio
+  const q=(1/rk)*rkl;      // (K'(k)/K(k)) · (K(kl)/K'(kl))
+  const eeff=(1+dk*q)/(1+q);
+  const z0=(60*Math.PI/Math.sqrt(eeff))/(rk+rkl);
   return {z0,eeff:ciClamp(eeff,1,dk)};
 }
 function ciCalcMaskLoaded(base,maskDk,hMm,c1Mm,c2Mm){
