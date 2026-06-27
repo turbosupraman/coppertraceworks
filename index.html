@@ -1018,6 +1018,11 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <input type="number" id="ci-tol" value="5" step="0.1"/>
         </div>
         <div>
+          <label>Copper weight preset</label>
+          <select id="ci-copper" onchange="ciOnCopperChange();calcConductorImpedance()">
+          </select>
+        </div>
+        <div>
           <label>Copper thickness T (mil)</label>
           <input type="number" id="ci-t" value="1.37" step="0.01"/>
         </div>
@@ -1037,8 +1042,15 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <label>H1 to reference (mil)</label>
           <input type="number" id="ci-h1" value="6.0" step="0.1"/>
         </div>
+        <div class="full" style="margin-bottom:.3rem">
+          <label>PCB Laminate Material</label>
+          <select id="ci-material" onchange="ciOnMaterialChange();calcConductorImpedance();ciPopulateCopperWeight();ciPopulateMaterialSelect();">
+            <option value="">— Select or type Custom —</option>
+          </select>
+          <div class="text-sm" id="ci-mat-hint" style="margin-top:.2rem"></div>
+        </div>
         <div>
-          <label>Dk1</label>
+          <label>Dk1 <span class="text-sm">(from material or manual)</span></label>
           <input type="number" id="ci-dk1" value="4.2" step="0.01"/>
         </div>
         <div data-ci-show="embedded,asymmetric,symmetric">
@@ -1794,6 +1806,120 @@ function ciPickFamily(family){
   updateConductorImpedanceUI();
   calcConductorImpedance();
 }
+// ── Rogers PCB Material Database (from MWI Calculator, © Rogers Corp) ──
+const CI_MATERIALS = {
+  'AD250C':          {dk:2.5,  df:0.0013, tc:0.33},
+  'AD255C':          {dk:2.6,  df:0.0013, tc:0.35},
+  'AD300D':          {dk:2.94, df:0.0021, tc:0.37},
+  'AD350A':          {dk:3.5,  df:0.0033, tc:0.44},
+  'Anteo':           {dk:4.38, df:0.005,  tc:0.64},
+  'CLTE':            {dk:2.98, df:0.0023, tc:0.5},
+  'CLTE-AT':         {dk:3,    df:0.0013, tc:0.64},
+  'CLTE-MW':         {dk:3.05, df:0.0015, tc:0.42},
+  'CLTE-XT':         {dk:2.94, df:0.0012, tc:0.56},
+  'CuClad 217 (2.17)':{dk:2.17,df:0.0009, tc:0.26},
+  'CuClad 217 (2.20)':{dk:2.2, df:0.0009, tc:0.26},
+  'CuClad 233':      {dk:2.4,  df:0.0013, tc:0.26},
+  'CuClad 250':      {dk:2.5,  df:0.0017, tc:0.25},
+  'DiClad 527':      {dk:2.5,  df:0.0017, tc:0.25},
+  'DiClad 870':      {dk:2.33, df:0.0013, tc:0.26},
+  'DiClad 880':      {dk:2.2,  df:0.0009, tc:0.26},
+  'IsoClad 917':     {dk:2.17, df:0.0013, tc:0.26},
+  'IsoClad 933':     {dk:2.33, df:0.0016, tc:0.26},
+  'Kappa 438':       {dk:4.38, df:0.005,  tc:0.64},
+  'XtremeSpeed RO1200':{dk:3.05,df:0.0017, tc:0.42},
+  'RO3003':          {dk:3,    df:0.001,  tc:0.5},
+  'RO3003G2':        {dk:3,    df:0.0011, tc:0.43},
+  'RO3006':          {dk:6.4,  df:0.002,  tc:0.79},
+  'RO3010':          {dk:11.2, df:0.0022, tc:0.95},
+  'RO3035':          {dk:3.6,  df:0.0015, tc:0.5},
+  'RO3203':          {dk:3.02, df:0.0016, tc:0.48},
+  'RO3206':          {dk:6.6,  df:0.0027, tc:0.67},
+  'RO3210':          {dk:10.8, df:0.0027, tc:0.81},
+  'RO4003C':         {dk:3.55, df:0.0027, tc:0.71},
+  'RO4003C LoPro':   {dk:3.5,  df:0.0027, tc:0.71},
+  'RO4350B':         {dk:3.66, df:0.0037, tc:0.69},
+  'RO4350B LoPro':   {dk:3.55, df:0.0037, tc:0.69},
+  'RO4360G2':        {dk:6.4,  df:0.0038, tc:0.75},
+  'RO4533':          {dk:3.45, df:0.0025, tc:0.6},
+  'RO4533 LoPro':    {dk:3.45, df:0.0025, tc:0.6},
+  'RO4534':          {dk:3.55, df:0.0027, tc:0.6},
+  'RO4534 LoPro':    {dk:3.55, df:0.0027, tc:0.6},
+  'RO4535':          {dk:3.6,  df:0.0037, tc:0.6},
+  'RO4535 LoPro':    {dk:3.6,  df:0.0037, tc:0.6},
+  'RO4725JXR':       {dk:2.64, df:0.0026, tc:0.38},
+  'RO4730G3':        {dk:2.98, df:0.0028, tc:0.45},
+  'RO4830':          {dk:3.24, df:0.0033, tc:0.45},
+  'RO4835':          {dk:3.66, df:0.0037, tc:0.66},
+  'RO4835 LoPro':    {dk:3.55, df:0.0037, tc:0.66},
+  'RO4835T':         {dk:3.48, df:0.003,  tc:0.52},
+  'RT/duroid 5870':  {dk:2.33, df:0.0012, tc:0.22},
+  'RT/duroid 5880':  {dk:2.2,  df:0.0009, tc:0.2},
+  'RT/duroid 5880LZ':{dk:2,    df:0.0021, tc:0.33},
+  'RT/duroid 6002':  {dk:2.94, df:0.0012, tc:0.6},
+  'RT/duroid 6006':  {dk:6.45, df:0.0027, tc:0.49},
+  'RT/duroid 6010.2LM':{dk:10.7,df:0.0023, tc:0.86},
+  'RT/duroid 6035HTC':{dk:3.6, df:0.0013, tc:1.44},
+  'RT/duroid 6202':  {dk:2.94, df:0.0015, tc:0.68},
+  'RT/duroid 6202PR':{dk:2.94, df:0.002,  tc:0.68},
+  'TC350':           {dk:3.5,  df:0.002,  tc:0.72},
+  'TC350 Plus':      {dk:3.62, df:0.0017, tc:1.24},
+  'TC600':           {dk:6.15, df:0.002,  tc:1.1},
+  'TMM10':           {dk:9.8,  df:0.0022, tc:0.76},
+  'TMM10i':          {dk:9.9,  df:0.002,  tc:0.76},
+  'TMM13i':          {dk:12.2, df:0.0019, tc:0.76},
+  'TMM3':            {dk:3.45, df:0.002,  tc:0.7},
+  'TMM4':            {dk:4.7,  df:0.002,  tc:0.7},
+  'TMM6':            {dk:6.3,  df:0.0023, tc:0.72}
+};
+
+// Copper weight presets in mils
+const CI_COPPER_WEIGHTS = [
+  {label:'⅛ oz (0.17 mil)', value:0.17},
+  {label:'¼ oz (0.35 mil)', value:0.35},
+  {label:'½ oz (0.7 mil)',  value:0.7},
+  {label:'1 oz (1.37 mil)', value:1.37},
+  {label:'2 oz (2.8 mil)',  value:2.8},
+  {label:'3 oz (4.2 mil)',  value:4.2},
+  {label:'Custom',          value:0}
+];
+
+function ciPopulateMaterialSelect(){
+  const sel=document.getElementById('ci-material');
+  if(!sel||sel.options.length>1)return;
+  const keys=Object.keys(CI_MATERIALS).sort();
+  for(const k of keys){const o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);}
+}
+
+function ciOnMaterialChange(){
+  const sel=document.getElementById('ci-material');
+  const mat=CI_MATERIALS[sel.value];
+  if(!mat)return;
+  document.getElementById('ci-dk1').value=mat.dk;
+  if(document.getElementById('ci-dk2'))document.getElementById('ci-dk2').value=mat.dk;
+  const hint=document.getElementById('ci-mat-hint');
+  if(hint)hint.textContent=`Df=${mat.df}  TC=${mat.tc} W/m·K`;
+}
+
+function ciPopulateCopperWeight(){
+  const sel=document.getElementById('ci-copper');
+  if(!sel||sel.options.length>0)return;
+  for(const cw of CI_COPPER_WEIGHTS){
+    const o=document.createElement('option');
+    o.value=cw.value;
+    o.textContent=cw.label;
+    if(Math.abs(cw.value-1.37)<0.01)o.selected=true;
+    sel.appendChild(o);
+  }
+}
+
+function ciOnCopperChange(){
+  const sel=document.getElementById('ci-copper');
+  const val=parseFloat(sel.value);
+  if(val>0)document.getElementById('ci-t').value=val;
+  else document.getElementById('ci-t').focus();
+}
+
 function ciGetState(){
   return {
     type:document.getElementById('ci-structure').value,
@@ -2038,6 +2164,8 @@ function ciRenderNotes(state,current,recommended){
   document.getElementById('ci-notes').innerHTML=notes.map(n=>`<div class="ci-note"><span class="ci-note-bullet"></span><div><strong>${n.title}</strong><div class="text-sm">${n.body}</div></div></div>`).join('');
 }
 function updateConductorImpedanceUI(){
+  ciPopulateMaterialSelect();
+  ciPopulateCopperWeight();
   const type=document.getElementById('ci-structure')?.value || 'microstrip';
   const isMicrostrip=ciIsMicrostripFamily(type);
   const modelSel=document.getElementById('ci-model');
