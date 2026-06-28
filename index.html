@@ -2331,9 +2331,29 @@ function ciRenderChart(state,rows,current){
 }
 function ciRenderNotes(state,current,recommended){
   const notes=[];
+  const w=state.w1Mil,h=state.h1Mil,t=state.tMil,g=state.gapMil||0;
+  const wh=w/Math.max(h,0.001),th=t/Math.max(h,0.001);
+  // Model validity flags
   if(ciIsMicrostripFamily(state.type)){
     const model=ciModelMeta(state.model);
     notes.push({title:`Equation model: ${model.title}`,body:model.copy});
+    // Wheeler validity checks
+    if(state.model==='wheeler'||!state.model){
+      if(wh<0.1)notes.push({title:'⚠ w/h ratio low',body:`w/h = ${fmt(wh,3)}. Wheeler/Wadell is most accurate for 0.1 ≤ w/h ≤ 10. Below 0.1, fringing fields dominate and the closed-form may overestimate Z₀. Consider a field solver for verification.`});
+      if(wh>10)notes.push({title:'⚠ w/h ratio high',body:`w/h = ${fmt(wh,2)}. Wheeler/Wadell is most accurate for 0.1 ≤ w/h ≤ 10. Above 10, the microstrip behaves more like a parallel-plate line and the Z₀ prediction degrades.`});
+      if(th>0.1)notes.push({title:'⚠ Thick copper relative to substrate',body:`t/h = ${fmt(th,3)}. Wheeler/Wadell assumes t/h ≤ 0.1 for best accuracy. Thick copper or thin substrate may need a field solver for precise results.`});
+    }
+    if(state.model==='ipc2141'){
+      if(wh<0.1||wh>3)notes.push({title:'⚠ IPC-2141 range limited',body:`w/h = ${fmt(wh,2)}. IPC-2141 is most accurate for 0.1 ≤ w/h ≤ 3. Outside this range, switch to Wheeler/Wadell for better results.`});
+    }
+  }else if(state.type==='cpw'||state.type==='gcpw'){
+    notes.push({title:'Equation: CPW/GCPW (Wadell + Hilberg K/K\')',body:'Uses the exact Wadell formulation with the complete elliptic integral ratio K(k)/K\'(k) computed via the Hilberg approximation (<0.001% error across all practical k).'});
+    if(g>0&&g/Math.max(h,0.001)<0.05)notes.push({title:'⚠ Small gap relative to height',body:`gap/h = ${fmt(g/h,3)}. GCPW accuracy degrades when the gap is much smaller than the substrate height. A 3D field solver may give different results.`});
+  }else if(state.type==='symmetric'||state.type==='asymmetric'){
+    notes.push({title:'Equation model: Stripline closed-form',body:'Symmetric and asymmetric stripline modes use the stripline equation set directly because the microstrip model selector only applies to outer-layer / embedded microstrip-style solves.'});
+    const b=(state.type==='symmetric')?2*h:parseFloat(document.getElementById('ci-h2')?.value||h)||h;
+    const wb=w/Math.max(b,0.001);
+    if(wb<0.05||wb>5)notes.push({title:'⚠ w/b ratio outside best range',body:`w/b = ${fmt(wb,2)}. Stripline formulas are most accurate for 0.05 ≤ w/b ≤ 5. Verify with your fab for extreme ratios.`});
   }else{
     notes.push({title:'Equation model: Stripline closed-form',body:'Symmetric and asymmetric stripline modes use the stripline equation set directly because the microstrip model selector only applies to outer-layer / embedded microstrip-style solves.'});
   }
