@@ -250,6 +250,9 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
   <button class="tab-btn" onclick="switchTab(4)">🔧 Component Models</button>
   <button class="tab-btn" onclick="switchTab(5)">📡 Radar</button>
   <button class="tab-btn" onclick="switchTab(6)">🔋 Pulse Droop</button>
+  <button class="tab-btn" onclick="switchTab(18)">🔥 Fusing Current</button>
+  <button class="tab-btn" onclick="switchTab(19)">📏 Bandwidth / Max Length</button>
+  <button class="tab-btn" onclick="switchTab(20)">🔌 Conductor Properties</button>
 </div>
 <div id="content">
 
@@ -542,6 +545,111 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       $$ \Delta R = \frac{c}{2 B_{FMCW}}, \quad \Delta v = \frac{\lambda}{2 T_{sweep}}, \quad f_d = \frac{2v}{\lambda} $$
     </div>
     <div id="radar-substituted" style="margin-top:.5rem;font-size:.82rem;color:var(--text2)"></div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 18: FUSING CURRENT -->
+<div class="tab-panel" id="tab-18">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>PCB Trace Fusing Current</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Estimates the DC current at which a copper trace will fuse (melt) and the recommended operating current for a given temperature rise.</p>
+    <div class="row">
+      <div class="col"><label>Trace Width (mil)</label><input type="number" id="fc-w" value="50" step="1" min="0.1"/></div>
+      <div class="col"><label>Copper Weight (oz)</label>
+        <select id="fc-oz" onchange="calcFusingCurrent()">
+          <option value="0.5">0.5 oz</option><option value="1" selected>1 oz</option>
+          <option value="2">2 oz</option><option value="3">3 oz</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Ambient Temp (°C)</label><input type="number" id="fc-ta" value="25" step="1" min="0"/></div>
+      <div class="col"><label>Allowable Rise (°C)</label><input type="number" id="fc-tr" value="20" step="1" min="1"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Pulse Time (s, 0=DC)</label><input type="number" id="fc-t" value="0" step="0.001" min="0"/></div>
+      <div class="col"><label>Layer</label>
+        <select id="fc-layer" onchange="calcFusingCurrent()">
+          <option value="external" selected>External (outer)</option>
+          <option value="internal">Internal (inner)</option>
+        </select>
+      </div>
+    </div>
+    <button onclick="calcFusingCurrent()">Calculate</button>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="fc-results"></div></div>
+  <div class="card">
+    <h2>Equations</h2>
+    <div class="eq-box">$$ I_{fuse} = 0.025 \cdot W \cdot t_{cu} \cdot \sqrt{\frac{\log\left(\frac{T_{melt} - T_{amb}}{T_{ref} - T_{amb}} + 1\right)}{33 \cdot t_{pulse}}} $$</div>
+    <div class="eq-box" style="margin-top:.4rem">$$ I_{op} = k \cdot \Delta T^{0.44} \cdot A^{0.725} \quad \text{(IPC-2152)} $$</div>
+    <p class="text-sm" style="margin-top:.5rem;color:var(--text2)">Lower result between IPC-2152 operating current and pulse fusing current is shown. For DC (t=0), only IPC-2152 applies.</p>
+  </div>
+</div>
+</div>
+
+<!-- TAB 19: BANDWIDTH & MAX CONDUCTOR LENGTH -->
+<div class="tab-panel" id="tab-19">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Bandwidth &amp; Max Conductor Length</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Determine the maximum trace length before transmission-line effects matter, and the bandwidth limit for a given trace length.</p>
+    <div class="row">
+      <div class="col"><label>Frequency (MHz)</label><input type="number" id="bw-f" value="1000" step="1" min="0.01"/></div>
+      <div class="col"><label>Signal Rise Time (ns)</label><input type="number" id="bw-tr" value="0.35" step="0.01" min="0.001"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>PCB Dk</label><input type="number" id="bw-dk" value="4.2" step="0.1" min="1"/></div>
+      <div class="col"><label>Trace Length (in)</label><input type="number" id="bw-len" value="6" step="0.1" min="0.01"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Rule of thumb</label>
+        <select id="bw-rule">
+          <option value="10" selected>λ/10 (loose coupling)</option>
+          <option value="20">λ/20 (tight coupling)</option>
+          <option value="8">λ/8 (critical)</option>
+        </select>
+      </div>
+    </div>
+    <button onclick="calcBandwidth()">Calculate</button>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="bw-results"></div></div>
+  <div class="card">
+    <h2>Equations</h2>
+    <div class="eq-box">$$ L_{max} = \frac{c \cdot \text{frac}}{f \cdot \sqrt{\varepsilon_{eff}}}, \quad BW = \frac{0.35}{t_r}, \quad \lambda = \frac{c}{f \cdot \sqrt{\varepsilon_{eff}}} $$</div>
+    <div class="eq-box" style="margin-top:.4rem">$$ \varepsilon_{eff} \approx \frac{\varepsilon_r + 1}{2} + \frac{\varepsilon_r - 1}{2} \left(1 + 12\frac{h}{w}\right)^{-0.5} $$</div>
+    <p class="text-sm" style="margin-top:.5rem;color:var(--text2)">When trace length exceeds λ/frac, distributed transmission-line effects become significant.</p>
+  </div>
+</div>
+</div>
+
+<!-- TAB 20: CONDUCTOR PROPERTIES -->
+<div class="tab-panel" id="tab-20">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Conductor DC Properties</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">DC resistance, inductance, and capacitance per unit length for a PCB trace.</p>
+    <div class="row">
+      <div class="col"><label>Trace Width (mil)</label><input type="number" id="cp-w" value="10" step="0.1" min="0.1"/></div>
+      <div class="col"><label>Copper Weight (oz)</label>
+        <select id="cp-oz" onchange="calcConductorProps()">
+          <option value="0.5">0.5 oz</option><option value="1" selected>1 oz</option>
+          <option value="2">2 oz</option><option value="3">3 oz</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Length (in)</label><input type="number" id="cp-len" value="1" step="0.1" min="0.01"/></div>
+      <div class="col"><label>Temp (°C)</label><input type="number" id="cp-temp" value="25" step="1" min="-55"/></div>
+    </div>
+    <button onclick="calcConductorProps()">Calculate</button>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="cp-results"></div></div>
+  <div class="card">
+    <h2>Equations</h2>
+    <div class="eq-box">$$ R_{DC} = \frac{\rho \cdot L}{W \cdot t}, \quad L_{self} \approx 0.00508 \cdot L \cdot \left(\ln\frac{2L}{W+t} + 0.5 + 0.2235\frac{W+t}{L}\right) $$</div>
+    <p class="text-sm" style="margin-top:.5rem;color:var(--text2)">Copper resistivity: 1.724e-6 Ω·cm at 20°C, temp coefficient 0.00393 /°C.</p>
   </div>
 </div>
 </div>
@@ -1205,6 +1313,9 @@ function resolveInitialTab(){
     '11':11,'dbm-voltage':11,'dbm-to-voltage':11,
     '12':12,'about':12,
     '13':13,'via-properties':13,
+    '18':18,'fusing-current':18,
+    '19':19,'bandwidth':19,'max-length':19,
+    '20':20,'conductor-properties':20,
     '14':14,'min-copper-spacing':14,
     '15':15,'diff-pair':15,'diff-pair-xtalk':15,
     '16':16,'trace':16,'trace-impedance':16,
@@ -1527,6 +1638,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Auto-run all calculators with default example values
   calculateLED();calculateLC();calculateVD();calculateRC();calculateDbmVoltage();
   computeComponent();computeRadar();computeDroop();calcViaProps();calcMinSpacing();calcDiffPair();
+  calcFusingCurrent();calcBandwidth();calcConductorProps();
   setTimeout(()=>computeLinkBudget(),50);
 });
 // COMPONENT MODELS — client-side, no API call
@@ -1928,6 +2040,54 @@ function calcDiffPair(){
   const nextPct=Math.min(100,Math.max(0,8*k*(len/Math.max(1,tr/1000)))); const fextPct=Math.min(100,Math.max(0,4*k*(len/Math.max(1,tr/1000))));
   const body=[['Single-ended Z0',`${z0.toFixed(2)} Ω`],['Differential impedance',`${zDiff.toFixed(2)} Ω`],['Coupling factor (heuristic)',k.toFixed(3)],['NEXT estimate',`${nextPct.toFixed(2)} %`],['FEXT estimate',`${fextPct.toFixed(2)} %`],['Rule-of-thumb','Keep s ≥ 3h for lower xtalk']];
   document.getElementById('dp-body').innerHTML=body.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+}
+// Fusing Current
+function calcFusingCurrent(){
+  const w=+document.getElementById("fc-w").value||50;
+  const oz=+document.getElementById("fc-oz").value||1;
+  const ta=+document.getElementById("fc-ta").value||25;
+  const tr=+document.getElementById("fc-tr").value||20;
+  const tp=+document.getElementById("fc-t").value||0;
+  const layer=document.getElementById("fc-layer").value;
+  const tm=oz*1.37;const a=(w*tm)/1000;const k=layer==="external"?0.048:0.024;
+  const iIpc=k*Math.pow(Math.max(tr,1),0.44)*Math.pow(a,0.725)*1000;
+  let iFuse=null,iOp=iIpc;
+  if(tp>0){const la=Math.log((1083-ta)/(25-ta)+1);iFuse=a*1000*Math.sqrt(la/(33*tp));iOp=Math.min(iIpc,iFuse);}
+  const r=document.getElementById("fc-results");r.innerHTML="";
+  for(const x of[{l:"Fusing Current",v:iFuse!==null?iFuse.toFixed(1):"DC only",u:"A"},{l:"Max Operating",v:iIpc.toFixed(1),u:"A"},{l:"Recommended",v:iOp.toFixed(1),u:"A"},{l:"Area",v:(w*tm).toFixed(2),u:"sq mil"},{l:"Cu Thickness",v:tm.toFixed(3),u:"mil"}]){
+    const e=document.createElement("div");e.className="result-card";
+    e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
+}
+// Bandwidth
+function calcBandwidth(){
+  const f=+document.getElementById("bw-f").value*1e6||1e9;
+  const tr=+document.getElementById("bw-tr").value*1e-9||0.35e-9;
+  const dk=+document.getElementById("bw-dk").value||4.2;
+  const len=+document.getElementById("bw-len").value||6;
+  const rule=+document.getElementById("bw-rule").value||10;
+  const C=299792458;const ee=(dk+1)/2+(dk-1)/2/Math.sqrt(1+12);
+  const wlIn=C/Math.sqrt(ee)/f/0.0254;
+  const maxIn=wlIn/rule;const bwm=0.35/tr/1e6;const dp=len*85/Math.sqrt(ee);
+  const r=document.getElementById("bw-results");r.innerHTML="";
+  for(const x of[{l:"Wavelength",v:wlIn.toFixed(4),u:"in"},{l:"Max Length",v:maxIn.toFixed(4),u:"in"},{l:"Bandwidth",v:bwm.toFixed(1),u:"MHz"},{l:"Delay",v:dp.toFixed(1),u:"ps"},{l:"eeff",v:ee.toFixed(3),u:""},{l:"Status",v:len>maxIn?"EXCEEDS":"OK",u:""}]){
+    const e=document.createElement("div");e.className="result-card";
+    const col=len>maxIn&&x.l==="Status"?"#f85149":x.l==="Status"?"#3fb950":"var(--text)";
+    e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val" style="color:'+col+'">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
+}
+// Conductor Properties
+function calcConductorProps(){
+  const w=+document.getElementById("cp-w").value||10;
+  const oz=+document.getElementById("cp-oz").value||1;
+  const len=+document.getElementById("cp-len").value||1;
+  const temp=+document.getElementById("cp-temp").value||25;
+  const tm=oz*1.37;
+  const rho=1.724e-6*(1+0.00393*(temp-20));
+  const rDc=rho*len*2.54/(w*0.00254*tm*0.00254);
+  const s=w+tm;const lNh=5.08*len*(Math.log(2*len*1000/s)+0.5+0.2235*s/(len*1000));
+  const r=document.getElementById("cp-results");r.innerHTML="";
+  for(const x of[{l:"DC Resistance",v:rDc.toFixed(5),u:"\u03a9"},{l:"R / 1000 ft",v:(rDc*12000).toFixed(2),u:"\u03a9"},{l:"Inductance",v:lNh.toFixed(3),u:"nH"},{l:"L / in",v:(lNh/len).toFixed(4),u:"nH/in"},{l:"Area",v:(w*tm).toFixed(2),u:"sq mil"},{l:"Volume",v:(w*tm*len).toFixed(2),u:"cu mil"}]){
+    const e=document.createElement("div");e.className="result-card";
+    e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
 }
 
 function ciMilToMm(mil){return mil*0.0254;}
