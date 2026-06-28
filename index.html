@@ -2219,10 +2219,10 @@ function calcFusingCurrent(){
   const tr=+document.getElementById("fc-tr").value||20;
   const tp=+document.getElementById("fc-t").value||0;
   const layer=document.getElementById("fc-layer").value;
-  const tm=oz*1.37;const a=(w*tm)/1000;const k=layer==="external"?0.048:0.024;
-  const iIpc=k*Math.pow(Math.max(tr,1),0.44)*Math.pow(a,0.725)*1000;
+  const tm=oz*1.37;const a=w*tm;const k=layer==="external"?0.048:0.024;
+  const iIpc=k*Math.pow(Math.max(tr,1),0.44)*Math.pow(a,0.725);
   let iFuse=null,iOp=iIpc;
-  if(tp>0){const la=Math.log((1083-ta)/(25-ta)+1);iFuse=a*1000*Math.sqrt(la/(33*tp));iOp=Math.min(iIpc,iFuse);}
+  if(tp>0){const la=Math.log10((1083-ta)/(234+ta)+1);iFuse=a*Math.sqrt(la/(33*tp));iOp=Math.min(iIpc,iFuse);}
   const r=document.getElementById("fc-results");r.innerHTML="";
   for(const x of[{l:"Fusing Current",v:iFuse!==null?iFuse.toFixed(1):"DC only",u:"A"},{l:"Max Operating",v:iIpc.toFixed(1),u:"A"},{l:"Recommended",v:iOp.toFixed(1),u:"A"},{l:"Area",v:(w*tm).toFixed(2),u:"sq mil"},{l:"Cu Thickness",v:tm.toFixed(3),u:"mil"}]){
     const e=document.createElement("div");e.className="result-card";
@@ -2268,7 +2268,7 @@ function calcThermal(){
   const ta=+document.getElementById("th-ta").value||25;
   const len=+document.getElementById("th-len").value||3;
   const layer=document.getElementById("th-layer").value;
-  const tm=oz*1.37;const a=(w*tm)/1000;const k=layer==="external"?0.048:0.024;
+  const tm=oz*1.37;const a=w*tm;const k=layer==="external"?0.048:0.024;
   const dT=Math.pow(i/(k*Math.pow(a,0.725)),1/0.44);
   const rho=1.724e-6*(1+0.00393*(ta-20));
   const r25=rho*len*2.54/(w*0.00254*tm*0.00254);
