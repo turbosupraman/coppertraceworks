@@ -1381,6 +1381,10 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <input type="number" id="ci-etch" value="0.15" step="0.01"/>
         </div>
         <div>
+          <label>Frequency (MHz)</label>
+          <input type="number" id="ci-freq" value="1000" step="1" min="0.01"/>
+        </div>
+        <div>
           <label>H1 to reference (mil)</label>
           <input type="number" id="ci-h1" value="6.0" step="0.1"/>
         </div>
@@ -2624,7 +2628,8 @@ function ciGetState(){
     dk2:parseFloat(document.getElementById('ci-dk2').value),
     c1Mil:parseFloat(document.getElementById('ci-c1').value),
     c2Mil:parseFloat(document.getElementById('ci-c2').value),
-    cdk:parseFloat(document.getElementById('ci-cdk').value)
+    cdk:parseFloat(document.getElementById('ci-cdk').value),
+    fMhz:parseFloat(document.getElementById('ci-freq').value)||1000
   };
 }
 function ciValidateState(s){
