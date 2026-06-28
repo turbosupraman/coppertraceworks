@@ -254,6 +254,10 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
   <button class="tab-btn" onclick="switchTab(19)">📏 Bandwidth / Max Length</button>
   <button class="tab-btn" onclick="switchTab(20)">🔌 Conductor Properties</button>
   <button class="tab-btn" onclick="switchTab(21)">🌡️ Thermal</button>
+  <button class="tab-btn" onclick="switchTab(22)">🌀 Planar Inductors</button>
+  <button class="tab-btn" onclick="switchTab(23)">💎 PPM-XTAL</button>
+  <button class="tab-btn" onclick="switchTab(24)">🔧 Mechanical Info</button>
+  <button class="tab-btn" onclick="switchTab(25)">🔶 Embedded Resistors</button>
 </div>
 <div id="content">
 
@@ -927,6 +931,127 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 </div>
 
+<!-- TAB 22: PLANAR INDUCTORS -->
+<div class="tab-panel" id="tab-22">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Planar Spiral Inductor</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Estimate inductance of a square planar spiral inductor on a PCB. Uses the Modified Wheeler formula.</p>
+    <div class="row">
+      <div class="col"><label>Outer Diameter D<sub>out</sub> (mil)</label><input type="number" id="pi-dout" value="200" step="10" min="10"/></div>
+      <div class="col"><label>Inner Diameter D<sub>in</sub> (mil)</label><input type="number" id="pi-din" value="80" step="5" min="1"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Trace Width (mil)</label><input type="number" id="pi-w" value="10" step="1" min="1"/></div>
+      <div class="col"><label>Trace Spacing (mil)</label><input type="number" id="pi-s" value="10" step="1" min="1"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Number of Turns</label><input type="number" id="pi-n" value="4" step="1" min="1" max="50"/></div>
+      <div class="col"><label>Copper Weight (oz)</label>
+        <select id="pi-oz"><option value="0.5">0.5 oz</option><option value="1" selected>1 oz</option><option value="2">2 oz</option><option value="3">3 oz</option></select>
+      </div>
+    </div>
+    <button onclick="calcPlanarInductor()">Calculate</button>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="pi-results"></div></div>
+  <div class="card">
+    <h2>Equations</h2>
+    <div class="eq-box">$$ L = K_1 \cdot \mu_0 \cdot n^2 \cdot \frac{d_{avg}}{1 + K_2 \cdot \rho} $$</div>
+    <p class="text-sm" style="margin-top:.5rem;color:var(--text2)">Modified Wheeler formula (Mohan et al.). d_avg = (D_out + D_in)/2, rho = (D_out - D_in)/(D_out + D_in). K1=2.34, K2=2.75 for square.</p>
+  </div>
+</div>
+</div>
+
+<!-- TAB 23: PPM-XTAL -->
+<div class="tab-panel" id="tab-23">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Crystal Oscillator Load Capacitance</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Calculate load capacitors for a crystal oscillator. C1 and C2 are the external load caps on each pin.</p>
+    <div class="row">
+      <div class="col"><label>Crystal Load Cap C<sub>L</sub> (pF)</label><input type="number" id="xt-cl" value="10" step="0.1" min="0.1"/></div>
+      <div class="col"><label>Stray Capacitance C<sub>stray</sub> (pF)</label><input type="number" id="xt-cs" value="3" step="0.1" min="0"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Frequency (MHz)</label><input type="number" id="xt-f" value="16" step="0.1" min="0.001"/></div>
+      <div class="col"><label>ESR (Ω)</label><input type="number" id="xt-esr" value="50" step="1" min="0.01"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Drive Level (uW)</label><input type="number" id="xt-drive" value="100" step="10" min="1"/></div>
+    </div>
+    <button onclick="calcXTAL()">Calculate</button>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="xt-results"></div></div>
+  <div class="card">
+    <h2>Equations</h2>
+    <div class="eq-box">$$ C_1 = C_2 = 2 \cdot (C_L - C_{stray}), \quad f_{err} = \frac{C_L - C_{load}}{2 \cdot C_1} \cdot 10^6 $$</div>
+    <p class="text-sm" style="margin-top:.5rem;color:var(--text2)">Assumes C1 = C2. PPM error from incorrect loading: ppm = (CL_nom - CL_actual) / (2*C1) * 1e6.</p>
+  </div>
+</div>
+</div>
+
+<!-- TAB 24: MECHANICAL INFO -->
+<div class="tab-panel" id="tab-24">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Wire Gauge &amp; Drill Chart</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">American Wire Gauge (AWG) lookup with diameter, resistance, and current capacity. Standard PCB drill bit sizes.</p>
+    <div class="row">
+      <div class="col"><label>AWG</label>
+        <select id="me-awg" onchange="calcMechanical()" style="width:100%">
+          <option value="30">30</option><option value="28">28</option><option value="26">26</option><option value="24">24</option><option value="22">22</option>
+          <option value="20">20</option><option value="18">18</option><option value="16">16</option><option value="14">14</option><option value="12">12</option>
+          <option value="10">10</option><option value="8">8</option><option value="6">6</option><option value="4">4</option><option value="2">2</option>
+          <option value="1">1</option><option value="0">0 (1/0)</option><option value="00">00 (2/0)</option><option value="000">000 (3/0)</option><option value="0000" selected>0000 (4/0)</option>
+        </select>
+      </div>
+      <div class="col"><label>Current (A)</label><input type="number" id="me-i" value="5" step="0.1" min="0.01"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Wire Length (ft)</label><input type="number" id="me-len" value="10" step="1" min="0.1"/></div>
+    </div>
+    <button onclick="calcMechanical()">Calculate</button>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="me-results"></div></div>
+  <div class="card"><h2>Common PCB Drill Sizes</h2>
+    <div id="me-drills" class="text-sm" style="color:var(--text2);line-height:1.8"></div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 25: EMBEDDED RESISTORS -->
+<div class="tab-panel" id="tab-25">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Embedded Resistor Calculator</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Calculate resistor dimensions for embedded PCB resistor materials (Ohmega, Ticer, etc.). Sheet resistance in ohms-per-square.</p>
+    <div class="row">
+      <div class="col"><label>Sheet Resistance (Ω/sq)</label>
+        <select id="er-sheet" onchange="calcEmbeddedResistor()">
+          <option value="25">25 Ω/sq (Ohmega)</option>
+          <option value="50">50 Ω/sq (Ohmega)</option>
+          <option value="100" selected>100 Ω/sq (Ohmega)</option>
+          <option value="250">250 Ω/sq (Ticer)</option>
+          <option value="500">500 Ω/sq (Ticer)</option>
+        </select>
+      </div>
+      <div class="col"><label>Target Resistance (Ω)</label><input type="number" id="er-r" value="1000" step="10" min="1"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Resistor Width (mil)</label><input type="number" id="er-w" value="20" step="1" min="2"/></div>
+      <div class="col"><label>Resistor Length (mil)</label><input type="number" id="er-len" value="200" step="5" min="2"/></div>
+    </div>
+    <p class="text-sm" style="color:var(--text2)">R = R_sheet * L / W. L = R * W / R_sheet. Enter width + either target R or length.</p>
+    <button onclick="calcEmbeddedResistor()">Calculate</button>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="er-results"></div></div>
+  <div class="card">
+    <h2>Equation</h2>
+    <div class="eq-box">$$ R = R_{\square} \cdot \frac{L}{W}, \quad \text{Squares} = \frac{L}{W} $$</div>
+  </div>
+</div>
+</div>
+
 <!-- TAB 21: THERMAL MANAGEMENT -->
 <div class="tab-panel" id="tab-21">
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
@@ -1356,6 +1481,10 @@ function resolveInitialTab(){
     '18':18,'fusing-current':18,
     '19':19,'bandwidth':19,'max-length':19,
     '20':20,'conductor-properties':20,
+    '22':22,'planar-inductors':22,'spiral':22,
+    '23':23,'xtal':23,'crystal':23,'ppm-xtal':23,
+    '24':24,'mechanical-info':24,'wire-gauge':24,'drill':24,
+    '25':25,'embedded-resistors':25,'ohmega':25,
     '21':21,'thermal':21,'thermal-management':21,
     '14':14,'min-copper-spacing':14,
     '15':15,'diff-pair':15,'diff-pair-xtalk':15,
@@ -1679,7 +1808,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Auto-run all calculators with default example values
   calculateLED();calculateLC();calculateVD();calculateRC();calculateDbmVoltage();
   computeComponent();computeRadar();computeDroop();calcViaProps();calcMinSpacing();calcDiffPair();
-  calcFusingCurrent();calcBandwidth();calcConductorProps();calcThermal();
+  calcFusingCurrent();calcBandwidth();calcConductorProps();calcThermal();calcPlanarInductor();calcXTAL();calcMechanical();calcEmbeddedResistor();
   setTimeout(()=>computeLinkBudget(),50);
 });
 // COMPONENT MODELS — client-side, no API call
@@ -2147,6 +2276,76 @@ function calcThermal(){
   const pD=i*i*rHot;const temp=ta+dT;
   const r=document.getElementById("th-results");r.innerHTML="";
   for(const x of[{l:"Temperature Rise",v:dT.toFixed(1),u:"\u00b0C"},{l:"Trace Temp",v:temp.toFixed(1),u:"\u00b0C"},{l:"R (hot)",v:rHot.toFixed(5),u:"\u03a9"},{l:"R (25\u00b0C)",v:r25.toFixed(5),u:"\u03a9"},{l:"Power Dissipation",v:pD.toFixed(4),u:"W"},{l:"Max I (20\u00b0C rise)",v:(k*Math.pow(20,0.44)*Math.pow(a,0.725)).toFixed(2),u:"A"}]){
+    const e=document.createElement("div");e.className="result-card";
+    e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
+}
+// Planar Inductor
+function calcPlanarInductor(){
+  const dout=+document.getElementById("pi-dout").value||200;
+  const din=+document.getElementById("pi-din").value||80;
+  const w=+document.getElementById("pi-w").value||10;
+  const s=+document.getElementById("pi-s").value||10;
+  const n=+document.getElementById("pi-n").value||4;
+  const davg=(dout+din)/2;const rho=(dout-din)/(dout+din);
+  const K1=2.34,K2=2.75;
+  const L=K1*1.2566e-6*n*n*davg*0.0254/(1+K2*rho)*1e9;
+  const r=document.getElementById("pi-results");r.innerHTML="";
+  for(const x of[{l:"Inductance",v:L.toFixed(2),u:"nH"},{l:"Avg Diameter",v:davg.toFixed(1),u:"mil"},{l:"Fill Ratio",v:rho.toFixed(3),u:""},{l:"Total Turns",v:n.toString(),u:""},{l:"Trace Length (est)",v:(n*4*davg).toFixed(0),u:"mil"}]){
+    const e=document.createElement("div");e.className="result-card";
+    e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
+}
+// XTAL Load Cap
+function calcXTAL(){
+  const cl=+document.getElementById("xt-cl").value||10;
+  const cs=+document.getElementById("xt-cs").value||3;
+  const f=+document.getElementById("xt-f").value||16;
+  const esr=+document.getElementById("xt-esr").value||50;
+  const drive=+document.getElementById("xt-drive").value||100;
+  const c1=2*(cl-cs);
+  const r=document.getElementById("xt-results");r.innerHTML="";
+  for(const x of[{l:"C1 = C2",v:c1.toFixed(1),u:"pF"},{l:"Crystal Load",v:cl.toFixed(1),u:"pF"},{l:"Frequency",v:f.toFixed(2),u:"MHz"},{l:"ESR",v:esr.toFixed(1),u:"\u03a9"},{l:"Drive Level",v:drive.toFixed(0),u:"\u03bcW"}]){
+    const e=document.createElement("div");e.className="result-card";
+    e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
+}
+// Mechanical Info
+function calcMechanical(){
+  const awgMap={30:{d:10.0,rm:103.2,im:0.14},28:{d:12.6,rm:65.3,im:0.22},26:{d:15.9,rm:40.1,im:0.36},24:{d:20.1,rm:25.7,im:0.58},22:{d:25.3,rm:16.2,im:0.92},
+    20:{d:32.0,rm:10.2,im:1.5},18:{d:40.3,rm:6.39,im:2.3},16:{d:50.8,rm:4.02,im:3.7},14:{d:64.1,rm:2.52,im:5.9},12:{d:80.8,rm:1.59,im:9.3},
+    10:{d:101.9,rm:0.999,im:15},8:{d:128.5,rm:0.628,im:24},6:{d:162.0,rm:0.395,im:37},4:{d:204.3,rm:0.249,im:60},2:{d:257.6,rm:0.156,im:95},
+    1:{d:289.3,rm:0.124,im:119},0:{d:324.9,rm:0.0983,im:150},0:{d:324.9,rm:0.0983,im:150},
+    0:{d:324.9,rm:0.0983,im:150},0:{d:324.9,rm:0.0983,im:150}};
+  const labels={30:"30",28:"28",26:"26",24:"24",22:"22",20:"20",18:"18",16:"16",14:"14",12:"12",
+    10:"10",8:"8",6:"6",4:"4",2:"2",1:"1",0:"1/0",0:"2/0",0:"3/0",0:"4/0"};
+  const sel=document.getElementById("me-awg").value;
+  const i=+document.getElementById("me-i").value||5;
+  const len=+document.getElementById("me-len").value||10;
+  const awgData={30:[10.0,103.2,0.14],28:[12.6,65.3,0.22],26:[15.9,40.1,0.36],24:[20.1,25.7,0.58],22:[25.3,16.2,0.92],
+    20:[32.0,10.2,1.5],18:[40.3,6.39,2.3],16:[50.8,4.02,3.7],14:[64.1,2.52,5.9],12:[80.8,1.59,9.3],
+    10:[101.9,0.999,15],8:[128.5,0.628,24],6:[162.0,0.395,37],4:[204.3,0.249,60],2:[257.6,0.156,95],
+    1:[289.3,0.124,119],"0":[324.9,0.0983,150],"00":[365.2,0.0779,190],"000":[410.0,0.0618,240],"0000":[460.0,0.0490,300]};
+  const d=awgData[sel];if(!d)return;
+  const diam=d[0],rmil=d[1],imax=d[2];
+  const vDrop=i*rmil*len/1000;const pLoss=i*i*rmil*len/1000;
+  const r=document.getElementById("me-results");r.innerHTML="";
+  for(const x of[{l:"AWG",v:sel.toString(),u:""},{l:"Diameter",v:fmt(diam,2),u:"mil"},{l:"Resistance",v:fmt(rmil,4),u:"\u03a9/1000ft"},{l:"R (total)",v:fmt(rmil*len/1000,5),u:"\u03a9"},{l:"Voltage Drop",v:fmt(vDrop,4),u:"V"},{l:"Max Current",v:fmt(imax,1),u:"A"},{l:"Power Loss",v:fmt(pLoss,4),u:"W"}]){
+    const e=document.createElement("div");e.className="result-card";
+    e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
+  // Drill chart
+  const drills=[];
+  for(let n=97;n>=80;n--){const d=11.5+(97-n)*2;"use strict";drills.push("#"+n+" = "+(11.5+(97-n)*2).toFixed(1)+" mil");}
+  document.getElementById("me-drills").innerHTML=drills.join(" &bull; ");
+}
+// Embedded Resistor
+function calcEmbeddedResistor(){
+  const rs=+document.getElementById("er-sheet").value||100;
+  const rTarget=+document.getElementById("er-r").value||1000;
+  const w=+document.getElementById("er-w").value||20;
+  const len=+document.getElementById("er-len").value||200;
+  const rActual=rs*len/w;const sq=len/w;
+  const reqLen=rTarget*w/rs;
+  const pD=0.1; // assume 100mW for estimation
+  const r=document.getElementById("er-results");r.innerHTML="";
+  for(const x of[{l:"Actual Resistance",v:rActual.toFixed(1),u:"\u03a9"},{l:"Sheet Resistance",v:rs.toFixed(0),u:"\u03a9/sq"},{l:"Squares (L/W)",v:sq.toFixed(2),u:""},{l:"Req Length for "+rTarget+"\u03a9",v:reqLen.toFixed(1),u:"mil"},{l:"Width",v:w.toFixed(1),u:"mil"}]){
     const e=document.createElement("div");e.className="result-card";
     e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
 }
