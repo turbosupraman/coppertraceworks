@@ -1523,6 +1523,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   initLbStages();ucFreqChanged();ucDbmChanged();ucDbChanged();ucZChanged();ucNfChanged();
   updateConductorImpedanceUI();calcConductorImpedance();
   computeDecouplingExplorer();
+  // Auto-run all calculators with default example values
+  calculateLED();calculateLC();calculateVD();calculateRC();calculateDbmVoltage();
+  computeComponent();computeRadar();computeDroop();calcViaProps();calcMinSpacing();calcDiffPair();
+  setTimeout(()=>computeLinkBudget(),50);
 });
 // COMPONENT MODELS — client-side, no API call
 function computeComponent(){
