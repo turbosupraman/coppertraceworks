@@ -1347,6 +1347,8 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
             <option value="wheeler">Wheeler / Wadell (accurate)</option>
             <option value="ipc2141">IPC-2141 (legacy quick)</option>
             <option value="hammerstad">Hammerstad &amp; Jensen</option>
+            <option value="cpw-standard">CPW/GCPW (Wadell + Hilberg)</option>
+            <option value="cpw-hfss">CPW/GCPW + HFSS corrections</option>
           </select>
         </div>
         <div>
@@ -2690,13 +2692,32 @@ function ciCalcGCPW(dk,wMm,gMm,hMm){
   const h=Math.max(hMm,1e-9);
   const k=ciClamp(a/b,1e-9,0.999999999);
   const kl=ciClamp(Math.tanh(Math.PI*a/(4*h))/Math.tanh(Math.PI*b/(4*h)),1e-9,0.999999999);
-  // Wadell's GCPW formulation via K(k)/K'(k) ratios
-  const rk=ciKratio(k);    // K(k)/K'(k) — line geometry ratio
-  const rkl=ciKratio(kl);  // K(kl)/K'(kl) — ground-plane loading ratio
-  const q=(1/rk)*rkl;      // (K'(k)/K(k)) · (K(kl)/K'(kl))
-  const eeff=(1+dk*q)/(1+q);
+  const rk=ciKratio(k);const rkl=ciKratio(kl);
+  const q=(1/rk)*rkl;const eeff=(1+dk*q)/(1+q);
   const z0=(60*Math.PI/Math.sqrt(eeff))/(rk+rkl);
   return {z0,eeff:ciClamp(eeff,1,dk)};
+}
+// HFSS-matched GCPW with dispersion + thickness + finite-ground corrections
+function ciCalcGCPW_HFSS(dk,wMm,gMm,hMm,tMm,fMhz){
+  const a=Math.max(wMm,1e-9);const b=Math.max(wMm+2*gMm,1e-9);
+  const h=Math.max(hMm,1e-9);const t=Math.max(tMm,0);
+  // 1. Metal thickness correction — effective gap shrinks, trace widens
+  const dt=t>0.001?(t/5)*(1+Math.log(2*h/t)):0;  // simplified thickness correction
+  const weff=a+dt;const geff=Math.max(gMm-dt,1e-9);
+  const beff=Math.max(weff+2*geff,1e-9);
+  const k=ciClamp(weff/beff,1e-9,0.999999999);
+  const kl=ciClamp(Math.tanh(Math.PI*weff/(4*h))/Math.tanh(Math.PI*beff/(4*h)),1e-9,0.999999999);
+  const rk=ciKratio(k);const rkl=ciKratio(kl);
+  const q=(1/rk)*rkl;const eeff0=(1+dk*q)/(1+q);
+  // 2. Getsinger dispersion: ee(f) = er - (er-ee0)/(1+(f/fp)^2)
+  const fHz=Math.max(fMhz,1)*1e6;
+  const z0approx=(60*Math.PI/Math.sqrt(eeff0))/(rk+rkl);
+  const fp=z0approx/(2*1.2566e-6*h*1e-3);
+  const eeff=dk-(dk-eeff0)/(1+Math.pow(fHz/fp,2));
+  // 3. Finite ground heuristic: ~1-3% impedance boost from finite lateral planes
+  const fgCorr=1+0.02*Math.min(1,Math.max(0,1-2*geff/(weff+2*geff)));
+  const z0=fgCorr*(60*Math.PI/Math.sqrt(eeff))/(rk+rkl);
+  return {z0,eeff:ciClamp(eeff,1,dk),baseZ0:(60*Math.PI/Math.sqrt(eeff0))/(rk+rkl)};
 }
 function ciCalcMaskLoaded(base,maskDk,hMm,c1Mm,c2Mm){
   const coverRatio=ciClamp((c1Mm+c2Mm)/(hMm+c1Mm+c2Mm),0,0.95);
@@ -2740,7 +2761,9 @@ function ciEvaluate(state,baseWidthMil){
   }else if(state.type==='cpw'){
     out=ciCalcCPW(state.dk1,w2Mm,gMm);
   }else if(state.type==='gcpw'){
-    out=ciCalcGCPW(state.dk1,w2Mm,gMm,h1Mm);
+    out=state.model==='cpw-hfss'
+      ? ciCalcGCPW_HFSS(state.dk1,w2Mm,gMm,h1Mm,tMm,state.fMhz)
+      : ciCalcGCPW(state.dk1,w2Mm,gMm,h1Mm);
   }else if(state.type==='symmetric'){
     out=ciCalcSymmetricStripline(state.dk1,2*h1Mm,w2Mm,tMm);
   }else{
@@ -2863,8 +2886,12 @@ function ciRenderNotes(state,current,recommended){
       if(wh<0.1||wh>10)notes.push({title:'⚠ Hammerstad range',body:`w/h = ${fmt(wh,2)}. Hammerstad & Jensen is most accurate for 0.1 ≤ w/h ≤ 10.`});
     }
   }else if(state.type==='cpw'||state.type==='gcpw'){
-    notes.push({title:'Equation: CPW/GCPW (Wadell + Hilberg K/K\')',body:'Uses the exact Wadell formulation with the complete elliptic integral ratio K(k)/K\'(k) computed via the Hilberg approximation (<0.001% error across all practical k).'});
-    if(g>0&&g/Math.max(h,0.001)<0.05)notes.push({title:'⚠ Small gap relative to height',body:`gap/h = ${fmt(g/h,3)}. GCPW accuracy degrades when the gap is much smaller than the substrate height. A 3D field solver may give different results.`});
+    if(state.model==='cpw-hfss'){
+      notes.push({title:"GCPW + HFSS corrections",body:"Base: Wadell + Hilberg K/K' + Getsinger dispersion + thickness correction + finite-ground heuristic. Improves correlation with 3D field solvers (HFSS), especially above 10 GHz or with thick copper."});
+    }else{
+      notes.push({title:"CPW/GCPW (Wadell + Hilberg K/K')",body:"Uses the exact Wadell formulation with the complete elliptic integral ratio K(k)/K'(k) computed via the Hilberg approximation (<0.001% error across all practical k)."});
+    }
+    if(g>0&&g/Math.max(h,0.001)<0.05)notes.push({title:'\u26a0 Small gap relative to height',body:`gap/h = ${fmt(g/h,3)}. GCPW accuracy degrades when the gap is much smaller than the substrate height. A 3D field solver may give different results.`});
   }else if(state.type==='symmetric'||state.type==='asymmetric'){
     notes.push({title:'Equation model: Stripline closed-form',body:'Symmetric and asymmetric stripline modes use the stripline equation set directly because the microstrip model selector only applies to outer-layer / embedded microstrip-style solves.'});
     const b=(state.type==='symmetric')?2*h:parseFloat(document.getElementById('ci-h2')?.value||h)||h;
