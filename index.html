@@ -253,6 +253,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
   <button class="tab-btn" onclick="switchTab(18)">🔥 Fusing Current</button>
   <button class="tab-btn" onclick="switchTab(19)">📏 Bandwidth / Max Length</button>
   <button class="tab-btn" onclick="switchTab(20)">🔌 Conductor Properties</button>
+  <button class="tab-btn" onclick="switchTab(21)">🌡️ Thermal</button>
 </div>
 <div id="content">
 
@@ -624,7 +625,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 </div>
 
-<!-- TAB 20: CONDUCTOR PROPERTIES -->
+
 <div class="tab-panel" id="tab-20">
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
@@ -923,6 +924,45 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
     </div>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="dbmv-result"></div></div>
+</div>
+</div>
+
+<!-- TAB 21: THERMAL MANAGEMENT -->
+<div class="tab-panel" id="tab-21">
+<div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>PCB Trace Temperature Rise</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Estimate trace temperature rise from DC current using IPC-2152 approximations. Internal traces run hotter than external for the same current.</p>
+    <div class="row">
+      <div class="col"><label>Trace Width (mil)</label><input type="number" id="th-w" value="50" step="1" min="0.1"/></div>
+      <div class="col"><label>Copper Weight (oz)</label>
+        <select id="th-oz">
+          <option value="0.5">0.5 oz</option><option value="1" selected>1 oz</option>
+          <option value="2">2 oz</option><option value="3">3 oz</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col"><label>DC Current (A)</label><input type="number" id="th-i" value="2" step="0.1" min="0.001"/></div>
+      <div class="col"><label>Ambient Temp (°C)</label><input type="number" id="th-ta" value="25" step="1" min="-55"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Trace Length (in)</label><input type="number" id="th-len" value="3" step="0.1" min="0.01"/></div>
+      <div class="col"><label>Layer</label>
+        <select id="th-layer">
+          <option value="external" selected>External (outer)</option>
+          <option value="internal">Internal (inner)</option>
+        </select>
+      </div>
+    </div>
+    <button onclick="calcThermal()">Calculate</button>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="th-results"></div></div>
+  <div class="card">
+    <h2>Equations &amp; Notes</h2>
+    <div class="eq-box">$$ \Delta T = \left(\frac{I}{k \cdot A^{0.725}}\right)^{1/0.44} \quad R(T) = R_{25} \cdot (1 + 0.00393 \cdot \Delta T) $$</div>
+    <p class="text-sm" style="margin-top:.5rem;color:var(--text2)">k = 0.048 (external) or 0.024 (internal). A = cross-section in (mil²)/1000. IPC-2152 approximation. For precise thermal simulation, use finite-element tools.</p>
+  </div>
 </div>
 </div>
 
@@ -1316,6 +1356,7 @@ function resolveInitialTab(){
     '18':18,'fusing-current':18,
     '19':19,'bandwidth':19,'max-length':19,
     '20':20,'conductor-properties':20,
+    '21':21,'thermal':21,'thermal-management':21,
     '14':14,'min-copper-spacing':14,
     '15':15,'diff-pair':15,'diff-pair-xtalk':15,
     '16':16,'trace':16,'trace-impedance':16,
@@ -1638,7 +1679,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Auto-run all calculators with default example values
   calculateLED();calculateLC();calculateVD();calculateRC();calculateDbmVoltage();
   computeComponent();computeRadar();computeDroop();calcViaProps();calcMinSpacing();calcDiffPair();
-  calcFusingCurrent();calcBandwidth();calcConductorProps();
+  calcFusingCurrent();calcBandwidth();calcConductorProps();calcThermal();
   setTimeout(()=>computeLinkBudget(),50);
 });
 // COMPONENT MODELS — client-side, no API call
@@ -2086,6 +2127,26 @@ function calcConductorProps(){
   const s=w+tm;const lNh=5.08*len*(Math.log(2*len*1000/s)+0.5+0.2235*s/(len*1000));
   const r=document.getElementById("cp-results");r.innerHTML="";
   for(const x of[{l:"DC Resistance",v:rDc.toFixed(5),u:"\u03a9"},{l:"R / 1000 ft",v:(rDc*12000).toFixed(2),u:"\u03a9"},{l:"Inductance",v:lNh.toFixed(3),u:"nH"},{l:"L / in",v:(lNh/len).toFixed(4),u:"nH/in"},{l:"Area",v:(w*tm).toFixed(2),u:"sq mil"},{l:"Volume",v:(w*tm*len).toFixed(2),u:"cu mil"}]){
+    const e=document.createElement("div");e.className="result-card";
+    e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
+}
+
+// Thermal Management
+function calcThermal(){
+  const w=+document.getElementById("th-w").value||50;
+  const oz=+document.getElementById("th-oz").value||1;
+  const i=+document.getElementById("th-i").value||2;
+  const ta=+document.getElementById("th-ta").value||25;
+  const len=+document.getElementById("th-len").value||3;
+  const layer=document.getElementById("th-layer").value;
+  const tm=oz*1.37;const a=(w*tm)/1000;const k=layer==="external"?0.048:0.024;
+  const dT=Math.pow(i/(k*Math.pow(a,0.725)),1/0.44);
+  const rho=1.724e-6*(1+0.00393*(ta-20));
+  const r25=rho*len*2.54/(w*0.00254*tm*0.00254);
+  const rHot=r25*(1+0.00393*dT);
+  const pD=i*i*rHot;const temp=ta+dT;
+  const r=document.getElementById("th-results");r.innerHTML="";
+  for(const x of[{l:"Temperature Rise",v:dT.toFixed(1),u:"\u00b0C"},{l:"Trace Temp",v:temp.toFixed(1),u:"\u00b0C"},{l:"R (hot)",v:rHot.toFixed(5),u:"\u03a9"},{l:"R (25\u00b0C)",v:r25.toFixed(5),u:"\u03a9"},{l:"Power Dissipation",v:pD.toFixed(4),u:"W"},{l:"Max I (20\u00b0C rise)",v:(k*Math.pow(20,0.44)*Math.pow(a,0.725)).toFixed(2),u:"A"}]){
     const e=document.createElement("div");e.className="result-card";
     e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
 }
