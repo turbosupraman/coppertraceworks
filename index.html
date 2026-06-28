@@ -258,6 +258,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
   <button class="tab-btn" onclick="switchTab(23)">💎 PPM-XTAL</button>
   <button class="tab-btn" onclick="switchTab(24)">🔧 Mechanical Info</button>
   <button class="tab-btn" onclick="switchTab(25)">🔶 Embedded Resistors</button>
+  <button class="tab-btn" onclick="switchTab(26)">⚡ 4-20mA Sensor</button>
 </div>
 <div id="content">
 
@@ -1052,6 +1053,72 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 </div>
 
+<!-- TAB 26: 4-20mA SENSOR -->
+<div class="tab-panel" id="tab-26">
+<div style="max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>4-20mA Sensor Input / Output</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Convert between 4-20mA loop current and engineering units (pressure, temperature, level, flow, etc.). Also compute loop resistance, supply requirements, and receive resistor sizing.</p>
+    <div class="row">
+      <div class="col"><label>Sensor Range Min</label><input type="number" id="ma-rmin" value="0" step="0.1"/><span class="text-sm" style="color:var(--text2)">&nbsp;units</span></div>
+      <div class="col"><label>Sensor Range Max</label><input type="number" id="ma-rmax" value="100" step="0.1"/><span class="text-sm" style="color:var(--text2)">&nbsp;units</span></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Measured Current (mA)</label><input type="number" id="ma-i" value="12" step="0.01" min="0"/></div>
+      <div class="col"><label>Calculated Value</label><input type="text" id="ma-val" readonly style="font-weight:700;color:var(--accent)"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Target Value</label><input type="number" id="ma-target" value="50" step="0.1"/></div>
+      <div class="col"><label>Required Current (mA)</label><input type="text" id="ma-i-req" readonly style="font-weight:700;color:var(--accent2)"/></div>
+    </div>
+    <button onclick="calc420()" style="margin-top:.4rem">Calculate</button>
+  </div>
+  <div class="card">
+    <h2>Loop Power &amp; Receive Resistor</h2>
+    <div class="row">
+      <div class="col"><label>Supply Voltage (V)</label><input type="number" id="ma-vsup" value="24" step="0.5" min="0"/></div>
+      <div class="col"><label>Sensor Compliance (V)</label><input type="number" id="ma-vcomp" value="10" step="0.5" min="0"/></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>Receive Resistor (Ω)</label><input type="number" id="ma-rrecv" value="250" step="10" min="1"/></div>
+      <div class="col"><label>Wire Resistance (Ω)</label><input type="number" id="ma-rwire" value="10" step="1" min="0"/></div>
+    </div>
+    <button onclick="calc420()" class="sec" style="margin-top:.4rem">Calculate Loop</button>
+  </div>
+  <div class="card"><h2>Results</h2><div class="result-grid" id="ma-results"></div></div>
+  <div class="card">
+    <h2>Reference — Standard 4-20mA Ranges</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;font-size:.82rem">
+      <div><table class="stack-table"><thead><tr><th>Sensor Type</th><th>Typical Range</th></tr></thead>
+        <tbody>
+          <tr><td>Pressure</td><td>0-100 PSI, 0-5000 PSI, -15-50 PSI</td></tr>
+          <tr><td>Temperature</td><td>-40 to 85°C, 0-200°C, 0-600°C</td></tr>
+          <tr><td>Level</td><td>0-10 ft, 0-100 in, 0-50 m</td></tr>
+          <tr><td>Flow</td><td>0-10 GPM, 0-1000 SCFH</td></tr>
+          <tr><td>Flame Intensity</td><td>0-100%, 0-5 UV counts</td></tr>
+          <tr><td>Speed / RPM</td><td>0-3600 RPM, 0-10000 RPM</td></tr>
+      </tbody></table></div>
+      <div><table class="stack-table"><thead><tr><th>Current</th><th>% of Span</th><th>Application</th></tr></thead>
+        <tbody>
+          <tr><td>3.6-3.9 mA</td><td>&lt; 0%</td><td>Sensor fault / under-range</td></tr>
+          <tr><td>4.0 mA</td><td>0%</td><td>Live zero (sensor OK)</td></tr>
+          <tr><td>8.0 mA</td><td>25%</td><td>&nbsp;</td></tr>
+          <tr><td>12.0 mA</td><td>50%</td><td>Mid-scale</td></tr>
+          <tr><td>16.0 mA</td><td>75%</td><td>&nbsp;</td></tr>
+          <tr><td>20.0 mA</td><td>100%</td><td>Full scale</td></tr>
+          <tr><td>&gt; 21 mA</td><td>&gt; 105%</td><td>Sensor fault / over-range</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Equations</h2>
+    <div class="eq-box">$$ \text{Value} = \left(\frac{I - 4\,\text{mA}}{16\,\text{mA}}\right) \times (\text{Range}_{max} - \text{Range}_{min}) + \text{Range}_{min} $$</div>
+    <div class="eq-box" style="margin-top:.4rem">$$ I = 4\,\text{mA} + \left(\frac{\text{Value} - \text{Range}_{min}}{\text{Range}_{max} - \text{Range}_{min}}\right) \times 16\,\text{mA} $$</div>
+    <div class="eq-box" style="margin-top:.4rem">$$ R_{loop\,max} = \frac{V_{supply} - V_{sensor}}{20\,\text{mA}}, \quad V_{recv} = I \times R_{recv} $$</div>
+  </div>
+</div>
+</div>
+
 <!-- TAB 21: THERMAL MANAGEMENT -->
 <div class="tab-panel" id="tab-21">
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
@@ -1485,6 +1552,7 @@ function resolveInitialTab(){
     '23':23,'xtal':23,'crystal':23,'ppm-xtal':23,
     '24':24,'mechanical-info':24,'wire-gauge':24,'drill':24,
     '25':25,'embedded-resistors':25,'ohmega':25,
+    '26':26,'4-20ma':26,'sensor':26,'420ma':26,'loop':26,
     '21':21,'thermal':21,'thermal-management':21,
     '14':14,'min-copper-spacing':14,
     '15':15,'diff-pair':15,'diff-pair-xtalk':15,
@@ -1808,7 +1876,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Auto-run all calculators with default example values
   calculateLED();calculateLC();calculateVD();calculateRC();calculateDbmVoltage();
   computeComponent();computeRadar();computeDroop();calcViaProps();calcMinSpacing();calcDiffPair();
-  calcFusingCurrent();calcBandwidth();calcConductorProps();calcThermal();calcPlanarInductor();calcXTAL();calcMechanical();calcEmbeddedResistor();
+  calcFusingCurrent();calcBandwidth();calcConductorProps();calcThermal();calcPlanarInductor();calcXTAL();calcMechanical();calcEmbeddedResistor();calc420();
   setTimeout(()=>computeLinkBudget(),50);
 });
 // COMPONENT MODELS — client-side, no API call
@@ -2348,6 +2416,29 @@ function calcEmbeddedResistor(){
   for(const x of[{l:"Actual Resistance",v:rActual.toFixed(1),u:"\u03a9"},{l:"Sheet Resistance",v:rs.toFixed(0),u:"\u03a9/sq"},{l:"Squares (L/W)",v:sq.toFixed(2),u:""},{l:"Req Length for "+rTarget+"\u03a9",v:reqLen.toFixed(1),u:"mil"},{l:"Width",v:w.toFixed(1),u:"mil"}]){
     const e=document.createElement("div");e.className="result-card";
     e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';r.appendChild(e);}
+}
+// 4-20mA Sensor
+function calc420(){
+  const rmin=+document.getElementById("ma-rmin").value||0;
+  const rmax=+document.getElementById("ma-rmax").value||100;
+  const i=+document.getElementById("ma-i").value||12;
+  const t=+document.getElementById("ma-target").value||50;
+  const vs=+document.getElementById("ma-vsup").value||24;
+  const vc=+document.getElementById("ma-vcomp").value||10;
+  const rr=+document.getElementById("ma-rrecv").value||250;
+  const rw=+document.getElementById("ma-rwire").value||10;
+  const sp=rmax-rmin;
+  const v=rmin+((i-4)/16)*sp;
+  document.getElementById("ma-val").value=v.toFixed(3)+" u";
+  const iR=4+((t-rmin)/sp)*16;
+  document.getElementById("ma-i-req").value=iR.toFixed(3)+" mA";
+  const rL=rr+rw;const v4=0.004*rr*1000;const v20=0.020*rr*1000;
+  const vN=i*rr/1000;const rM=(vs-vc)/0.020;const vW=0.020*rw;
+  const mg=vs-vc-0.020*rL;
+  const rg=document.getElementById("ma-results");rg.innerHTML="";
+  for(const x of[{l:"Value @ "+i.toFixed(2)+" mA",v:v.toFixed(3),u:"u"},{l:"I for "+t.toFixed(1)+" u",v:iR.toFixed(3),u:"mA"},{l:"% Span",v:((i-4)/16*100).toFixed(1),u:"%"},{l:"V @ Recv R",v:vN.toFixed(3),u:"V"},{l:"V recv 4/20mA",v:v4.toFixed(1)+"/"+v20.toFixed(1),u:"mV"},{l:"Max Loop R",v:rM.toFixed(0),u:"\u03a9"},{l:"Supply Margin",v:mg.toFixed(2),u:"V"},{l:"Wire Drop",v:vW.toFixed(3),u:"V"}]){
+    const e=document.createElement("div");e.className="result-card";
+    e.innerHTML='<div class="lbl">'+x.l+'</div><div class="val">'+x.v+'</div><div class="unit">'+x.u+'</div>';rg.appendChild(e);}
 }
 
 function ciMilToMm(mil){return mil*0.0254;}
