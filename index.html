@@ -33,7 +33,7 @@ button.danger{background:var(--red)}button.green{background:var(--accent2)}
 .badge{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700}
 .badge-blue{background:#1f3a5e;color:var(--accent)}.badge-green{background:#1a3a26;color:var(--accent2)}
 .sep{height:1px;background:var(--border);margin:.6rem 0}
-.text-sm{font-size:.78rem;color:var(--text2)}
+.text-sm{font-size:.78rem;color:var(--text2)}.calc-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:#1f3a5e;color:#d18a3a;font-size:.68rem;font-weight:700;line-height:1;vertical-align:middle;font-family:monospace}
 .eq-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;margin:.5rem 0;font-size:.88rem;line-height:1.8;overflow-x:auto;}
 #app{display:flex;flex-direction:column;height:100vh;position:relative;overflow:hidden}
 .pcb-decor{position:relative;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(240,181,107,.05),rgba(240,181,107,0) 70%);padding-top:10px}
@@ -273,7 +273,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="col"><label>LED Forward Voltage Vf (V)</label><input type="number" id="vf" step="any" value="2"/></div>
         <div class="col"><label>LED Current (mA)</label><input type="number" id="iled" step="any" value="20"/></div>
       </div>
-      <button onclick="calculateLED()">Calculate</button>
+      <button onclick="calculateLED();ctrClick('led')">Calculate</button>
     </div>
   </div>
   <div class="card"><h2>Equations</h2>
@@ -309,7 +309,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           </select>
         </div>
       </div>
-      <button onclick="calculateLC()">Calculate</button>
+      <button onclick="calculateLC();ctrClick('lc')">Calculate</button>
     </div>
   </div>
   <div class="card"><h2>Equation</h2>
@@ -335,7 +335,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="col"><label>Top Resistor R1 (Ω)</label><input type="number" id="vd-r1" step="any" value="10000"/></div>
         <div class="col"><label>Bottom Resistor R2 (Ω)</label><input type="number" id="vd-r2" step="any" value="10000"/></div>
       </div>
-      <button onclick="calculateVD()">Calculate</button>
+      <button onclick="calculateVD();ctrClick('vd')">Calculate</button>
     </div>
   </div>
   <div class="card"><h2>Equation</h2>
@@ -395,7 +395,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="file-name" id="fix-filename"></div>
       </div>
       <div style="margin-top:.6rem;display:flex;gap:.5rem;flex-wrap:wrap">
-        <button class="green" onclick="doDeembed()">De-Embed (S-matrix)</button>
+        <button class="green" onclick="doDeembed();ctrClick('deembed')">De-Embed (S-matrix)</button>
         <button class="sec" onclick="showPortExt()">Port Extension</button>
         <button class="danger" onclick="clearDeembed()">Clear</button>
       </div>
@@ -404,7 +404,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <div class="col"><label>Delay Port 1 (ps)</label><input type="number" id="pe-d1" value="0" step="0.1"/></div>
           <div class="col"><label>Delay Port 2 (ps)</label><input type="number" id="pe-d2" value="0" step="0.1"/></div>
         </div>
-        <button onclick="doPortExt()" style="margin-top:.4rem">Apply Port Extension</button>
+        <button onclick="doPortExt();ctrClick('portext')" style="margin-top:.4rem">Apply Port Extension</button>
       </div>
     </div>
     <div class="card" id="sp-eq-box" style="display:none">
@@ -458,7 +458,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <div class="col"><label>Freq Stop (MHz)</label><input type="number" id="comp-f2" value="3000" min="1"/></div>
         </div>
         <div class="row"><div class="col"><label>Ref Impedance Z₀ (Ω)</label><input type="number" id="comp-z0" value="50" min="1"/></div></div>
-        <button onclick="computeComponent()">Compute</button>
+        <button onclick="computeComponent();ctrClick('comp')">Compute</button>
       </div>
     </div>
     <div class="card" id="comp-inputs-C" style="display:none">
@@ -467,7 +467,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="row"><div class="col"><label>Capacitance C (pF)</label><input type="number" id="C-val" value="100" step="1" min="0.001"/></div></div>
         <div class="row"><div class="col"><label>ESR (mΩ)</label><input type="number" id="C-esr" value="20" step="1" min="0"/></div></div>
         <div class="row"><div class="col"><label>ESL (nH)</label><input type="number" id="C-esl" value="0.5" step="0.01" min="0"/></div></div>
-        <button onclick="computeComponent()">Compute</button>
+        <button onclick="computeComponent();ctrClick('comp')">Compute</button>
       </div>
     </div>
     <div class="card" id="comp-inputs-R" style="display:none">
@@ -476,7 +476,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="row"><div class="col"><label>Resistance R (Ω)</label><input type="number" id="R-val" value="50" step="1" min="0.001"/></div></div>
         <div class="row"><div class="col"><label>Series Lead Inductance Ls (nH)</label><input type="number" id="R-ls" value="1" step="0.1" min="0"/></div></div>
         <div class="row"><div class="col"><label>Parallel Cap Cs (pF)</label><input type="number" id="R-cs" value="0.1" step="0.01" min="0"/></div></div>
-        <button onclick="computeComponent()">Compute</button>
+        <button onclick="computeComponent();ctrClick('comp')">Compute</button>
       </div>
     </div>
     <div class="card" id="comp-results" style="display:none">
@@ -535,7 +535,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <div class="col"><label>Sweep Time (ms)</label><input type="number" id="r-fmcw-t" value="1" step="0.1" min="0.001"/></div>
         </div>
         <div class="row"><div class="col"><label>Target Velocity (m/s)</label><input type="number" id="r-vel" value="10" step="1"/></div></div>
-        <button onclick="computeRadar()">Calculate</button>
+        <button onclick="computeRadar();ctrClick('radar')">Calculate</button>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:.8rem">
@@ -590,7 +590,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         </select>
       </div>
     </div>
-    <button onclick="calcFusingCurrent()">Calculate</button>
+    <button onclick="calcFusingCurrent();ctrClick('fusing')">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="fc-results"></div></div>
   <div class="card">
@@ -625,7 +625,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         </select>
       </div>
     </div>
-    <button onclick="calcBandwidth()">Calculate</button>
+    <button onclick="calcBandwidth();ctrClick('bw')">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="bw-results"></div></div>
   <div class="card">
@@ -656,7 +656,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col"><label>Length (in)</label><input type="number" id="cp-len" value="1" step="0.1" min="0.01"/></div>
       <div class="col"><label>Temp (°C)</label><input type="number" id="cp-temp" value="25" step="1" min="-55"/></div>
     </div>
-    <button onclick="calcConductorProps()">Calculate</button>
+    <button onclick="calcConductorProps();ctrClick('cond')">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="cp-results"></div></div>
   <div class="card">
@@ -682,7 +682,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="sep"></div>
         <h3>Verify with actual cap value</h3>
         <div class="row"><div class="col"><label>Given Cap Value (μF)</label><input type="number" id="d-cgiven" value="1000" step="10" min="0.01"/></div></div>
-        <button onclick="computeDroop()">Calculate</button>
+        <button onclick="computeDroop();ctrClick('droop')">Calculate</button>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:.8rem">
@@ -723,7 +723,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="col"><label>Plot start (kHz)</label><input type="number" id="dec-f1" value="10" step="1" min="0.1"/></div>
         <div class="col"><label>Plot stop (MHz)</label><input type="number" id="dec-f2" value="1000" step="10" min="1"/></div>
       </div>
-      <button onclick="computeDecouplingExplorer()">Build Decoupling Plot</button>
+      <button onclick="computeDecouplingExplorer();ctrClick('decoup')">Build Decoupling Plot</button>
     </div>
     <div class="card">
       <h2>Cap Banks</h2>
@@ -775,7 +775,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <div class="col"><label>Bandwidth (MHz)</label><input type="number" id="lb-bw" value="20" step="1" min="0.001"/></div>
           <div class="col"><label>Temperature (K)</label><input type="number" id="lb-T" value="290" step="1" min="0"/></div>
         </div>
-        <button onclick="computeLinkBudget()" class="green">Calculate Chain</button>
+        <button onclick="computeLinkBudget();ctrClick('link')" class="green">Calculate Chain</button>
       </div>
     </div>
     <div class="card" style="flex:1;min-width:300px">
@@ -893,7 +893,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:160px"><label>Power P (W)</label><input type="number" id="ohm-p" step="any"/></div>
     </div>
     <div style="display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap">
-      <button onclick="solveOhmsLaw()" class="green">Solve</button>
+      <button onclick="solveOhmsLaw();ctrClick('ohms')" class="green">Solve</button>
       <button onclick="clearOhmsLaw()" class="sec">Clear</button>
     </div>
   </div>
@@ -912,7 +912,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:160px"><label>C value</label><input type="number" id="rc-c" value="10" step="any"/></div>
       <div class="col" style="min-width:120px"><label>C unit</label><select id="rc-cunit"><option value="1e-12">pF</option><option value="1e-9">nF</option><option value="1e-6" selected>µF</option><option value="0.001">mF</option></select></div>
     </div>
-    <div style="margin-top:.7rem"><button onclick="calculateRC()" class="green">Calculate</button></div>
+    <div style="margin-top:.7rem"><button onclick="calculateRC();ctrClick('rc')" class="green">Calculate</button></div>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="rc-result"></div></div>
 </div>
@@ -928,8 +928,8 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:160px"><label>Impedance (Ω)</label><input type="number" id="dbmv-z" value="50" step="any" min="0.001"/></div>
     </div>
     <div style="display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap">
-      <button onclick="calculateDbmVoltage()" class="green">Calculate from dBm</button>
-      <button onclick="calculateVoltageToDbm()" class="sec">Calculate from Vrms</button>
+      <button onclick="calculateDbmVoltage();ctrClick('dbm')" class="green">Calculate from dBm</button>
+      <button onclick="calculateVoltageToDbm();ctrClick('dbmv')" class="sec">Calculate from Vrms</button>
     </div>
     <div class="row" style="gap:.8rem;flex-wrap:wrap;margin-top:.7rem">
       <div class="col" style="min-width:180px"><label>Voltage (Vrms)</label><input type="number" id="dbmv-vrms" step="any"/></div>
@@ -959,7 +959,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <select id="pi-oz"><option value="0.5">0.5 oz</option><option value="1" selected>1 oz</option><option value="2">2 oz</option><option value="3">3 oz</option></select>
       </div>
     </div>
-    <button onclick="calcPlanarInductor()">Calculate</button>
+    <button onclick="calcPlanarInductor();ctrClick('planar')">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="pi-results"></div></div>
   <div class="card">
@@ -987,7 +987,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
     <div class="row">
       <div class="col"><label>Drive Level (uW)</label><input type="number" id="xt-drive" value="100" step="10" min="1"/></div>
     </div>
-    <button onclick="calcXTAL()">Calculate</button>
+    <button onclick="calcXTAL();ctrClick('xtal')">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="xt-results"></div></div>
   <div class="card">
@@ -1018,7 +1018,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
     <div class="row">
       <div class="col"><label>Wire Length (ft)</label><input type="number" id="me-len" value="10" step="1" min="0.1"/></div>
     </div>
-    <button onclick="calcMechanical()">Calculate</button>
+    <button onclick="calcMechanical();ctrClick('mech')">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="me-results"></div></div>
   <div class="card"><h2>Common PCB Drill Sizes</h2>
@@ -1050,7 +1050,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col"><label>Resistor Length (mil)</label><input type="number" id="er-len" value="200" step="5" min="2"/></div>
     </div>
     <p class="text-sm" style="color:var(--text2)">R = R_sheet * L / W. L = R * W / R_sheet. Enter width + either target R or length.</p>
-    <button onclick="calcEmbeddedResistor()">Calculate</button>
+    <button onclick="calcEmbeddedResistor();ctrClick('embed')">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="er-results"></div></div>
   <div class="card">
@@ -1078,7 +1078,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col"><label>Target Value</label><input type="number" id="ma-target" value="50" step="0.1"/></div>
       <div class="col"><label>Required Current (mA)</label><input type="text" id="ma-i-req" readonly style="font-weight:700;color:var(--accent2)"/></div>
     </div>
-    <button onclick="calc420()" style="margin-top:.4rem">Calculate</button>
+    <button onclick="calc420();ctrClick('loop420')" style="margin-top:.4rem">Calculate</button>
   </div>
   <div class="card">
     <h2>Loop Power &amp; Receive Resistor</h2>
@@ -1090,7 +1090,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col"><label>Receive Resistor (Ω)</label><input type="number" id="ma-rrecv" value="250" step="10" min="1"/></div>
       <div class="col"><label>Wire Resistance (Ω)</label><input type="number" id="ma-rwire" value="10" step="1" min="0"/></div>
     </div>
-    <button onclick="calc420()" class="sec" style="margin-top:.4rem">Calculate Loop</button>
+    <button onclick="calc420();ctrClick('loop420')" class="sec" style="margin-top:.4rem">Calculate Loop</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="ma-results"></div></div>
   <div class="card">
@@ -1154,7 +1154,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         </select>
       </div>
     </div>
-    <button onclick="calcThermal()">Calculate</button>
+    <button onclick="calcThermal();ctrClick('thermal')">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="th-results"></div></div>
   <div class="card">
@@ -1208,7 +1208,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:170px"><label>Current (A)</label><input type="number" id="via-i" value="1" step="0.1"/></div>
       <div class="col" style="min-width:170px"><label>Parallel vias</label><input type="number" id="via-n" value="1" step="1" min="1"/></div>
     </div>
-    <div style="margin-top:.7rem"><button onclick="calcViaProps()">Compute Via Properties</button></div>
+    <div style="margin-top:.7rem"><button onclick="calcViaProps();ctrClick('via')">Compute Via Properties</button></div>
   </div>
   <div class="card stack-wrap">
     <h2>Calculated Values</h2>
@@ -1229,7 +1229,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <select id="sp-env"><option value="1" selected>Internal/controlled</option><option value="1.25">External/conformal</option><option value="1.5">External/harsh</option></select>
       </div>
     </div>
-    <div style="margin-top:.7rem"><button onclick="calcMinSpacing()">Compute Spacing</button></div>
+    <div style="margin-top:.7rem"><button onclick="calcMinSpacing();ctrClick('spacing')">Compute Spacing</button></div>
   </div>
   <div class="card stack-wrap">
     <h2>Spacing Table Stack</h2>
@@ -1252,7 +1252,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:150px"><label>Parallel length (in)</label><input type="number" id="dp-len" value="4" step="0.1"/></div>
       <div class="col" style="min-width:150px"><label>Rise time (ps)</label><input type="number" id="dp-tr" value="120" step="1"/></div>
     </div>
-    <div style="margin-top:.7rem"><button onclick="calcDiffPair()">Compute Diff Pair / Xtalk</button></div>
+    <div style="margin-top:.7rem"><button onclick="calcDiffPair();ctrClick('diff')">Compute Diff Pair / Xtalk</button></div>
   </div>
   <div class="card stack-wrap">
     <h2>Results</h2>
@@ -1431,7 +1431,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           </div>
         </div>
       </div>
-      <button style="margin-top:.9rem" onclick="calcConductorImpedance()">Compute Trace Stack</button>
+      <button style="margin-top:.9rem" onclick="calcConductorImpedance();ctrClick('trace')">Compute Trace Stack</button>
       <div class="ci-model-note" id="ci-model-note">Wheeler / Wadell is the more accurate first-pass option for microstrip-family geometry. Stripline modes use the stripline closed-form regardless of this selector.</div>
       <div class="ci-inline-hint" id="ci-width-hint"></div>
     </div>
@@ -1503,9 +1503,52 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 
 </div><!-- #content -->
 </div><!-- #app -->
+
+<style>
+#ctr-toggle{position:fixed;bottom:12px;right:12px;z-index:999;width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);color:var(--accent);font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s}
+#ctr-toggle:hover{opacity:1}
+#ctr-panel{position:fixed;bottom:54px;right:12px;z-index:999;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.6rem;max-height:280px;overflow-y:auto;width:220px;display:none;font-size:.75rem;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+#ctr-panel.show{display:block}
+#ctr-panel h3{font-size:.82rem;margin-bottom:.4rem;color:var(--accent)}
+.ctr-row{display:flex;justify-content:space-between;padding:.15rem 0;border-bottom:1px solid var(--bg3);color:var(--text2)}
+.ctr-row .ctr-n{color:var(--accent);font-weight:700;font-family:monospace}
+</style>
+<div id="ctr-panel"><h3>Calculator Usage</h3><div id="ctr-list"></div></div>
+<button id="ctr-toggle" onclick="var p=document.getElementById('ctr-panel');p.classList.toggle('show')" title="Usage counters">∑</button>
+
 <div id="toast"></div>
 
 <script>
+function ctrClick(key){
+  fetch('/api/counter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})})
+    .catch(function(){}).then(function(){updateCtrPanel();});
+}
+function updateCtrPanel(){
+  fetch('/api/counter').then(function(r){return r.json();}).then(function(data){
+    var labels={
+      led:'LED Resistor',lc:'LC Resonance',vd:'Voltage Divider',comp:'Component Model',
+      radar:'Radar Range',fusing:'Fusing Current',bw:'Bandwidth',cond:'Conductor Props',
+      droop:'Pulse Droop',decoup:'Decoupling',link:'Link Budget',ohms:"Ohm's Law",
+      rc:'RC Cutoff',dbm:'dBm→Voltage',dbmv:'Voltage→dBm',planar:'Planar Inductor',
+      xtal:'Crystal',mech:'Mechanical',embed:'Embedded Resistor',loop420:'4-20mA',
+      thermal:'Thermal',via:'Via Properties',spacing:'Min Spacing',diff:'Diff Pair',
+      trace:'Trace Impedance',deembed:'De-embed',portext:'Port Extension'
+    };
+    var total=0,list=document.getElementById('ctr-list');
+    list.innerHTML='';
+    for(var k in labels){
+      var cnt=data[k]||0;
+      if(cnt>0){total+=cnt;
+        list.innerHTML+='<div class="ctr-row"><span>'+labels[k]+'</span><span class="ctr-n">'+cnt+'</span></div>';
+      }
+    }
+    if(total===0)list.innerHTML='<div style="color:var(--text2);text-align:center;padding:.5rem">No calculations yet</div>';
+    document.getElementById('ctr-toggle').textContent=total;
+  }).catch(function(){
+    document.getElementById('ctr-list').innerHTML='<div style="color:var(--text2);text-align:center;padding:.5rem">Offline</div>';
+  });
+}
+function initCtrs(){updateCtrPanel();}
 const API = location.protocol === 'file:'
   ? 'http://127.0.0.1:8086'
   : `${location.origin}/rf`;
@@ -2051,7 +2094,8 @@ function setComp(type){
   document.getElementById('comp-eq-box').innerHTML=eqs[type];
   if(window.renderMathInElement)renderMathInElement(document.getElementById('comp-eq-box'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
 }
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded',function(){
+  initCtrs();
   switchTab(resolveInitialTab(),{skipUrl:true});
   setComp('inductor');buildSmithGrid('smith-grid');buildSmithGrid('comp-smith-grid');
   initLbStages();ucFreqChanged();ucDbmChanged();ucDbChanged();ucZChanged();ucNfChanged();

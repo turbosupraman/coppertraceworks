@@ -2,5 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "copper-trace-works",
   "pages_build_output_dir": ".",
-  "pages_branch": "main"
+  "pages_branch": "main",
+  "kv_namespaces": [
+    {
+      "binding": "COUNTERS",
+      "id": "232cf755ee8842e5a6a53458e1cbcc2b"
+    }
+  ]
 }
