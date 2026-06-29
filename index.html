@@ -2918,8 +2918,10 @@ function updateConductorImpedanceUI(){
   ciPopulateCopperWeight();
   const type=document.getElementById('ci-structure')?.value || 'microstrip';
   const isMicrostrip=ciIsMicrostripFamily(type);
+  const isCpwOrGcpw=type==='cpw'||type==='gcpw';
+  const isStripline=type==='symmetric'||type==='asymmetric';
   const modelSel=document.getElementById('ci-model');
-  if(modelSel)modelSel.disabled=!isMicrostrip;
+  if(modelSel)modelSel.disabled=isStripline;
   document.querySelectorAll('[data-ci-show]').forEach(el=>{
     const show=(el.getAttribute('data-ci-show')||'').split(',').map(s=>s.trim());
     el.classList.toggle('ci-hidden',!show.includes(type));
@@ -2928,11 +2930,15 @@ function updateConductorImpedanceUI(){
   const modelMeta=ciModelMeta(modelSel?.value||'wheeler');
   document.getElementById('ci-structure-copy').textContent=meta.copy;
   document.getElementById('ci-model-copy').textContent=isMicrostrip
-    ? `Equation set: ${modelMeta.title} — ${modelMeta.copy}`
-    : 'Equation set: Stripline closed-form — microstrip selector disabled for stripline modes.';
+    ? "Equation set: "+modelMeta.title+" — "+modelMeta.copy
+    : isCpwOrGcpw
+    ? "Equation set: "+(modelSel?.value==='cpw-hfss'?"Wadell + Hilberg + HFSS corrections":"Wadell + Hilberg K/K'")+" — closed-form GCPW/CPW via elliptic integral ratio."
+    : 'Equation set: Stripline closed-form — model selector disabled for stripline modes.';
   document.getElementById('ci-model-note').textContent=isMicrostrip
     ? `${modelMeta.title} is active. Wheeler / Wadell is the more accurate first-pass option; IPC-2141 is kept for quick comparison against legacy calculators.`
-    : 'Stripline mode selected. The microstrip model selector is disabled because symmetric and asymmetric stripline use the stripline closed-form directly.';
+    : isCpwOrGcpw
+    ? `CPW/GCPW mode: select the equation model above. The HFSS-matched option adds dispersion, thickness, and finite-ground corrections.`
+    : 'Stripline mode selected. The model selector is disabled because stripline uses the stripline closed-form directly.';
 }
 function calcConductorImpedance(){
   const state=ciGetState();
