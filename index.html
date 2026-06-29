@@ -376,6 +376,13 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <button class="sec" onclick="setSpChartMode('phase')" id="btn-phase">Phase</button>
           <button class="sec" onclick="setSpChartMode('vswr')" id="btn-vswr">VSWR</button>
         </div>
+        <div class="sep"></div>
+        <label>Frequency range (GHz):</label>
+        <div id="sp-freq-range" class="row">
+          <div class="col"><input type="number" id="sp-fstart" value="" step="0.1" placeholder="Auto"/></div>
+          <div class="col"><input type="number" id="sp-fstop" value="" step="0.1" placeholder="Auto"/></div>
+        </div>
+        <button class="sec" onclick="applySpFreqRange()" style="font-size:.78rem;padding:.25rem .6rem">Apply Range</button>
       </div>
     </div>
     <div class="card" id="sp-deembed" style="display:none">
@@ -1761,20 +1768,84 @@ function plotSmithData(svgDataGroupId,datasets){
 }
 const SPARAMS_COLORS={S11:'#58a6ff',S21:'#3fb950',S12:'#f0883e',S22:'#bc8cff',S31:'#ff7b72',S32:'#79c0ff',S33:'#ffa657',S44:'#d2a8ff'};
 
+// ----- Client-side Touchstone (SnP) parser -----
+function parseTouchstoneFile(text,filename){
+  const lines=text.split(/\r?\n/);
+  let fmt='MA',ftype='S',refZ=50,freqMul=1e9;
+  let nPorts=0,dataRows=[];
+  const m=filename.match(/\.s(\d+)p$/i);
+  if(m)nPorts=parseInt(m[1]);
+  for(let line of lines){
+    line=line.trim();
+    if(!line||line.startsWith('!'))continue;
+    if(line.startsWith('#')){
+      const parts=line.slice(1).trim().split(/\s+/);
+      for(let i=0;i<parts.length;i++){
+        const p=parts[i].toUpperCase();
+        if(p==='HZ')freqMul=1;
+        else if(p==='KHZ')freqMul=1e3;
+        else if(p==='MHZ')freqMul=1e6;
+        else if(p==='GHZ')freqMul=1e9;
+        else if(p==='MA')fmt='MA';
+        else if(p==='DB')fmt='DB';
+        else if(p==='RI')fmt='RI';
+        else if(p==='S'||p==='Y'||p==='Z'||p==='G'||p==='H')ftype=p;
+        else if(p==='R'&&i+1<parts.length)refZ=parseFloat(parts[++i])||50;
+      }
+      continue;
+    }
+    const vals=line.split(/\s+/).map(v=>parseFloat(v));
+    if(vals.length<3||vals.some(isNaN))continue;
+    dataRows.push(vals);
+  }
+  if(dataRows.length===0)throw new Error('No valid data rows found in Touchstone file');
+  if(!nPorts)nPorts=Math.round(Math.sqrt((dataRows[0].length-1)/2));
+  const frequencies=dataRows.map(r=>r[0]*freqMul);
+  const N=nPorts;
+  const s_params={};
+  for(let r=1;r<=N;r++){
+    for(let c=1;c<=N;c++){
+      const ri=r%10,ci=c%10,pkey='S'+ri+ci;
+      const colIdx=c-1,rowIdx=r-1;
+      const flatIdx=colIdx*N+rowIdx;
+      const real=[],imag=[],mag_db=[],phase=[];
+      for(let i=0;i<dataRows.length;i++){
+        const row=dataRows[i];
+        const vi=1+flatIdx*2;
+        const v1=row[vi],v2=row[vi+1];
+        let re,im;
+        if(fmt==='RI'){re=v1;im=v2;}
+        else if(fmt==='MA'){const mag=v1,ang=v2*Math.PI/180;re=mag*Math.cos(ang);im=mag*Math.sin(ang);}
+        else{const magDb=v1,ang=v2*Math.PI/180;const mag=Math.pow(10,magDb/20);re=mag*Math.cos(ang);im=mag*Math.sin(ang);}
+        real.push(re);imag.push(im);
+        mag_db.push(fmt==='DB'?v1:20*Math.log10(Math.sqrt(re*re+im*im)||1e-30));
+        phase.push(fmt==='MA'?v2:(Math.atan2(im,re)*180/Math.PI));
+      }
+      s_params[pkey]={real,imag,mag_db,phase};
+    }
+  }
+  return{frequencies,n_ports:N,ref_impedance:refZ,type:ftype,s_params};
+}
+
 // S-PARAMETERS
 function handleSpDrop(e){
   e.preventDefault();document.getElementById('sparam-drop').classList.remove('drag-over');
   const f=e.dataTransfer.files[0];if(f)handleSpFile(f);
 }
-async function handleSpFile(file){
+function handleSpFile(file){
   if(!file)return;
   document.getElementById('sp-filename').textContent=file.name;
-  const fd=new FormData();fd.append('file',file);
-  try{
-    const res=await fetch(API+'/api/parse-touchstone',{method:'POST',body:fd});
-    const data=await res.json();if(!res.ok)throw new Error(data.detail||'Parse error');
-    spData=data;onSpDataLoaded();toast(`Loaded: ${file.name} — ${data.frequencies.length} pts, ${data.n_ports}-port`);
-  }catch(e){toast('Error: '+e.message,true);}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const text=e.target.result;
+      spData=parseTouchstoneFile(text,file.name);
+      onSpDataLoaded();
+      toast(`Loaded: ${file.name} — ${spData.frequencies.length} pts, ${spData.n_ports}-port`);
+    }catch(e){toast('Parse error: '+e.message,true);}
+  };
+  reader.onerror=function(){toast('Error reading file',true);};
+  reader.readAsText(file);
 }
 function onSpDataLoaded(){
   if(!spData)return;
@@ -1805,20 +1876,39 @@ function setSpChartMode(mode){
   document.getElementById('btn-vswr').className=mode==='vswr'?'':'sec';
   renderSpCharts();
 }
+function getFreqRange(){
+  const f1=parseFloat(document.getElementById('sp-fstart').value);
+  const f2=parseFloat(document.getElementById('sp-fstop').value);
+  const freqs=spData.frequencies.map(f=>f/1e9);
+  let lo=0,hi=freqs.length-1;
+  if(!isNaN(f1)){while(lo<freqs.length&&freqs[lo]<f1)lo++;}
+  if(!isNaN(f2)){while(hi>=0&&freqs[hi]>f2)hi--;}
+  return{lo,hi,active:!isNaN(f1)||!isNaN(f2)};
+}
+function applySpFreqRange(){renderSpCharts();toast('Frequency range applied');}
 function renderSpCharts(){
   if(!spData)return;
-  const selected=getSelectedSParams();const freqs=spData.frequencies.map(f=>f/1e9);
-  plotSmithData('smith-data',selected.map(key=>{const sp=spData.s_params[key];return{real:sp.real,imag:sp.imag,color:SPARAMS_COLORS[key]||'#888',label:key};}));
+  const selected=getSelectedSParams();
+  const freqs=spData.frequencies.map(f=>f/1e9);
+  const range=getFreqRange();
+  function sliceData(arr){return arr.slice(range.lo,range.hi+1);}
+  const slicedFreqs=sliceData(freqs);
+  const smithDatasets=selected.map(key=>{
+    const sp=spData.s_params[key];
+    return{real:sliceData(sp.real),imag:sliceData(sp.imag),color:SPARAMS_COLORS[key]||'#888',label:key};
+  });
+  plotSmithData('smith-data',smithDatasets);
   const leg=document.getElementById('smith-legend');
   leg.innerHTML=selected.map(key=>`<span><span class="dot" style="background:${SPARAMS_COLORS[key]||'#888'}"></span>${key}</span>`).join('');
-  const modeLabels={db:'|S| (dB)',phase:'Phase (°)',vswr:'VSWR'};
-  document.getElementById('chart-title').textContent=modeLabels[spChartMode]+' vs Frequency';
+  const modeLabels={db:'|S| (dB)',phase:'Phase (deg)',vswr:'VSWR'};
+  document.getElementById('chart-title').textContent=modeLabels[spChartMode]+' vs Frequency'+(range.active?' ('+slicedFreqs[0].toFixed(3)+'-'+slicedFreqs[slicedFreqs.length-1].toFixed(3)+' GHz)':'');
   const datasets=selected.map(key=>{
     const sp=spData.s_params[key];let ydata;
-    if(spChartMode==='db')ydata=sp.mag_db;
-    else if(spChartMode==='phase')ydata=sp.phase;
-    else ydata=sp.mag_db.map(db=>{const g=Math.pow(10,db/20);return g<1?(1+g)/(1-g):99;});
-    return{label:key,data:ydata.map((y,i)=>({x:freqs[i],y})),borderColor:SPARAMS_COLORS[key]||'#888',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.1};
+    const arr=spChartMode==='db'?sp.mag_db:spChartMode==='phase'?sp.phase:sp.mag_db;
+    if(spChartMode==='vswr')ydata=arr.map(db=>{const g=Math.pow(10,db/20);return g<1?(1+g)/(1-g):99;});
+    else ydata=arr;
+    const sliced=sliceData(ydata);
+    return{label:key,data:sliced.map((y,i)=>({x:slicedFreqs[i],y})),borderColor:SPARAMS_COLORS[key]||'#888',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.1};
   });
   if(spChartInst)spChartInst.destroy();
   spChartInst=new Chart(document.getElementById('sp-chart').getContext('2d'),{
@@ -1829,33 +1919,120 @@ function renderSpCharts(){
               y:{title:{display:true,text:modeLabels[spChartMode],color:'#8b949e'},ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
   });
 }
+// ----- Client-side complex linear algebra helpers -----
+function cadd(a,b){return[a[0]+b[0],a[1]+b[1]];}
+function csub(a,b){return[a[0]-b[0],a[1]-b[1]];}
+function cmul(a,b){return[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]];}
+function cdiv(a,b){var d=b[0]*b[0]+b[1]*b[1];return[(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d];}
+function cmag2(a){return a[0]*a[0]+a[1]*a[1];}
+function mat22Det(m){return csub(cmul(m[0][0],m[1][1]),cmul(m[0][1],m[1][0]));}
+function mat22Inv(m){
+  var d=mat22Det(m);
+  if(cmag2(d)<1e-30)return null;
+  var n0=cdiv(m[1][1],d),n1=cdiv(m[0][1],d),n2=cdiv(m[1][0],d),n3=cdiv(m[0][0],d);
+  return[[n0,[-n1[0],-n1[1]]],[[-n2[0],-n2[1]],n3]];}
+function mat22Mul(a,b){
+  return[[cadd(cmul(a[0][0],b[0][0]),cmul(a[0][1],b[1][0])),
+          cadd(cmul(a[0][0],b[0][1]),cmul(a[0][1],b[1][1]))],
+         [cadd(cmul(a[1][0],b[0][0]),cmul(a[1][1],b[1][0])),
+          cadd(cmul(a[1][0],b[0][1]),cmul(a[1][1],b[1][1]))]];
+}
+function interpolateSParams(srcFreqs,srcParams,dstFreqs){
+  var keys=Object.keys(srcParams),out={};
+  for(var ki=0;ki<keys.length;ki++){
+    var k=keys[ki],real=[],imag=[];
+    var sReal=srcParams[k].real,sImag=srcParams[k].imag;
+    for(var i=0;i<dstFreqs.length;i++){
+      var f=dstFreqs[i],j=0;
+      while(j<srcFreqs.length-1&&srcFreqs[j+1]<f)j++;
+      if(j>=srcFreqs.length-1||f<=srcFreqs[0]){real.push(sReal[j]);imag.push(sImag[j]);continue;}
+      var t=(f-srcFreqs[j])/(srcFreqs[j+1]-srcFreqs[j]);
+      real.push(sReal[j]+(sReal[j+1]-sReal[j])*t);
+      imag.push(sImag[j]+(sImag[j+1]-sImag[j])*t);
+    }
+    var mag_db=real.map(function(re,i){return 20*Math.log10(Math.sqrt(re*re+imag[i]*imag[i])||1e-30);});
+    var phase=real.map(function(re,i){return Math.atan2(imag[i],re)*180/Math.PI;});
+    out[k]={real:real,imag:imag,mag_db:mag_db,phase:phase};
+  }
+  return out;
+}
 async function handleFixtureDrop(e){e.preventDefault();e.currentTarget.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)await handleFixtureFile(f);}
-async function handleFixtureFile(file){
+function handleFixtureFile(file){
   if(!file)return;document.getElementById('fix-filename').textContent=file.name;
-  const fd=new FormData();fd.append('file',file);
-  try{
-    const res=await fetch(API+'/api/parse-touchstone',{method:'POST',body:fd});
-    const data=await res.json();if(!res.ok)throw new Error(data.detail);
-    fixtureData=data;toast(`Fixture loaded: ${file.name}`);
-  }catch(e){toast('Fixture error: '+e.message,true);}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const text=e.target.result;
+      fixtureData=parseTouchstoneFile(text,file.name);
+      toast(`Fixture loaded: ${file.name}`);
+    }catch(e){toast('Fixture parse error: '+e.message,true);}
+  };
+  reader.onerror=function(){toast('Error reading fixture file',true);};
+  reader.readAsText(file);
 }
 function showPortExt(){const pe=document.getElementById('port-ext-inputs');pe.style.display=pe.style.display==='none'?'':'none';}
-async function doDeembed(){
+function doDeembed(){
   if(!spData||!fixtureData){toast('Load DUT and fixture first',true);return;}
+  if(spData.n_ports!==2||fixtureData.n_ports!==2){toast('De-embedding requires 2-port data',true);return;}
   try{
-    const body={dut_freqs:spData.frequencies,dut_s:spData.s_params,fix_freqs:fixtureData.frequencies,fix_s:fixtureData.s_params,n_ports:spData.n_ports};
-    const res=await fetch(API+'/api/deembed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await res.json();if(!res.ok)throw new Error(data.detail);
-    spData={...spData,s_params:data.s_params};renderSpCharts();toast('De-embedding applied');
+    var fixInterp=interpolateSParams(fixtureData.frequencies,fixtureData.s_params,spData.frequencies);
+    var keys=Object.keys(spData.s_params),out={};
+    for(var ki=0;ki<keys.length;ki++){var k=keys[ki];out[k]={real:[],imag:[],mag_db:[],phase:[]};}
+    var N=spData.n_ports;
+    for(var i=0;i<spData.frequencies.length;i++){
+      var Sd=[
+        [[spData.s_params.S11.real[i],spData.s_params.S11.imag[i]],[spData.s_params.S12.real[i],spData.s_params.S12.imag[i]]],
+        [[spData.s_params.S21.real[i],spData.s_params.S21.imag[i]],[spData.s_params.S22.real[i],spData.s_params.S22.imag[i]]]
+      ];
+      var Sf=[
+        [[fixInterp.S11.real[i],fixInterp.S11.imag[i]],[fixInterp.S12.real[i],fixInterp.S12.imag[i]]],
+        [[fixInterp.S21.real[i],fixInterp.S21.imag[i]],[fixInterp.S22.real[i],fixInterp.S22.imag[i]]]
+      ];
+      var Sfi=mat22Inv(Sf);
+      if(!Sfi)throw new Error('Singular fixture matrix at point '+(i+1));
+      var T=mat22Mul(Sfi,Sd);
+      var sKeys=[['S11','S12'],['S21','S22']];
+      for(var r=0;r<N;r++)for(var c=0;c<N;c++){
+        var sk=sKeys[r][c],re=T[r][c][0],im=T[r][c][1];
+        out[sk].real.push(re);out[sk].imag.push(im);
+        var mag=Math.sqrt(re*re+im*im);
+        out[sk].mag_db.push(20*Math.log10(mag||1e-30));
+        out[sk].phase.push(Math.atan2(im,re)*180/Math.PI);
+      }
+    }
+    spData={...spData,s_params:out};
+    document.getElementById('sp-fstart').value='';document.getElementById('sp-fstop').value='';
+    renderSpCharts();toast('De-embedding applied');
   }catch(e){toast('De-embed error: '+e.message,true);}
 }
-async function doPortExt(){
+function doPortExt(){
   if(!spData){toast('Load DUT first',true);return;}
   try{
-    const body={freqs:spData.frequencies,s_params:spData.s_params,delay_ps:parseFloat(document.getElementById('pe-d1').value)||0,delay2_ps:parseFloat(document.getElementById('pe-d2').value)||0,n_ports:spData.n_ports};
-    const res=await fetch(API+'/api/port-extension',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await res.json();if(!res.ok)throw new Error(data.detail);
-    spData={...spData,s_params:data.s_params};renderSpCharts();toast('Port extension applied');
+    var d1=(parseFloat(document.getElementById('pe-d1').value)||0)*1e-12;
+    var d2=(parseFloat(document.getElementById('pe-d2').value)||0)*1e-12;
+    var N=spData.n_ports,keys=Object.keys(spData.s_params),out={};
+    for(var ki=0;ki<keys.length;ki++){var k=keys[ki];out[k]={real:[],imag:[],mag_db:[],phase:[]};}
+    var sKeys=[['S11','S12'],['S21','S22']];
+    for(var i=0;i<spData.frequencies.length;i++){
+      var f=spData.frequencies[i];
+      var phase1=-2*Math.PI*f*d1,phase2=-2*Math.PI*f*d2;
+      var rot1=[Math.cos(phase1),Math.sin(phase1)];
+      var rot2=[Math.cos(phase2),Math.sin(phase2)];
+      for(var r=0;r<N;r++)for(var c=0;c<N;c++){
+        var sk=sKeys[r][c],sp=spData.s_params[sk];
+        var re=sp.real[i],im=sp.imag[i];
+        var rot=r===0?rot1:rot2;
+        var newRe=re*rot[0]-im*rot[1];
+        var newIm=re*rot[1]+im*rot[0];
+        out[sk].real.push(newRe);out[sk].imag.push(newIm);
+        var mag=Math.sqrt(newRe*newRe+newIm*newIm);
+        out[sk].mag_db.push(20*Math.log10(mag||1e-30));
+        out[sk].phase.push(Math.atan2(newIm,newRe)*180/Math.PI);
+      }
+    }
+    spData={...spData,s_params:out};
+    document.getElementById('sp-fstart').value='';document.getElementById('sp-fstop').value='';
+    renderSpCharts();toast('Port extension applied');
   }catch(e){toast('Port extension error: '+e.message,true);}
 }
 function clearDeembed(){fixtureData=null;document.getElementById('fix-filename').textContent='';toast('Fixture cleared');}
