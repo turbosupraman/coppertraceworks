@@ -30,7 +30,7 @@ button.danger{background:var(--red)}button.green{background:var(--accent2)}
 .row{display:flex;gap:.7rem;align-items:flex-start}
 .col{display:flex;flex-direction:column;gap:.5rem;flex:1}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
-.badge{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700}
+.tab-cnt{color:var(--text2);font-size:.7rem;font-family:monospace;margin-left:.5rem;white-space:nowrap}.badge{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700}
 .badge-blue{background:#1f3a5e;color:var(--accent)}.badge-green{background:#1a3a26;color:var(--accent2)}
 .sep{height:1px;background:var(--border);margin:.6rem 0}
 .text-sm{font-size:.78rem;color:var(--text2)}.calc-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:#1f3a5e;color:#d18a3a;font-size:.68rem;font-weight:700;line-height:1;vertical-align:middle;font-family:monospace}
@@ -263,7 +263,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 <div id="content">
 
 <!-- TAB 0: LED RESISTOR -->
-<div class="tab-panel" id="tab-0">
+<div class="tab-panel" id="tab-0"><span class="tab-cnt" id="tc-0">0</span>
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>LED Resistor Calculator</h2>
@@ -289,7 +289,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 1: LC RESONANCE -->
-<div class="tab-panel" id="tab-1">
+<div class="tab-panel" id="tab-1"><span class="tab-cnt" id="tc-1">0</span>
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>LC Resonance Calculator</h2>
@@ -325,7 +325,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 2: VOLTAGE DIVIDER -->
-<div class="tab-panel" id="tab-2">
+<div class="tab-panel" id="tab-2"><span class="tab-cnt" id="tc-2">0</span>
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Voltage Divider Calculator</h2>
@@ -351,7 +351,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 3: S-PARAMETERS -->
-<div class="tab-panel" id="tab-3">
+<div class="tab-panel" id="tab-3"><span class="tab-cnt" id="tc-3">0</span>
 <div class="two-col">
   <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
     <div class="card">
@@ -435,7 +435,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 4: COMPONENT MODELS -->
-<div class="tab-panel" id="tab-4">
+<div class="tab-panel" id="tab-4"><span class="tab-cnt" id="tc-4">0</span>
 <div class="two-col sync-scroll">
   <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
     <div class="card">
@@ -506,7 +506,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 5: RADAR -->
-<div class="tab-panel" id="tab-5">
+<div class="tab-panel" id="tab-5"><span class="tab-cnt" id="tc-5">0</span>
 <div style="display:flex;flex-direction:column;gap:1rem">
   <div class="radar-layout">
     <div class="radar-inputs card">
@@ -668,7 +668,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 6: PULSE DROOP -->
-<div class="tab-panel" id="tab-6">
+<div class="tab-panel" id="tab-6"><span class="tab-cnt" id="tc-6">0</span>
 <div style="display:flex;flex-direction:column;gap:1rem">
   <div class="droop-layout">
     <div class="card">
@@ -702,7 +702,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 17: DECOUPLING EXPLORER -->
-<div class="tab-panel" id="tab-17">
+<div class="tab-panel" id="tab-17"><span class="tab-cnt" id="tc-17">0</span>
 <div class="two-col sync-scroll">
   <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
     <div class="card">
@@ -761,7 +761,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 7: RF CASCADE ANALYZER -->
-<div class="tab-panel" id="tab-7">
+<div class="tab-panel" id="tab-7"><span class="tab-cnt" id="tc-7">0</span>
 <div style="display:flex;flex-direction:column;gap:.8rem">
   <div class="row" style="align-items:flex-start;gap:.8rem;flex-wrap:wrap">
     <div class="card" style="min-width:280px">
@@ -819,7 +819,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 8: UNIT CONVERTER -->
-<div class="tab-panel" id="tab-8">
+<div class="tab-panel" id="tab-8"><span class="tab-cnt" id="tc-8">0</span>
 <div style="max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Power: dBm ↔ Watts ↔ mW</h2>
@@ -881,7 +881,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 9: OHM'S LAW + POWER -->
-<div class="tab-panel" id="tab-9">
+<div class="tab-panel" id="tab-9"><span class="tab-cnt" id="tc-9">0</span>
 <div style="max-width:850px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Ohm's Law + Power</h2>
@@ -902,7 +902,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 10: RC CUTOFF -->
-<div class="tab-panel" id="tab-10">
+<div class="tab-panel" id="tab-10"><span class="tab-cnt" id="tc-10">0</span>
 <div style="max-width:850px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>RC Cutoff + Time Constant</h2>
@@ -919,7 +919,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 11: DBM TO VOLTAGE -->
-<div class="tab-panel" id="tab-11">
+<div class="tab-panel" id="tab-11"><span class="tab-cnt" id="tc-11">0</span>
 <div style="max-width:850px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>dBm ↔ Voltage (Vrms / Vpp)</h2>
@@ -1197,7 +1197,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 13: VIA PROPERTIES -->
-<div class="tab-panel" id="tab-13">
+<div class="tab-panel" id="tab-13"><span class="tab-cnt" id="tc-13">0</span>
 <div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Via Properties (first-order)</h2>
@@ -1219,7 +1219,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 14: MIN COPPER SPACING -->
-<div class="tab-panel" id="tab-14">
+<div class="tab-panel" id="tab-14"><span class="tab-cnt" id="tc-14">0</span>
 <div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Minimum Copper Spacing (IPC quick table)</h2>
@@ -1239,7 +1239,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 15: DIFFERENTIAL PAIR / XTALK -->
-<div class="tab-panel" id="tab-15">
+<div class="tab-panel" id="tab-15"><span class="tab-cnt" id="tc-15">0</span>
 <div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Differential Pair + Crosstalk (first-order)</h2>
@@ -1262,7 +1262,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 16: TRACE IMPEDANCE -->
-<div class="tab-panel" id="tab-16">
+<div class="tab-panel" id="tab-16"><span class="tab-cnt" id="tc-16">0</span>
 <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:1rem">
   <div class="ci-layout">
     <div class="card">
@@ -1505,47 +1505,32 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div><!-- #app -->
 
 <style>
-#ctr-toggle{position:fixed;bottom:12px;right:12px;z-index:999;width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);color:var(--accent);font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s}
+
 #ctr-toggle:hover{opacity:1}
-#ctr-panel{position:fixed;bottom:54px;right:12px;z-index:999;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.6rem;max-height:280px;overflow-y:auto;width:220px;display:none;font-size:.75rem;box-shadow:0 4px 20px rgba(0,0,0,.4)}
-#ctr-panel.show{display:block}
-#ctr-panel h3{font-size:.82rem;margin-bottom:.4rem;color:var(--accent)}
+
 .ctr-row{display:flex;justify-content:space-between;padding:.15rem 0;border-bottom:1px solid var(--bg3);color:var(--text2)}
 .ctr-row .ctr-n{color:var(--accent);font-weight:700;font-family:monospace}
 </style>
-<div id="ctr-panel"><h3>Calculator Usage</h3><div id="ctr-list"></div></div>
-<button id="ctr-toggle" onclick="var p=document.getElementById('ctr-panel');p.classList.toggle('show')" title="Usage counters">∑</button>
+
 
 <div id="toast"></div>
 
 <script>
-function ctrClick(key){
-  fetch('/api/counter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})})
+function ctrClick(calcKey){
+  var tabMap={led:0,lc:1,vd:2,deembed:3,portext:3,comp:4,radar:5,droop:6,
+    link:7,ohms:9,rc:10,dbm:11,dbmv:11,via:13,thermal:13,fusing:13,bw:13,cond:13,
+    spacing:14,planar:14,xtal:14,mech:14,embed:14,loop420:14,diff:15,trace:16,decoup:16};
+  var tab=tabMap[calcKey];
+  if(tab===undefined)return;
+  fetch('/api/counter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'tab-'+tab})})
     .catch(function(){}).then(function(){updateCtrPanel();});
 }
 function updateCtrPanel(){
   fetch('/api/counter').then(function(r){return r.json();}).then(function(data){
-    var labels={
-      led:'LED Resistor',lc:'LC Resonance',vd:'Voltage Divider',comp:'Component Model',
-      radar:'Radar Range',fusing:'Fusing Current',bw:'Bandwidth',cond:'Conductor Props',
-      droop:'Pulse Droop',decoup:'Decoupling',link:'Link Budget',ohms:"Ohm's Law",
-      rc:'RC Cutoff',dbm:'dBm→Voltage',dbmv:'Voltage→dBm',planar:'Planar Inductor',
-      xtal:'Crystal',mech:'Mechanical',embed:'Embedded Resistor',loop420:'4-20mA',
-      thermal:'Thermal',via:'Via Properties',spacing:'Min Spacing',diff:'Diff Pair',
-      trace:'Trace Impedance',deembed:'De-embed',portext:'Port Extension'
-    };
-    var total=0,list=document.getElementById('ctr-list');
-    list.innerHTML='';
-    for(var k in labels){
-      var cnt=data[k]||0;
-      if(cnt>0){total+=cnt;
-        list.innerHTML+='<div class="ctr-row"><span>'+labels[k]+'</span><span class="ctr-n">'+cnt+'</span></div>';
-      }
+    for(var t=0;t<=17;t++){
+      var el=document.getElementById('tc-'+t);
+      if(el)el.textContent=data['tab-'+t]||0;
     }
-    if(total===0)list.innerHTML='<div style="color:var(--text2);text-align:center;padding:.5rem">No calculations yet</div>';
-    document.getElementById('ctr-toggle').textContent=total;
-  }).catch(function(){
-    document.getElementById('ctr-list').innerHTML='<div style="color:var(--text2);text-align:center;padding:.5rem">Offline</div>';
   });
 }
 function initCtrs(){updateCtrPanel();}
