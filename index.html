@@ -30,10 +30,10 @@ button.danger{background:var(--red)}button.green{background:var(--accent2)}
 .row{display:flex;gap:.7rem;align-items:flex-start}
 .col{display:flex;flex-direction:column;gap:.5rem;flex:1}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
-.tab-cnt{color:var(--text2);font-size:.7rem;font-family:monospace;margin-left:.5rem;white-space:nowrap}.badge{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700}
+.privacy-note{padding:.5rem 1rem;font-size:.7rem;color:var(--text2);text-align:center;border-top:1px solid var(--bg3);margin-top:1rem}.badge{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700}
 .badge-blue{background:#1f3a5e;color:var(--accent)}.badge-green{background:#1a3a26;color:var(--accent2)}
 .sep{height:1px;background:var(--border);margin:.6rem 0}
-.text-sm{font-size:.78rem;color:var(--text2)}.calc-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:#1f3a5e;color:#d18a3a;font-size:.68rem;font-weight:700;line-height:1;vertical-align:middle;font-family:monospace}
+.text-sm{font-size:.78rem;color:var(--text2)}
 .eq-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;margin:.5rem 0;font-size:.88rem;line-height:1.8;overflow-x:auto;}
 #app{display:flex;flex-direction:column;height:100vh;position:relative;overflow:hidden}
 .pcb-decor{position:relative;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(240,181,107,.05),rgba(240,181,107,0) 70%);padding-top:10px}
@@ -259,11 +259,18 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
   <button class="tab-btn" onclick="switchTab(24)">🔧 Mechanical Info</button>
   <button class="tab-btn" onclick="switchTab(25)">🔶 Embedded Resistors</button>
   <button class="tab-btn" onclick="switchTab(26)">⚡ 4-20mA Sensor</button>
+  <button class="tab-btn" onclick="switchTab(27)">🚀 Asteroids</button>
+  <button class="tab-btn" onclick="switchTab(28)">🕳️ Via Impedance</button>
+  <button class="tab-btn" onclick="switchTab(29)">🔄 T-Line Reflection</button>
+  <button class="tab-btn" onclick="switchTab(31)">📏 Max Via Stub</button>
+  <button class="tab-btn" onclick="switchTab(32)">🌡️ Via Current</button>
+  <button class="tab-btn" onclick="switchTab(33)">🔥 Via Thermal</button>
+  <button class="tab-btn" onclick="switchTab(34)">🔋 PDN Analyzer</button>
 </div>
 <div id="content">
 
 <!-- TAB 0: LED RESISTOR -->
-<div class="tab-panel" id="tab-0"><span class="tab-cnt" id="tc-0">0</span>
+<div class="tab-panel" id="tab-0">
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>LED Resistor Calculator</h2>
@@ -273,7 +280,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="col"><label>LED Forward Voltage Vf (V)</label><input type="number" id="vf" step="any" value="2"/></div>
         <div class="col"><label>LED Current (mA)</label><input type="number" id="iled" step="any" value="20"/></div>
       </div>
-      <button onclick="calculateLED();ctrClick('led')">Calculate</button>
+      <button onclick="calculateLED()">Calculate</button>
     </div>
   </div>
   <div class="card"><h2>Equations</h2>
@@ -289,7 +296,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 1: LC RESONANCE -->
-<div class="tab-panel" id="tab-1"><span class="tab-cnt" id="tc-1">0</span>
+<div class="tab-panel" id="tab-1">
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>LC Resonance Calculator</h2>
@@ -309,7 +316,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           </select>
         </div>
       </div>
-      <button onclick="calculateLC();ctrClick('lc')">Calculate</button>
+      <button onclick="calculateLC()">Calculate</button>
     </div>
   </div>
   <div class="card"><h2>Equation</h2>
@@ -325,7 +332,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 2: VOLTAGE DIVIDER -->
-<div class="tab-panel" id="tab-2"><span class="tab-cnt" id="tc-2">0</span>
+<div class="tab-panel" id="tab-2">
 <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Voltage Divider Calculator</h2>
@@ -335,7 +342,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="col"><label>Top Resistor R1 (Ω)</label><input type="number" id="vd-r1" step="any" value="10000"/></div>
         <div class="col"><label>Bottom Resistor R2 (Ω)</label><input type="number" id="vd-r2" step="any" value="10000"/></div>
       </div>
-      <button onclick="calculateVD();ctrClick('vd')">Calculate</button>
+      <button onclick="calculateVD()">Calculate</button>
     </div>
   </div>
   <div class="card"><h2>Equation</h2>
@@ -351,7 +358,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 3: S-PARAMETERS -->
-<div class="tab-panel" id="tab-3"><span class="tab-cnt" id="tc-3">0</span>
+<div class="tab-panel" id="tab-3">
 <div class="two-col">
   <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
     <div class="card">
@@ -395,7 +402,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="file-name" id="fix-filename"></div>
       </div>
       <div style="margin-top:.6rem;display:flex;gap:.5rem;flex-wrap:wrap">
-        <button class="green" onclick="doDeembed();ctrClick('deembed')">De-Embed (S-matrix)</button>
+        <button class="green" onclick="doDeembed()">De-Embed (S-matrix)</button>
         <button class="sec" onclick="showPortExt()">Port Extension</button>
         <button class="danger" onclick="clearDeembed()">Clear</button>
       </div>
@@ -404,7 +411,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <div class="col"><label>Delay Port 1 (ps)</label><input type="number" id="pe-d1" value="0" step="0.1"/></div>
           <div class="col"><label>Delay Port 2 (ps)</label><input type="number" id="pe-d2" value="0" step="0.1"/></div>
         </div>
-        <button onclick="doPortExt();ctrClick('portext')" style="margin-top:.4rem">Apply Port Extension</button>
+        <button onclick="doPortExt()" style="margin-top:.4rem">Apply Port Extension</button>
       </div>
     </div>
     <div class="card" id="sp-eq-box" style="display:none">
@@ -435,7 +442,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 4: COMPONENT MODELS -->
-<div class="tab-panel" id="tab-4"><span class="tab-cnt" id="tc-4">0</span>
+<div class="tab-panel" id="tab-4">
 <div class="two-col sync-scroll">
   <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
     <div class="card">
@@ -458,7 +465,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <div class="col"><label>Freq Stop (MHz)</label><input type="number" id="comp-f2" value="3000" min="1"/></div>
         </div>
         <div class="row"><div class="col"><label>Ref Impedance Z₀ (Ω)</label><input type="number" id="comp-z0" value="50" min="1"/></div></div>
-        <button onclick="computeComponent();ctrClick('comp')">Compute</button>
+        <button onclick="computeComponent()">Compute</button>
       </div>
     </div>
     <div class="card" id="comp-inputs-C" style="display:none">
@@ -467,7 +474,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="row"><div class="col"><label>Capacitance C (pF)</label><input type="number" id="C-val" value="100" step="1" min="0.001"/></div></div>
         <div class="row"><div class="col"><label>ESR (mΩ)</label><input type="number" id="C-esr" value="20" step="1" min="0"/></div></div>
         <div class="row"><div class="col"><label>ESL (nH)</label><input type="number" id="C-esl" value="0.5" step="0.01" min="0"/></div></div>
-        <button onclick="computeComponent();ctrClick('comp')">Compute</button>
+        <button onclick="computeComponent()">Compute</button>
       </div>
     </div>
     <div class="card" id="comp-inputs-R" style="display:none">
@@ -476,7 +483,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="row"><div class="col"><label>Resistance R (Ω)</label><input type="number" id="R-val" value="50" step="1" min="0.001"/></div></div>
         <div class="row"><div class="col"><label>Series Lead Inductance Ls (nH)</label><input type="number" id="R-ls" value="1" step="0.1" min="0"/></div></div>
         <div class="row"><div class="col"><label>Parallel Cap Cs (pF)</label><input type="number" id="R-cs" value="0.1" step="0.01" min="0"/></div></div>
-        <button onclick="computeComponent();ctrClick('comp')">Compute</button>
+        <button onclick="computeComponent()">Compute</button>
       </div>
     </div>
     <div class="card" id="comp-results" style="display:none">
@@ -506,7 +513,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 5: RADAR -->
-<div class="tab-panel" id="tab-5"><span class="tab-cnt" id="tc-5">0</span>
+<div class="tab-panel" id="tab-5">
 <div style="display:flex;flex-direction:column;gap:1rem">
   <div class="radar-layout">
     <div class="radar-inputs card">
@@ -535,7 +542,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <div class="col"><label>Sweep Time (ms)</label><input type="number" id="r-fmcw-t" value="1" step="0.1" min="0.001"/></div>
         </div>
         <div class="row"><div class="col"><label>Target Velocity (m/s)</label><input type="number" id="r-vel" value="10" step="1"/></div></div>
-        <button onclick="computeRadar();ctrClick('radar')">Calculate</button>
+        <button onclick="computeRadar()">Calculate</button>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:.8rem">
@@ -590,7 +597,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         </select>
       </div>
     </div>
-    <button onclick="calcFusingCurrent();ctrClick('fusing')">Calculate</button>
+    <button onclick="calcFusingCurrent()">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="fc-results"></div></div>
   <div class="card">
@@ -625,7 +632,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         </select>
       </div>
     </div>
-    <button onclick="calcBandwidth();ctrClick('bw')">Calculate</button>
+    <button onclick="calcBandwidth()">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="bw-results"></div></div>
   <div class="card">
@@ -656,7 +663,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col"><label>Length (in)</label><input type="number" id="cp-len" value="1" step="0.1" min="0.01"/></div>
       <div class="col"><label>Temp (°C)</label><input type="number" id="cp-temp" value="25" step="1" min="-55"/></div>
     </div>
-    <button onclick="calcConductorProps();ctrClick('cond')">Calculate</button>
+    <button onclick="calcConductorProps()">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="cp-results"></div></div>
   <div class="card">
@@ -668,7 +675,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 6: PULSE DROOP -->
-<div class="tab-panel" id="tab-6"><span class="tab-cnt" id="tc-6">0</span>
+<div class="tab-panel" id="tab-6">
 <div style="display:flex;flex-direction:column;gap:1rem">
   <div class="droop-layout">
     <div class="card">
@@ -682,7 +689,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="sep"></div>
         <h3>Verify with actual cap value</h3>
         <div class="row"><div class="col"><label>Given Cap Value (μF)</label><input type="number" id="d-cgiven" value="1000" step="10" min="0.01"/></div></div>
-        <button onclick="computeDroop();ctrClick('droop')">Calculate</button>
+        <button onclick="computeDroop()">Calculate</button>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:.8rem">
@@ -702,7 +709,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 17: DECOUPLING EXPLORER -->
-<div class="tab-panel" id="tab-17"><span class="tab-cnt" id="tc-17">0</span>
+<div class="tab-panel" id="tab-17">
 <div class="two-col sync-scroll">
   <div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
     <div class="card">
@@ -723,7 +730,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <div class="col"><label>Plot start (kHz)</label><input type="number" id="dec-f1" value="10" step="1" min="0.1"/></div>
         <div class="col"><label>Plot stop (MHz)</label><input type="number" id="dec-f2" value="1000" step="10" min="1"/></div>
       </div>
-      <button onclick="computeDecouplingExplorer();ctrClick('decoup')">Build Decoupling Plot</button>
+      <button onclick="computeDecouplingExplorer()">Build Decoupling Plot</button>
     </div>
     <div class="card">
       <h2>Cap Banks</h2>
@@ -761,7 +768,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 7: RF CASCADE ANALYZER -->
-<div class="tab-panel" id="tab-7"><span class="tab-cnt" id="tc-7">0</span>
+<div class="tab-panel" id="tab-7">
 <div style="display:flex;flex-direction:column;gap:.8rem">
   <div class="row" style="align-items:flex-start;gap:.8rem;flex-wrap:wrap">
     <div class="card" style="min-width:280px">
@@ -775,7 +782,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           <div class="col"><label>Bandwidth (MHz)</label><input type="number" id="lb-bw" value="20" step="1" min="0.001"/></div>
           <div class="col"><label>Temperature (K)</label><input type="number" id="lb-T" value="290" step="1" min="0"/></div>
         </div>
-        <button onclick="computeLinkBudget();ctrClick('link')" class="green">Calculate Chain</button>
+        <button onclick="computeLinkBudget()" class="green">Calculate Chain</button>
       </div>
     </div>
     <div class="card" style="flex:1;min-width:300px">
@@ -819,7 +826,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 8: UNIT CONVERTER -->
-<div class="tab-panel" id="tab-8"><span class="tab-cnt" id="tc-8">0</span>
+<div class="tab-panel" id="tab-8">
 <div style="max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Power: dBm ↔ Watts ↔ mW</h2>
@@ -881,7 +888,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 9: OHM'S LAW + POWER -->
-<div class="tab-panel" id="tab-9"><span class="tab-cnt" id="tc-9">0</span>
+<div class="tab-panel" id="tab-9">
 <div style="max-width:850px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Ohm's Law + Power</h2>
@@ -893,7 +900,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:160px"><label>Power P (W)</label><input type="number" id="ohm-p" step="any"/></div>
     </div>
     <div style="display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap">
-      <button onclick="solveOhmsLaw();ctrClick('ohms')" class="green">Solve</button>
+      <button onclick="solveOhmsLaw()" class="green">Solve</button>
       <button onclick="clearOhmsLaw()" class="sec">Clear</button>
     </div>
   </div>
@@ -902,7 +909,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 10: RC CUTOFF -->
-<div class="tab-panel" id="tab-10"><span class="tab-cnt" id="tc-10">0</span>
+<div class="tab-panel" id="tab-10">
 <div style="max-width:850px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>RC Cutoff + Time Constant</h2>
@@ -912,14 +919,14 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:160px"><label>C value</label><input type="number" id="rc-c" value="10" step="any"/></div>
       <div class="col" style="min-width:120px"><label>C unit</label><select id="rc-cunit"><option value="1e-12">pF</option><option value="1e-9">nF</option><option value="1e-6" selected>µF</option><option value="0.001">mF</option></select></div>
     </div>
-    <div style="margin-top:.7rem"><button onclick="calculateRC();ctrClick('rc')" class="green">Calculate</button></div>
+    <div style="margin-top:.7rem"><button onclick="calculateRC()" class="green">Calculate</button></div>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="rc-result"></div></div>
 </div>
 </div>
 
 <!-- TAB 11: DBM TO VOLTAGE -->
-<div class="tab-panel" id="tab-11"><span class="tab-cnt" id="tc-11">0</span>
+<div class="tab-panel" id="tab-11">
 <div style="max-width:850px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>dBm ↔ Voltage (Vrms / Vpp)</h2>
@@ -928,8 +935,8 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:160px"><label>Impedance (Ω)</label><input type="number" id="dbmv-z" value="50" step="any" min="0.001"/></div>
     </div>
     <div style="display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap">
-      <button onclick="calculateDbmVoltage();ctrClick('dbm')" class="green">Calculate from dBm</button>
-      <button onclick="calculateVoltageToDbm();ctrClick('dbmv')" class="sec">Calculate from Vrms</button>
+      <button onclick="calculateDbmVoltage()" class="green">Calculate from dBm</button>
+      <button onclick="calculateVoltageToDbm()" class="sec">Calculate from Vrms</button>
     </div>
     <div class="row" style="gap:.8rem;flex-wrap:wrap;margin-top:.7rem">
       <div class="col" style="min-width:180px"><label>Voltage (Vrms)</label><input type="number" id="dbmv-vrms" step="any"/></div>
@@ -959,7 +966,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <select id="pi-oz"><option value="0.5">0.5 oz</option><option value="1" selected>1 oz</option><option value="2">2 oz</option><option value="3">3 oz</option></select>
       </div>
     </div>
-    <button onclick="calcPlanarInductor();ctrClick('planar')">Calculate</button>
+    <button onclick="calcPlanarInductor()">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="pi-results"></div></div>
   <div class="card">
@@ -987,7 +994,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
     <div class="row">
       <div class="col"><label>Drive Level (uW)</label><input type="number" id="xt-drive" value="100" step="10" min="1"/></div>
     </div>
-    <button onclick="calcXTAL();ctrClick('xtal')">Calculate</button>
+    <button onclick="calcXTAL()">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="xt-results"></div></div>
   <div class="card">
@@ -1018,7 +1025,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
     <div class="row">
       <div class="col"><label>Wire Length (ft)</label><input type="number" id="me-len" value="10" step="1" min="0.1"/></div>
     </div>
-    <button onclick="calcMechanical();ctrClick('mech')">Calculate</button>
+    <button onclick="calcMechanical()">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="me-results"></div></div>
   <div class="card"><h2>Common PCB Drill Sizes</h2>
@@ -1050,7 +1057,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col"><label>Resistor Length (mil)</label><input type="number" id="er-len" value="200" step="5" min="2"/></div>
     </div>
     <p class="text-sm" style="color:var(--text2)">R = R_sheet * L / W. L = R * W / R_sheet. Enter width + either target R or length.</p>
-    <button onclick="calcEmbeddedResistor();ctrClick('embed')">Calculate</button>
+    <button onclick="calcEmbeddedResistor()">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="er-results"></div></div>
   <div class="card">
@@ -1078,7 +1085,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col"><label>Target Value</label><input type="number" id="ma-target" value="50" step="0.1"/></div>
       <div class="col"><label>Required Current (mA)</label><input type="text" id="ma-i-req" readonly style="font-weight:700;color:var(--accent2)"/></div>
     </div>
-    <button onclick="calc420();ctrClick('loop420')" style="margin-top:.4rem">Calculate</button>
+    <button onclick="calc420()" style="margin-top:.4rem">Calculate</button>
   </div>
   <div class="card">
     <h2>Loop Power &amp; Receive Resistor</h2>
@@ -1090,7 +1097,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col"><label>Receive Resistor (Ω)</label><input type="number" id="ma-rrecv" value="250" step="10" min="1"/></div>
       <div class="col"><label>Wire Resistance (Ω)</label><input type="number" id="ma-rwire" value="10" step="1" min="0"/></div>
     </div>
-    <button onclick="calc420();ctrClick('loop420')" class="sec" style="margin-top:.4rem">Calculate Loop</button>
+    <button onclick="calc420()" class="sec" style="margin-top:.4rem">Calculate Loop</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="ma-results"></div></div>
   <div class="card">
@@ -1154,7 +1161,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         </select>
       </div>
     </div>
-    <button onclick="calcThermal();ctrClick('thermal')">Calculate</button>
+    <button onclick="calcThermal()">Calculate</button>
   </div>
   <div class="card"><h2>Results</h2><div class="result-grid" id="th-results"></div></div>
   <div class="card">
@@ -1190,14 +1197,19 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
     <h2>Contact</h2>
     <p class="text-sm">For product questions, calculator corrections, or documentation requests:</p>
     <p style="margin-top:.4rem"><a href="mailto:support@coppertraceworks.com" style="color:var(--accent);font-family:'Courier New',monospace">support@coppertraceworks.com</a></p>
-    <p style="margin-top:.4rem"><a href="https://shop.coppertraceworks.com" style="color:var(--accent)">shop.coppertraceworks.com</a></p>
+    <p style="margin-top:.4rem"><span style="color:var(--accent);font-family:'Courier New',monospace">shop.coppertraceworks.com</span> <span class="badge badge-blue" style="font-size:.65rem;vertical-align:middle">Coming Soon</span></p>
+  </div>
+  <div class="card">
+    <h2>Privacy & Data</h2>
+    <p class="text-sm">All calculations run entirely in your browser. <strong style="color:var(--text)">None of the values you enter</strong> — component values, frequencies, trace dimensions, file contents — are ever sent to any server or stored anywhere outside your device.</p>
+    <p class="text-sm" style="margin-top:.4rem">The only data transmitted is an anonymous tab counter (e.g. which calculator was used) for the public usage statistics page. No input values, no IP‑linked tracking, no cookies, no analytics scripts.</p>
   </div>
   <p class="text-sm" style="text-align:center;color:var(--text2);padding:.5rem">© 2026 Copper Trace Works LLC</p>
 </div>
 </div>
 
 <!-- TAB 13: VIA PROPERTIES -->
-<div class="tab-panel" id="tab-13"><span class="tab-cnt" id="tc-13">0</span>
+<div class="tab-panel" id="tab-13">
 <div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Via Properties (first-order)</h2>
@@ -1208,7 +1220,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:170px"><label>Current (A)</label><input type="number" id="via-i" value="1" step="0.1"/></div>
       <div class="col" style="min-width:170px"><label>Parallel vias</label><input type="number" id="via-n" value="1" step="1" min="1"/></div>
     </div>
-    <div style="margin-top:.7rem"><button onclick="calcViaProps();ctrClick('via')">Compute Via Properties</button></div>
+    <div style="margin-top:.7rem"><button onclick="calcViaProps()">Compute Via Properties</button></div>
   </div>
   <div class="card stack-wrap">
     <h2>Calculated Values</h2>
@@ -1219,7 +1231,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 14: MIN COPPER SPACING -->
-<div class="tab-panel" id="tab-14"><span class="tab-cnt" id="tc-14">0</span>
+<div class="tab-panel" id="tab-14">
 <div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Minimum Copper Spacing (IPC quick table)</h2>
@@ -1229,7 +1241,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
         <select id="sp-env"><option value="1" selected>Internal/controlled</option><option value="1.25">External/conformal</option><option value="1.5">External/harsh</option></select>
       </div>
     </div>
-    <div style="margin-top:.7rem"><button onclick="calcMinSpacing();ctrClick('spacing')">Compute Spacing</button></div>
+    <div style="margin-top:.7rem"><button onclick="calcMinSpacing()">Compute Spacing</button></div>
   </div>
   <div class="card stack-wrap">
     <h2>Spacing Table Stack</h2>
@@ -1239,7 +1251,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 15: DIFFERENTIAL PAIR / XTALK -->
-<div class="tab-panel" id="tab-15"><span class="tab-cnt" id="tc-15">0</span>
+<div class="tab-panel" id="tab-15">
 <div style="max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:.8rem">
   <div class="card">
     <h2>Differential Pair + Crosstalk (first-order)</h2>
@@ -1252,7 +1264,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
       <div class="col" style="min-width:150px"><label>Parallel length (in)</label><input type="number" id="dp-len" value="4" step="0.1"/></div>
       <div class="col" style="min-width:150px"><label>Rise time (ps)</label><input type="number" id="dp-tr" value="120" step="1"/></div>
     </div>
-    <div style="margin-top:.7rem"><button onclick="calcDiffPair();ctrClick('diff')">Compute Diff Pair / Xtalk</button></div>
+    <div style="margin-top:.7rem"><button onclick="calcDiffPair()">Compute Diff Pair / Xtalk</button></div>
   </div>
   <div class="card stack-wrap">
     <h2>Results</h2>
@@ -1262,7 +1274,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 
 <!-- TAB 16: TRACE IMPEDANCE -->
-<div class="tab-panel" id="tab-16"><span class="tab-cnt" id="tc-16">0</span>
+<div class="tab-panel" id="tab-16">
 <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:1rem">
   <div class="ci-layout">
     <div class="card">
@@ -1431,7 +1443,7 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
           </div>
         </div>
       </div>
-      <button style="margin-top:.9rem" onclick="calcConductorImpedance();ctrClick('trace')">Compute Trace Stack</button>
+      <button style="margin-top:.9rem" onclick="calcConductorImpedance()">Compute Trace Stack</button>
       <div class="ci-model-note" id="ci-model-note">Wheeler / Wadell is the more accurate first-pass option for microstrip-family geometry. Stripline modes use the stripline closed-form regardless of this selector.</div>
       <div class="ci-inline-hint" id="ci-width-hint"></div>
     </div>
@@ -1501,39 +1513,439 @@ table.lb-table .neg{color:var(--red)}.lb-table .pos{color:var(--accent2)}
 </div>
 </div>
 
+
+<!-- TAB 27: ASTEROIDS GAME -->
+<div class="tab-panel" id="tab-27" style="padding:0;height:100%;overflow:hidden">
+<iframe src="asteroids.html" style="width:100%;height:100%;border:none;display:block"></iframe>
+</div>
+
+
+<!-- TAB 28: VIA IMPEDANCE -->
+<div class="tab-panel" id="tab-28">
+<div class="two-col sync-scroll">
+<div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Via Impedance Calculator</h2>
+    <div style="margin-bottom:.6rem"><svg viewBox="0 0 520 380" style="width:100%;max-width:520px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b949e"/>
+    </marker>
+    <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#21262d" stroke-width="2"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="520" height="380" fill="#0d1117" rx="8"/>
+
+  <!-- Substrate (dielectric) -->
+  <rect x="80" y="80" width="360" height="220" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <rect x="80" y="80" width="360" height="220" fill="url(#hatch)" opacity="0.3"/>
+
+  <!-- Top copper layer -->
+  <rect x="70" y="72" width="380" height="8" fill="#d18a3a" opacity="0.8"/>
+  <!-- Bottom copper layer -->
+  <rect x="70" y="300" width="380" height="8" fill="#d18a3a" opacity="0.8"/>
+
+  <!-- Inner plane layers -->
+  <rect x="80" y="160" width="360" height="6" fill="#3fb950" opacity="0.4"/>
+  <rect x="80" y="220" width="360" height="6" fill="#3fb950" opacity="0.4"/>
+
+  <!-- Anti-pad clearance in plane -->
+  <rect x="200" y="160" width="120" height="6" fill="#0d1117"/>
+  <rect x="200" y="220" width="120" height="6" fill="#0d1117"/>
+
+  <!-- Via barrel (plated through-hole) -->
+  <rect x="232" y="72" width="56" height="236" fill="#d18a3a" opacity="0.9"/>
+  <!-- Via hole (inner empty) -->
+  <rect x="248" y="72" width="24" height="236" fill="#0d1117"/>
+
+  <!-- Top pad (annular ring) -->
+  <rect x="220" y="68" width="80" height="12" fill="#d18a3a" rx="2"/>
+  <!-- Bottom pad -->
+  <rect x="220" y="300" width="80" height="12" fill="#d18a3a" rx="2"/>
+
+  <!-- DIMENSION LINES -->
+
+  <!-- Via Diameter -->
+  <line x1="295" y1="170" x2="340" y2="170" stroke="#8b949e" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <line x1="290" y1="80" x2="290" y2="170" stroke="#8b949e" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <line x1="340" y1="170" x2="340" y2="300" stroke="#8b949e" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <text x="295" y="162" fill="#f0883e" font-size="10" font-family="monospace">Via Diameter</text>
+
+  <!-- Plating Thickness -->
+  <line x1="235" y1="55" x2="235" y2="72" stroke="#8b949e" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <line x1="248" y1="55" x2="248" y2="72" stroke="#8b949e" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <text x="205" y="50" fill="#f0883e" font-size="9" font-family="monospace">Plating</text>
+  <text x="202" y="43" fill="#f0883e" font-size="9" font-family="monospace">Thickness</text>
+
+  <!-- Anti-pad Diameter -->
+  <line x1="200" y1="155" x2="80" y2="155" stroke="#8b949e" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <line x1="200" y1="135" x2="200" y2="155" stroke="#8b949e" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <line x1="80" y1="135" x2="80" y2="155" stroke="#8b949e" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <text x="105" y="146" fill="#58a6ff" font-size="10" font-family="monospace">Anti-pad Diameter</text>
+
+  <!-- Board Thickness -->
+  <line x1="450" y1="80" x2="450" y2="300" stroke="#8b949e" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="445" y="195" fill="#8b949e" font-size="10" font-family="monospace" transform="rotate(90,445,195)">Board Thickness (h)</text>
+
+  <!-- Pad Diameter (annular ring) -->
+  <line x1="218" y1="63" x2="180" y2="63" stroke="#8b949e" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <line x1="218" y1="63" x2="218" y2="68" stroke="#8b949e" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <line x1="180" y1="63" x2="180" y2="68" stroke="#8b949e" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <text x="145" y="57" fill="#bc8cff" font-size="10" font-family="monospace">Pad Diameter</text>
+
+  <!-- Dielectric label -->
+  <text x="160" y="275" fill="#3b5998" font-size="11" font-family="monospace" opacity="0.7">FR4 / Dielectric (εr)</text>
+
+  <!-- Via barrel label -->
+  <text x="265" y="285" fill="#d18a3a" font-size="11" font-family="monospace" opacity="0.9">Cu</text>
+
+  <!-- Legend -->
+  <rect x="20" y="335" width="480" height="35" fill="#161b22" rx="4" stroke="#30363d" stroke-width="0.5"/>
+  <circle cx="40" cy="352" r="4" fill="#d18a3a"/><text x="50" y="356" fill="#8b949e" font-size="9" font-family="sans-serif">Copper</text>
+  <circle cx="140" cy="352" r="4" fill="#3fb950" opacity="0.5"/><text x="150" y="356" fill="#8b949e" font-size="9" font-family="sans-serif">Inner Planes</text>
+  <rect x="240" y="349" width="8" height="6" fill="#21262d" stroke="#30363d" stroke-width="0.5"/><text x="253" y="356" fill="#8b949e" font-size="9" font-family="sans-serif">Dielectric</text>
+  <line x1="340" y1="352" x2="370" y2="352" stroke="#8b949e" stroke-width="1"/><text x="375" y="356" fill="#8b949e" font-size="9" font-family="sans-serif">Dimension</text>
+</svg></div>
+    <p class="text-sm" style="margin-bottom:.6rem">Calculate characteristic impedance, capacitance, and inductance of a through-hole or blind via.</p>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Via Diameter (mil)</label><input type="number" id="vi-d" value="12" step="0.1" min="1"/></div>
+      <div class="col"><label>Anti-pad Diameter (mil)</label><input type="number" id="vi-ap" value="28" step="0.1" min="1"/></div></div>
+      <div class="row"><div class="col"><label>Plating Thickness (mil)</label><input type="number" id="vi-pt" value="1" step="0.1" min="0.1"/></div>
+      <div class="col"><label>Board Thickness (mil)</label><input type="number" id="vi-h" value="62" step="1" min="1"/></div></div>
+      <div class="row"><div class="col"><label>Dielectric Constant εr</label><input type="number" id="vi-er" value="4.5" step="0.1" min="1"/></div>
+      <div class="col"><label>Pad Diameter (mil)</label><input type="number" id="vi-pad" value="22" step="0.1" min="1"/></div></div>
+      <div class="row"><div class="col"><label>Via Count (parallel)</label><input type="number" id="vi-n" value="1" step="1" min="1"/></div></div>
+      <button onclick="calcViaImp()">Calculate</button>
+    </div>
+  </div>
+</div>
+<div class="right-panel">
+  <div class="card"><h2>Results</h2><div class="result-grid" id="vi-results"></div></div>
+  <div class="card"><h2>Equations</h2>
+    <div class="eq-box">$ C \approx \frac{1.41 \, \varepsilon_r \, h \, D_1}{D_2 - D_1} $ $ L \approx 5.08 \, h \left[ \ln\left(\frac{4h}{D}\right) + 1 \right] $ $ Z_0 = \sqrt{\frac{L}{C}} $ $ \tau = \sqrt{L \, C} $</div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- TAB 29: TRANSMISSION LINE REFLECTION -->
+<div class="tab-panel" id="tab-29">
+<div class="two-col sync-scroll">
+<div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>T-Line Reflection Calculator</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Compute reflection coefficient, VSWR, return loss, and mismatch loss.</p>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Source Zₛ (Ω)</label><input type="number" id="tl-zs" value="50" step="1" min="0.1"/></div>
+      <div class="col"><label>Line Z₀ (Ω)</label><input type="number" id="tl-z0" value="50" step="1" min="0.1"/></div></div>
+      <div class="row"><div class="col"><label>Load Z<sub>L</sub> (Ω)</label><input type="number" id="tl-zl" value="75" step="1" min="0.1"/></div></div>
+      <button onclick="calcTLine()">Calculate</button>
+    </div>
+  </div>
+</div>
+<div class="right-panel">
+  <div class="card"><h2>Results</h2><div class="result-grid" id="tl-results"></div></div>
+  <div class="card"><h2>Equations</h2>
+    <div class="eq-box">$ \Gamma = \frac{Z_L - Z_0}{Z_L + Z_0} $ $ \text{VSWR} = \frac{1+|\Gamma|}{1-|\Gamma|} $ $ RL = -20\log_{10}|\Gamma| $ $ ML = -10\log_{10}(1-|\Gamma|^2) $</div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- TAB 31: MAX VIA STUB -->
+<div class="tab-panel" id="tab-31">
+<div class="two-col sync-scroll">
+<div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Max Via Stub Length</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Determine maximum allowable via stub length to avoid resonant notches at your operating frequency.</p>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Frequency (GHz)</label><input type="number" id="vs-f" value="10" step="0.1" min="0.01"/></div>
+      <div class="col"><label>Dielectric εr</label><input type="number" id="vs-er" value="4.5" step="0.1" min="1"/></div></div>
+      <div class="row"><div class="col"><label>Margin (λ/?)</label>
+        <select id="vs-margin"><option value="10">λ / 10 (loose)</option><option value="20" selected>λ / 20 (typical)</option><option value="40">λ / 40 (conservative)</option></select></div></div>
+      <button onclick="calcMaxStub()">Calculate</button>
+    </div>
+  </div>
+</div>
+<div class="right-panel">
+  <div class="card"><h2>Results</h2><div class="result-grid" id="vs-results"></div></div>
+  <div class="card"><h2>Equations</h2>
+    <div class="eq-box">$ f_{res} = \frac{c}{4 \, L_{stub} \sqrt{\varepsilon_r}} $ $ L_{max} = \frac{c}{4 \, f \, \sqrt{\varepsilon_r}} \; \text{(λ/4 resonance)} $ $ L_{safe} = \frac{L_{max}}{\text{margin}} $</div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- TAB 32: VIA CURRENT CAPACITY -->
+<div class="tab-panel" id="tab-32">
+<div class="two-col sync-scroll">
+<div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Via Current Capacity</h2>
+    <p class="text-sm" style="margin-bottom:.6rem">Estimate current capacity and temperature rise for PCB vias.</p>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Via Diameter (mil)</label><input type="number" id="vc-d" value="12" step="0.1" min="1"/></div>
+      <div class="col"><label>Plating Thickness (mil)</label><input type="number" id="vc-pt" value="1" step="0.1" min="0.1"/></div></div>
+      <div class="row"><div class="col"><label>Board Thickness (mil)</label><input type="number" id="vc-h" value="62" step="1" min="1"/></div>
+      <div class="col"><label>Temp Rise (°C)</label><input type="number" id="vc-tr" value="20" step="1" min="1"/></div></div>
+      <div class="row"><div class="col"><label>Ambient (°C)</label><input type="number" id="vc-ta" value="25" step="1" min="0"/></div>
+      <div class="col"><label># Vias (parallel)</label><input type="number" id="vc-n" value="1" step="1" min="1"/></div></div>
+      <button onclick="calcViaCurrent()">Calculate</button>
+    </div>
+  </div>
+</div>
+<div class="right-panel">
+  <div class="card"><h2>Results</h2><div class="result-grid" id="vc-results"></div></div>
+  <div class="card"><h2>Equations</h2>
+    <div class="eq-box">$ A_{cross} = \pi \cdot D \cdot t_{plate} $ $ I_{max} = k \cdot A^{0.44} \cdot \Delta T^{0.725} $ $ R_{via} = \frac{\rho \cdot h}{A_{cross}} $ $ V_{drop} = I \cdot R_{via} $</div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- TAB 33: VIA THERMAL RESISTANCE -->
+<div class="tab-panel" id="tab-33">
+<div class="two-col sync-scroll">
+<div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>Thermal Pad</h2>
+    <div style="margin-bottom:.6rem"><svg viewBox="0 0 560 420" style="width:100%;max-width:560px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b949e"/>
+    </marker>
+    <marker id="arr-r" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-auto">
+      <path d="M 10 0 L 0 5 L 10 10 z" fill="#8b949e"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="560" height="420" fill="#0d1117" rx="8"/>
+
+  <!-- === CROSS-SECTION VIEW (left 60%) === -->
+  <!-- Substrate -->
+  <rect x="40" y="80" width="300" height="200" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Top copper pad -->
+  <rect x="30" y="72" width="320" height="8" fill="#d18a3a" opacity="0.85"/>
+
+  <!-- Bottom copper pad -->
+  <rect x="30" y="280" width="320" height="8" fill="#d18a3a" opacity="0.85"/>
+
+  <!-- Via barrel (plated through-hole) -->
+  <rect x="155" y="72" width="40" height="216" fill="#d18a3a" opacity="0.9"/>
+
+  <!-- Filler core inside barrel -->
+  <rect x="170" y="72" width="25" height="216" fill="#58a6ff" opacity="0.6"/>
+
+  <!-- Heat arrow top -->
+  <path d="M 340 40 L 340 70" stroke="#f0883e" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="310" y="35" fill="#f0883e" font-size="10" font-family="monospace">Heat Source (IC)</text>
+
+  <!-- Heat arrows down -->
+  <path d="M 175 295 L 175 320" stroke="#f0883e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M 175 295 L 175 340" stroke="#f0883e" stroke-width="1.5"/>
+  <path d="M 175 340 L 140 370" stroke="#f0883e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M 175 340 L 210 370" stroke="#f0883e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="115" y="385" fill="#f0883e" font-size="9" font-family="monospace">Heat Sink</text>
+
+  <!-- Dimension labels -->
+  <!-- Board thickness -->
+  <line x1="355" y1="80" x2="355" y2="280" stroke="#8b949e" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="350" y="185" fill="#8b949e" font-size="9" font-family="monospace" transform="rotate(90,350,185)">Board Thickness (h)</text>
+
+  <!-- Drill diameter -->
+  <line x1="150" y1="295" x2="200" y2="295" stroke="#8b949e" stroke-width="1" marker-start="url(#arr-r)" marker-end="url(#arr)"/>
+  <line x1="150" y1="295" x2="150" y2="280" stroke="#8b949e" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <text x="145" y="308" fill="#f0883e" font-size="9" font-family="monospace">Drill D</text>
+
+  <!-- Plating thickness -->
+  <line x1="152" y1="60" x2="152" y2="72" stroke="#8b949e" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <line x1="170" y1="60" x2="170" y2="72" stroke="#8b949e" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <text x="120" y="55" fill="#f0883e" font-size="8" font-family="monospace">Plating t</text>
+
+  <!-- Annular ring -->
+  <line x1="25" y1="67" x2="155" y2="67" stroke="#8b949e" stroke-width="1" marker-start="url(#arr-r)" marker-end="url(#arr)"/>
+  <text x="30" y="60" fill="#bc8cff" font-size="8" font-family="monospace">Annular Ring</text>
+
+  <!-- Labels inside -->
+  <text x="172" y="175" fill="#d18a3a" font-size="10" font-family="monospace">Cu</text>
+  <text x="173" y="140" fill="#58a6ff" font-size="8" font-family="monospace">Fill</text>
+
+  <!-- === TOP-DOWN VIEW (right 40%) === -->
+  <rect x="370" y="80" width="170" height="170" fill="#1a2230" stroke="#30363d" stroke-width="1" rx="4"/>
+
+  <!-- Thermal pad outline -->
+  <rect x="380" y="90" width="150" height="150" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="385" y="105" fill="#3fb950" font-size="8" font-family="monospace">Pad (L × W)</text>
+
+  <!-- Via grid (4 vias, 2x2) -->
+  <circle cx="415" cy="120" r="12" fill="#d18a3a" opacity="0.8"/>
+  <circle cx="415" cy="120" r="6" fill="#58a6ff" opacity="0.5"/>
+  <circle cx="485" cy="120" r="12" fill="#d18a3a" opacity="0.8"/>
+  <circle cx="485" cy="120" r="6" fill="#58a6ff" opacity="0.5"/>
+  <circle cx="415" cy="210" r="12" fill="#d18a3a" opacity="0.8"/>
+  <circle cx="415" cy="210" r="6" fill="#58a6ff" opacity="0.5"/>
+  <circle cx="485" cy="210" r="12" fill="#d18a3a" opacity="0.8"/>
+  <circle cx="485" cy="210" r="6" fill="#58a6ff" opacity="0.5"/>
+
+  <!-- Spacing dimension -->
+  <line x1="415" y1="235" x2="485" y2="235" stroke="#8b949e" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="435" y="248" fill="#8b949e" font-size="8" font-family="monospace">Spacing</text>
+
+  <!-- Via label -->
+  <text x="440" y="170" fill="#d18a3a" font-size="9" font-family="monospace">Via</text>
+
+  <!-- Title -->
+  <text x="190" y="30" fill="#d18a3a" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">Thermal Via Cross-Section &amp; Pattern</text>
+
+  <!-- Legend -->
+  <rect x="40" y="395" width="480" height="18" fill="#161b22" rx="3" stroke="#30363d" stroke-width="0.5"/>
+  <rect x="50" y="399" width="8" height="8" fill="#d18a3a" opacity="0.85"/><text x="63" y="407" fill="#8b949e" font-size="8" font-family="sans-serif">Copper</text>
+  <rect x="140" y="399" width="8" height="8" fill="#58a6ff" opacity="0.6"/><text x="153" y="407" fill="#8b949e" font-size="8" font-family="sans-serif">Filler</text>
+  <rect x="220" y="399" width="8" height="8" fill="none" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,2"/><text x="233" y="407" fill="#8b949e" font-size="8" font-family="sans-serif">Thermal Pad</text>
+  <line x1="330" y1="403" x2="350" y2="403" stroke="#8b949e" stroke-width="1"/><text x="355" y="407" fill="#8b949e" font-size="8" font-family="sans-serif">Dimension</text>
+</svg></div>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Pad Length (mm)</label><input type="number" id="vt-pl" value="10" step="0.5" min="0.5"/></div>
+      <div class="col"><label>Pad Width (mm)</label><input type="number" id="vt-pw" value="10" step="0.5" min="0.5"/></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Via Parameters</h2>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Drill Diameter (mm)</label><input type="number" id="vt-d" value="0.3" step="0.05" min="0.1"/></div>
+      <div class="col"><label>Plating Thick (mm)</label><input type="number" id="vt-pt" value="0.025" step="0.005" min="0.005"/></div></div>
+      <div class="row"><div class="col"><label>Board Thickness (mm)</label><input type="number" id="vt-h" value="1.6" step="0.1" min="0.1"/></div>
+      <div class="col"><label>Via-to-Via Spacing (mm)</label><input type="number" id="vt-sp" value="1.0" step="0.1" min="0.2"/></div></div>
+      <div class="row"><div class="col"><label>Annular Ring (mm)</label><input type="number" id="vt-ar" value="0.15" step="0.01" min="0.05"/></div>
+      <div class="col"><label>Number of Vias</label><input type="number" id="vt-n" value="4" step="1" min="1"/></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Filler & Materials</h2>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Via Fill Material</label>
+        <select id="vt-fill" onchange="window.calcViaThermal()">
+          <option value="air">Air / Unfilled (k=0.026)</option>
+          <option value="nepoxy">Non-conductive Epoxy (k=0.3)</option>
+          <option value="cepoxy">Conductive Epoxy (k=3.0)</option>
+          <option value="silver">Silver-filled Epoxy (k=25)</option>
+          <option value="solder">Solder-filled (k=50)</option>
+          <option value="cu">Copper-filled (k=385)</option>
+        </select></div></div>
+      <div class="row"><div class="col"><label>k Copper (W/m·K)</label><input type="number" id="vt-kcu" value="385" step="1" min="1"/></div>
+      <div class="col"><label>Via Pattern</label>
+        <select id="vt-pattern" onchange="drawViaPattern()">
+          <option value="grid">Grid (rows × cols)</option>
+          <option value="staggered">Staggered (max density)</option>
+        </select></div></div>
+    </div>
+  </div>
+  <button onclick="calcViaThermal()" class="green">Calculate</button>
+  <div class="card">
+    <h2>Filler Reference</h2>
+    <table class="lb-table" style="font-size:.72rem">
+      <thead><tr><th>Material</th><th>k (W/m·K)</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Air (unfilled)</td><td>0.026</td><td style="font-size:.65rem">Cheapest, poor thermal</td></tr>
+        <tr><td>Non-conductive epoxy</td><td>0.2–0.5</td><td style="font-size:.65rem">Seals via, mild improvement</td></tr>
+        <tr><td>Conductive epoxy</td><td>2–5</td><td style="font-size:.65rem">Better thermal, insulating</td></tr>
+        <tr><td>Silver-filled epoxy</td><td>20–30</td><td style="font-size:.65rem">Good thermal, conductive</td></tr>
+        <tr><td>Solder-filled</td><td>50–60</td><td style="font-size:.65rem">Very good, reflow process</td></tr>
+        <tr><td>Copper-filled</td><td>385</td><td style="font-size:.65rem">Best, expensive</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="right-panel">
+  <div class="card">
+  <h2>Via Array Pattern</h2>
+  <canvas id="vt-canvas" width="400" height="200" style="width:100%;max-width:400px;height:auto;display:block;margin:0 auto;background:var(--bg3);border-radius:var(--radius)"></canvas>
+</div>
+<div class="card"><h2>Results</h2><div class="result-grid" id="vt-results"></div></div>
+  <div class="card"><h2>Equations</h2>
+    <div class="eq-box">
+      $ R_{barrel} = \frac{h}{k_{Cu} \cdot \pi \cdot D \cdot t} \quad \text{(copper barrel)} $
+      $ R_{fill} = \frac{h}{k_{fill} \cdot \pi \cdot (D/2 - t)^2} \quad \text{(filler core)} $
+      $ \frac{1}{R_{via}} = \frac{1}{R_{barrel}} + \frac{1}{R_{fill}} \quad \text{(parallel)} $
+      $ R_{total} = \frac{R_{via}}{N} \quad \text{(N vias in parallel)} $
+    </div>
+  </div>
+</div>
+</div>
+</div><!-- TAB 34: PDN ANALYZER -->
+<div class="tab-panel" id="tab-34">
+<div class="two-col sync-scroll">
+<div class="left-panel" style="display:flex;flex-direction:column;gap:.8rem">
+  <div class="card">
+    <h2>PDN Target Impedance</h2>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Vcc (V)</label><input type="number" id="pdn-v" value="1.8" step="0.01" min="0.01"/></div>
+      <div class="col"><label>Ripple (%)</label><input type="number" id="pdn-rip" value="5" step="0.1" min="0.1"/></div></div>
+      <div class="row"><div class="col"><label>Imax (A)</label><input type="number" id="pdn-imax" value="2" step="0.1" min="0.01"/></div>
+      <div class="col"><label>Freq (MHz) or tr (ps)</label><input type="number" id="pdn-f" value="100" step="1" min="1"/></div></div>
+      <div class="row"><div class="col"><label>Use Rise Time</label><input type="checkbox" id="pdn-usetr" style="width:auto"/></div></div>
+      <button onclick="calcPDN()">Calculate Target Z</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Plane Capacitance</h2>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Plane Length (in)</label><input type="number" id="pdn-pl" value="2" step="0.1" min="0.01"/></div>
+      <div class="col"><label>Plane Width (in)</label><input type="number" id="pdn-pw" value="2" step="0.1" min="0.01"/></div></div>
+      <div class="row"><div class="col"><label>Dielectric Height (mil)</label><input type="number" id="pdn-ph" value="4" step="0.1" min="0.1"/></div>
+      <div class="col"><label>εr</label><input type="number" id="pdn-per" value="4.5" step="0.1" min="1"/></div></div>
+      <button onclick="calcPDN()">Calculate</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Via Loop Inductance</h2>
+    <div class="col" style="gap:.5rem">
+      <div class="row"><div class="col"><label>Via Height (mil)</label><input type="number" id="pdn-vh" value="62" step="1" min="1"/></div>
+      <div class="col"><label>Via Diameter (mil)</label><input type="number" id="pdn-vd" value="12" step="0.1" min="1"/></div></div>
+      <div class="row"><div class="col"><label>Pitch (mil)</label><input type="number" id="pdn-vp" value="35" step="1" min="1"/></div>
+      <div class="col"><label>Parallel Pairs</label><input type="number" id="pdn-vn" value="1" step="1" min="1"/></div></div>
+      <button onclick="calcPDN()">Calculate</button>
+    </div>
+  </div>
+</div>
+<div class="right-panel">
+  <div class="card"><h2>Results</h2><div class="result-grid" id="pdn-results"></div></div>
+  <div class="card"><h2>PDN Overview</h2>
+    <p class="text-sm">Target impedance ensures your power delivery network stays below the maximum allowable impedance across the frequency range of your design. Each section (VRM, bulk cap, plane, decap) contributes to the total PDN impedance profile.</p>
+    <p class="text-sm" style="margin-top:.4rem">For a full multi-stage analysis with auto capacitor selection and impedance plots, use dedicated PDN simulation tools.</p>
+  </div>
+</div>
+</div>
+</div>
+<!-- TAB 30: STATS (hidden) -->
+<div class="tab-panel" id="tab-30">
+<div class="card">
+  <h2>Usage Statistics</h2>
+  <p class="text-sm" style="margin-bottom:.6rem">Global calculator usage across all visitors.</p>
+  <div class="row" style="gap:1rem;margin-bottom:.8rem">
+    <div class="result-card" style="flex:1"><div class="lbl">Total All-Time</div><div class="val" id="s-total">—</div></div>
+    <div class="result-card" style="flex:1"><div class="lbl">Today</div><div class="val" id="s-today">—</div></div>
+    <div class="result-card" style="flex:1"><div class="lbl">This Month</div><div class="val" id="s-month">—</div></div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="lb-table" style="font-size:.78rem">
+      <thead><tr><th>Rank</th><th>Calculator</th><th>All-Time</th><th>Today</th><th>Month</th><th>Last Used</th></tr></thead>
+      <tbody id="s-rows"></tbody>
+    </table>
+  </div>
+  <p class="text-sm" style="margin-top:.6rem;color:var(--text2)">No cookies or tracking.</p>
+</div>
+</div>
+
 </div><!-- #content -->
 </div><!-- #app -->
-
-<style>
-
-#ctr-toggle:hover{opacity:1}
-
-.ctr-row{display:flex;justify-content:space-between;padding:.15rem 0;border-bottom:1px solid var(--bg3);color:var(--text2)}
-.ctr-row .ctr-n{color:var(--accent);font-weight:700;font-family:monospace}
-</style>
-
-
 <div id="toast"></div>
 
 <script>
-function ctrClick(calcKey){
-  var tabMap={led:0,lc:1,vd:2,deembed:3,portext:3,comp:4,radar:5,droop:6,
-    link:7,ohms:9,rc:10,dbm:11,dbmv:11,via:13,thermal:13,fusing:13,bw:13,cond:13,
-    spacing:14,planar:14,xtal:14,mech:14,embed:14,loop420:14,diff:15,trace:16,decoup:16};
-  var tab=tabMap[calcKey];
-  if(tab===undefined)return;
-  fetch('/api/counter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'tab-'+tab})})
-    .catch(function(){}).then(function(){updateCtrPanel();});
-}
-function updateCtrPanel(){
-  fetch('/api/counter').then(function(r){return r.json();}).then(function(data){
-    for(var t=0;t<=17;t++){
-      var el=document.getElementById('tc-'+t);
-      if(el)el.textContent=data['tab-'+t]||0;
-    }
-  });
-}
-function initCtrs(){updateCtrPanel();}
 const API = location.protocol === 'file:'
   ? 'http://127.0.0.1:8086'
   : `${location.origin}/rf`;
@@ -1595,7 +2007,9 @@ function resolveInitialTab(){
     '24':24,'mechanical-info':24,'wire-gauge':24,'drill':24,
     '25':25,'embedded-resistors':25,'ohmega':25,
     '26':26,'4-20ma':26,'sensor':26,'420ma':26,'loop':26,
-    '21':21,'thermal':21,'thermal-management':21,
+    '27':27,'asteroids':27,'astroids':27,'28':28,'via-impedance':28,'29':29,'reflection':29,'tline':29,
+    '31':31,'via-stub':31,'stub':31,'32':32,'via-current':32,'33':33,'via-thermal':33,'34':34,'pdn':34,
+    '30':30,'stats':30,
     '14':14,'min-copper-spacing':14,
     '15':15,'diff-pair':15,'diff-pair-xtalk':15,
     '16':16,'trace':16,'trace-impedance':16,
@@ -2079,8 +2493,7 @@ function setComp(type){
   document.getElementById('comp-eq-box').innerHTML=eqs[type];
   if(window.renderMathInElement)renderMathInElement(document.getElementById('comp-eq-box'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
 }
-document.addEventListener('DOMContentLoaded',function(){
-  initCtrs();
+document.addEventListener('DOMContentLoaded',()=>{
   switchTab(resolveInitialTab(),{skipUrl:true});
   setComp('inductor');buildSmithGrid('smith-grid');buildSmithGrid('comp-smith-grid');
   initLbStages();ucFreqChanged();ucDbmChanged();ucDbChanged();ucZChanged();ucNfChanged();
@@ -3289,6 +3702,326 @@ function computeDecouplingExplorer(){
     coverage.appendChild(wrap);
   });
 }
+</script>
+
+<script>
+(function(){
+function loadStats(){
+  var p=document.getElementById('tab-30');
+  if(!p||p.style.display==='none')return;
+  fetch('/api/counter').then(function(r){return r.json();}).then(function(d){
+    if(!d||!d.counters)return;
+    document.getElementById('s-total').textContent=d.totals.all;
+    document.getElementById('s-today').textContent=d.totals.today;
+    document.getElementById('s-month').textContent=d.totals.month;
+    var tb=document.getElementById('s-rows'),r=1;tb.innerHTML='';
+    for(var i=0;i<d.ranking.length;i++){
+      var k=d.ranking[i],c=d.counters[k],tn=d.tabNames[k]||k;
+      if(c.all===0)continue;
+      var ls=c.last?new Date(c.last).toLocaleString():'—';
+      tb.innerHTML+='<tr><td>'+r+'</td><td>'+tn+'</td><td class="pos">'+c.all+'</td><td>'+c.today+'</td><td>'+c.month+'</td><td style="font-size:.7rem;color:var(--text2)">'+ls+'</td></tr>';r++;
+    }
+    if(r===1)tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:1rem">No calculations yet</td></tr>';
+  }).catch(function(){});
+}
+var orig=window.switchTab;
+if(orig)window.switchTab=function(i,o){orig(i,o);if(i===30)setTimeout(loadStats,100);};
+})();
+</script>
+
+
+
+<script>
+(function(){
+
+// TAB 28: VIA IMPEDANCE
+window.calcViaImp = function(){
+  var d=parseFloat(document.getElementById('vi-d').value)||12;
+  var ap=parseFloat(document.getElementById('vi-ap').value)||28;
+  var pt=parseFloat(document.getElementById('vi-pt').value)||1;
+  var h=parseFloat(document.getElementById('vi-h').value)||62;
+  var er=parseFloat(document.getElementById('vi-er').value)||4.5;
+  var pad=parseFloat(document.getElementById('vi-pad').value)||22;
+  var n=parseFloat(document.getElementById('vi-n').value)||1;
+  if(ap<=d){toast('Anti-pad must exceed via diameter',true);return;}
+  var C=1.41*er*h*d/(ap-d)*1e-12;
+  var Lnh=5.08*(h/1000)*(Math.log(4*h/d)+1);
+  var Z0=Math.sqrt(Lnh*1e-9/C);
+  var tau=Math.sqrt(Lnh*1e-9*C)*1e12;
+  var grid=document.getElementById('vi-results');
+  grid.innerHTML=
+    '<div class="result-card"><div class="lbl">Capacitance</div><div class="val">'+fmtEng(C*1e12)+'</div><div class="unit">pF</div></div>'+
+    '<div class="result-card"><div class="lbl">Inductance</div><div class="val">'+fmt(Lnh,3)+'</div><div class="unit">nH</div></div>'+
+    '<div class="result-card"><div class="lbl">Impedance Z₀</div><div class="val">'+fmt(Z0,1)+'</div><div class="unit">Ω</div></div>'+
+    '<div class="result-card"><div class="lbl">Propagation Delay</div><div class="val">'+fmt(tau,2)+'</div><div class="unit">ps</div></div>'+
+    '<div class="result-card"><div class="lbl">Per Via ('+n+' par)</div><div class="val">'+fmt(Lnh/n,3)+'</div><div class="unit">nH</div></div>';
+}
+
+// TAB 29: T-LINE REFLECTION
+window.calcTLine = function(){
+  var zs=parseFloat(document.getElementById('tl-zs').value)||50;
+  var z0=parseFloat(document.getElementById('tl-z0').value)||50;
+  var zl=parseFloat(document.getElementById('tl-zl').value)||75;
+  var G=(zl-z0)/(zl+z0); var Gmag=Math.abs(G);
+  var vswr=Gmag<1?(1+Gmag)/(1-Gmag):99;
+  var rl=-20*Math.log10(Gmag||1e-30);
+  var ml=-10*Math.log10(1-Gmag*Gmag||1e-30);
+  var Gs=z0>0?(zs-z0)/(zs+z0):0;
+  document.getElementById('tl-results').innerHTML=
+    '<div class="result-card"><div class="lbl">Γ (load)</div><div class="val">'+fmt(G,4)+'</div><div class="unit"></div></div>'+
+    '<div class="result-card"><div class="lbl">|Γ|</div><div class="val">'+fmt(Gmag,4)+'</div><div class="unit"></div></div>'+
+    '<div class="result-card"><div class="lbl">VSWR</div><div class="val">'+fmt(vswr,3)+'</div><div class="unit">:1</div></div>'+
+    '<div class="result-card"><div class="lbl">Return Loss</div><div class="val">'+fmt(rl,2)+'</div><div class="unit">dB</div></div>'+
+    '<div class="result-card"><div class="lbl">Mismatch Loss</div><div class="val">'+fmt(ml,2)+'</div><div class="unit">dB</div></div>';
+}
+
+// TAB 31: MAX VIA STUB
+window.calcMaxStub = function(){
+  var f=parseFloat(document.getElementById('vs-f').value)||10;
+  var er=parseFloat(document.getElementById('vs-er').value)||4.5;
+  var margin=parseFloat(document.getElementById('vs-margin').value)||20;
+  var c=2.998e8;
+  var l4=c/(4*f*1e9*Math.sqrt(er))*1e3;
+  var lsafe=l4/margin;
+  var l4_mil=l4/0.0254;
+  var lsafe_mil=lsafe/0.0254;
+  var fres=c/(4*lsafe*Math.sqrt(er))/1e6;
+  document.getElementById('vs-results').innerHTML=
+    '<div class="result-card"><div class="lbl">λ/4 Stub Length</div><div class="val">'+fmt(l4_mil,1)+'</div><div class="unit">mil</div></div>'+
+    '<div class="result-card"><div class="lbl">Safe Max Stub</div><div class="val" style="color:var(--accent2)">'+fmt(lsafe_mil,1)+'</div><div class="unit">mil</div></div>'+
+    '<div class="result-card"><div class="lbl">λ/4 in mm</div><div class="val">'+fmt(l4,2)+'</div><div class="unit">mm</div></div>'+
+    '<div class="result-card"><div class="lbl">Stub Resonant Freq</div><div class="val">'+fmt(fres,1)+'</div><div class="unit">MHz</div></div>';
+}
+
+// TAB 32: VIA CURRENT CAPACITY
+window.calcViaCurrent = function(){
+  var d=parseFloat(document.getElementById('vc-d').value)||12;
+  var pt=parseFloat(document.getElementById('vc-pt').value)||1;
+  var h=parseFloat(document.getElementById('vc-h').value)||62;
+  var tr=parseFloat(document.getElementById('vc-tr').value)||20;
+  var ta=parseFloat(document.getElementById('vc-ta').value)||25;
+  var n=parseFloat(document.getElementById('vc-n').value)||1;
+  var cross=Math.PI*d*pt;
+  var cross_cm=cross*6.4516e-6;
+  var A_mm2=cross*0.00064516;
+  var I_per=0.024*Math.pow(A_mm2,0.44)*Math.pow(tr,0.725);
+  var I_total=I_per*n;
+  var rho=1.724e-6;
+  var R=rho*(h*0.00254)/(cross_cm);
+  var vdrop=I_per*R*1000;
+  document.getElementById('vc-results').innerHTML=
+    '<div class="result-card"><div class="lbl">Cross-Section</div><div class="val">'+fmt(cross,2)+'</div><div class="unit">mil²</div></div>'+
+    '<div class="result-card"><div class="lbl">I per Via</div><div class="val" style="color:var(--accent2)">'+fmt(I_per*1000,1)+'</div><div class="unit">mA</div></div>'+
+    '<div class="result-card"><div class="lbl">I Total ('+n+' vias)</div><div class="val">'+fmt(I_total*1000,0)+'</div><div class="unit">mA</div></div>'+
+    '<div class="result-card"><div class="lbl">Resistance per Via</div><div class="val">'+fmt(R*1000,2)+'</div><div class="unit">mΩ</div></div>'+
+    '<div class="result-card"><div class="lbl">Voltage Drop @ I</div><div class="val">'+fmt(vdrop,2)+'</div><div class="unit">mV</div></div>';
+}
+
+// TAB 33: VIA THERMAL RESISTANCE
+
+function drawViaPattern(){
+  var canvas=document.getElementById('vt-canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var W=400,H=200;
+  ctx.clearRect(0,0,W,H);
+  var pl=parseFloat(document.getElementById('vt-pl').value)||10;
+  var pw=parseFloat(document.getElementById('vt-pw').value)||10;
+  var d=parseFloat(document.getElementById('vt-d').value)||0.3;
+  var sp=parseFloat(document.getElementById('vt-sp').value)||1.0;
+  var ar=parseFloat(document.getElementById('vt-ar').value)||0.15;
+  var n=parseInt(document.getElementById('vt-n').value)||4;
+  var pattern=document.getElementById('vt-pattern').value;
+  var padD=d+2*ar;
+  // Scale: pad area maps to canvas center, leave margins
+  var margin=40;
+  var availW=W-2*margin, availH=H-2*margin;
+  var scale=Math.min(availW/(pl), availH/(pw))*0.85;
+  var cx=W/2, cy=H/2;
+  // Draw pad outline
+  var padW=pl*scale, padH=pw*scale;
+  ctx.strokeStyle='#3fb950'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]);
+  ctx.strokeRect(cx-padW/2, cy-padH/2, padW, padH);
+  ctx.setLineDash([]);
+  // Label
+  ctx.fillStyle='#3fb950'; ctx.font='10px sans-serif';
+  ctx.fillText('Pad '+pl+'x'+pw+' mm', cx-padW/2+4, cy-padH/2+14);
+  // Via positions
+  var viaR=d/2*scale;
+  var diaR=d*scale/2;
+  var positions=[];
+  var nMaxX=Math.floor((pl-padD)/sp)+1;
+  var nMaxY=Math.floor((pw-padD)/sp)+1;
+  var nActual=Math.min(n, nMaxX*nMaxY);
+  if(pattern==='grid'){if(nActual>100)nActual=100;for(var ix=0;ix<nx;ix++)for(var iy=0;iy<ny;iy++){
+      var px=cx+(ix-(nx-1)/2)*sp*scale;
+      var py=cy+(iy-(ny-1)/2)*sp*scale;
+      positions.push([px,py]);
+    }
+  }else{ // staggered
+    var nx=Math.min(Math.ceil(Math.sqrt(nActual*(nMaxX/nMaxY)*0.87)), nMaxX);
+    for(var ix=0;ix<nx;ix++)for(var iy=0;;iy++){
+      var yOff=ix%2===0?iy:iy+0.5;
+      var px=cx+(ix-(nx-1)/2)*sp*scale;
+      var py=cy+(yOff-(Math.ceil(nActual/nx)-1)/2)*sp*scale;
+      if(positions.length>=nActual)break;
+      if(Math.abs(py-cy)>padH/2-viaR)continue;
+      positions.push([px,py]);
+    }
+  }
+  // Draw vias
+  for(var i=0;i<positions.length&&i<100;i++){
+    var px=positions[i][0], py=positions[i][1];
+    // Pad ring (annular)
+    ctx.beginPath(); ctx.arc(px,py,diaR+ar*scale,0,Math.PI*2);
+    ctx.fillStyle='#d18a3a'; ctx.fill();
+    ctx.strokeStyle='#b8732a'; ctx.lineWidth=1; ctx.stroke();
+    // Drill hole
+    ctx.beginPath(); ctx.arc(px,py,diaR,0,Math.PI*2);
+    ctx.fillStyle='#0d1117'; ctx.fill();
+    // Plating ring
+    var plateR=d/2*scale;
+    var innerR=Math.max(0, (d/2-0.025)*scale);
+    ctx.beginPath(); ctx.arc(px,py,plateR,0,Math.PI*2);
+    ctx.fillStyle='#e8a84c'; ctx.fill();
+    ctx.beginPath(); ctx.arc(px,py,innerR,0,Math.PI*2);
+    ctx.fillStyle='#0d1117'; ctx.fill();
+  }
+  // Draw spacing dimension on first two vias
+  if(positions.length>=2){
+    var v0=positions[0], v1=positions[1];
+    ctx.strokeStyle='#8b949e'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(v0[0],v0[1]+diaR+ar*scale+6);
+    ctx.lineTo(v1[0],v1[1]+diaR+ar*scale+6); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#8b949e'; ctx.font='9px monospace';
+    ctx.fillText('Spacing='+sp+'mm', (v0[0]+v1[0])/2-30, v0[1]+diaR+ar*scale+18);
+  }
+  // Show count
+  ctx.fillStyle='#8b949e'; ctx.font='10px sans-serif';
+  ctx.fillText(pattern.charAt(0).toUpperCase()+pattern.slice(1)+': '+positions.length+' vias', 10, 18);
+}
+
+window.calcViaThermal = function(){drawViaPattern();
+  var pl=parseFloat(document.getElementById('vt-pl').value)||10;
+  var pw=parseFloat(document.getElementById('vt-pw').value)||10;
+  var d=parseFloat(document.getElementById('vt-d').value)||0.3;
+  var pt=parseFloat(document.getElementById('vt-pt').value)||0.025;
+  var h=parseFloat(document.getElementById('vt-h').value)||1.6;
+  var sp=parseFloat(document.getElementById('vt-sp').value)||1.0;
+  var ar=parseFloat(document.getElementById('vt-ar').value)||0.15;
+  var n=parseInt(document.getElementById('vt-n').value)||4;
+  var kcu=parseFloat(document.getElementById('vt-kcu').value)||385;
+  var fill=document.getElementById('vt-fill').value;
+  var pattern=document.getElementById('vt-pattern').value;
+  // Filler k values
+  var kfill={'air':0.026,'nepoxy':0.3,'cepoxy':3.0,'silver':25,'solder':50,'cu':385}[fill]||0.026;
+  // Pad diameter (including annular ring)
+  var padD=d+2*ar;
+  // Max vias that fit on pad
+  var nMaxX=Math.floor((pl-padD)/sp)+1;
+  var nMaxY=Math.floor((pw-padD)/sp)+1;
+  var maxFit=nMaxX*nMaxY;
+  if(pattern==='staggered'){maxFit=Math.floor(nMaxX*nMaxY*1.15);}
+  // Copper barrel cross-sectional area (mm²)
+  var A_barrel=Math.PI*d*pt;
+  // Filler core area (mm²) — inside the barrel
+  var r_core=Math.max(0, d/2-pt);
+  var A_fill=Math.PI*r_core*r_core;
+  // Convert to m²
+  var h_m=h/1000;
+  var A_barrel_m2=A_barrel*1e-6;
+  var A_fill_m2=A_fill*1e-6;
+  // Thermal resistance
+  var Rbarrel=h_m/(kcu*A_barrel_m2);
+  var Rfill=A_fill_m2>0?h_m/(kfill*A_fill_m2):Infinity;
+  var Rvia=1/(1/Rbarrel+(Rfill!==Infinity?1/Rfill:0));
+  var Rtotal=n>0?Rvia/n:Infinity;
+  // Temperature rise for typical dissipation
+  var P1W=Rtotal;
+  var maxFitActual=Math.min(n, maxFit);
+  if(n>maxFit){} // warning shown in results
+  // Fill info
+  var fillLabel={'air':'Air / Unfilled','nepoxy':'Non-conductive Epoxy','cepoxy':'Conductive Epoxy','silver':'Silver-filled Epoxy','solder':'Solder-filled','cu':'Copper-filled'}[fill];
+  document.getElementById('vt-results').innerHTML=
+    '<div class="result-card"><div class="lbl">Fill Material</div><div class="val" style="font-size:.75rem">'+fillLabel+'</div><div class="unit">k='+kfill+' W/m·K</div></div>'+
+    '<div class="result-card"><div class="lbl">Rth per Via</div><div class="val">'+fmt(Rvia,1)+'</div><div class="unit">°C/W</div></div>'+
+    '<div class="result-card"><div class="lbl">Rth Total ('+n+' vias)</div><div class="val" style="color:var(--accent2)">'+fmt(Rtotal,1)+'</div><div class="unit">°C/W</div></div>'+
+    '<div class="result-card"><div class="lbl">Temp Rise @ 1W</div><div class="val">'+fmt(P1W,1)+'</div><div class="unit">°C</div></div>'+
+    '<div class="result-card"><div class="lbl">Max Vias on Pad</div><div class="val">'+(n>maxFit?'<span style="color:var(--red)">'+n+' > '+maxFit+'</span>':maxFit)+'</div><div class="unit">'+nMaxX+'×'+nMaxY+' grid</div></div>'+
+    '<div class="result-card"><div class="lbl">Barrel Rth</div><div class="val">'+fmt(Rbarrel,1)+'</div><div class="unit">°C/W</div></div>'+
+    (A_fill_m2>0?'<div class="result-card"><div class="lbl">Filler Rth</div><div class="val">'+fmt(Rfill,1)+'</div><div class="unit">°C/W</div></div>':'');
+}
+window.calcPDN = function(){
+  var v=parseFloat(document.getElementById('pdn-v').value)||1.8;
+  var rip=parseFloat(document.getElementById('pdn-rip').value)||5;
+  var imax=parseFloat(document.getElementById('pdn-imax').value)||2;
+  var f=parseFloat(document.getElementById('pdn-f').value)||100;
+  var useTr=document.getElementById('pdn-usetr').checked;
+  var dv=v*rip/100;
+  var Ztarget=dv/imax;
+  var fm=useTr?(0.35/(f*1e-12))/1e6:f;
+  var pl=parseFloat(document.getElementById('pdn-pl').value)||2;
+  var pw=parseFloat(document.getElementById('pdn-pw').value)||2;
+  var ph=parseFloat(document.getElementById('pdn-ph').value)||4;
+  var per=parseFloat(document.getElementById('pdn-per').value)||4.5;
+  var e0=8.854e-12;
+  var Cplane=e0*per*(pl*pw*0.0254*0.0254)/(ph*0.0254/1000)*1e9;
+  var vh=parseFloat(document.getElementById('pdn-vh').value)||62;
+  var vd=parseFloat(document.getElementById('pdn-vd').value)||12;
+  var vp=parseFloat(document.getElementById('pdn-vp').value)||35;
+  var vn=parseFloat(document.getElementById('pdn-vn').value)||1;
+  var Lvia=5.08*(vh/1000)*(Math.log(4*vh/vd)+1)/vn;
+  var fres_plane=1/(2*Math.PI*Math.sqrt(Lvia*1e-9*Cplane*1e-9))/1e6;
+  document.getElementById('pdn-results').innerHTML=
+    '<div class="result-card"><div class="lbl">Target Z</div><div class="val" style="color:var(--accent)">'+fmt(Ztarget,3)+'</div><div class="unit">Ω</div></div>'+
+    '<div class="result-card"><div class="lbl">ΔV Allowable</div><div class="val">'+fmt(dv*1000,1)+'</div><div class="unit">mV</div></div>'+
+    '<div class="result-card"><div class="lbl">Max Freq (Fm)</div><div class="val">'+fmt(fm,1)+'</div><div class="unit">MHz</div></div>'+
+    '<div class="result-card"><div class="lbl">Plane Capacitance</div><div class="val">'+fmt(Cplane,3)+'</div><div class="unit">nF</div></div>'+
+    '<div class="result-card"><div class="lbl">Via Inductance</div><div class="val">'+fmt(Lvia,3)+'</div><div class="unit">nH</div></div>'+
+    '<div class="result-card"><div class="lbl">Plane Resonance</div><div class="val">'+fmt(fres_plane,1)+'</div><div class="unit">MHz</div></div>';
+}
+
+    var fnMap={
+    calculateLED:0,calculateLC:1,calculateVD:2,
+    doDeembed:3,doPortExt:3,
+    computeComponent:4,computeRadar:5,computeDroop:6,computeLinkBudget:7,
+    solveOhmsLaw:9,calculateRC:10,calculateDbmVoltage:11,calculateVoltageToDbm:11,
+    calcViaProps:13,calcMinSpacing:14,calcDiffPair:15,
+    calcConductorImpedance:16,computeDecouplingExplorer:17,
+    calcFusingCurrent:18,calcBandwidth:19,calcConductorProps:20,
+    calcThermal:21,calcPlanarInductor:22,calcXTAL:23,
+    calcMechanical:24,calcEmbeddedResistor:25,calc420:26,
+    calcViaImp:28,calcTLine:29,calcMaxStub:31,calcViaCurrent:32,calcViaThermal:33,calcPDN:34
+  };
+  document.addEventListener('click',function(e){
+    var btn=e.target.closest('button');
+    if(!btn||!btn.getAttribute('onclick'))return;
+    var oc=btn.getAttribute('onclick');
+    for(var fn in fnMap){
+      if(oc.indexOf(fn+'(')!==-1){
+        fetch('/api/counter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'tab-'+fnMap[fn]})})
+          .catch(function(){});
+        break;
+      }
+    }
+  });
+})();
+</script>
+
+<script>
+// Append privacy note to every calculator tab
+(function(){
+  var note = document.createElement('div');
+  note.className = 'privacy-note';
+  note.textContent = 'All calculations run in your browser — no data is sent anywhere.';
+  document.querySelectorAll('.tab-panel').forEach(function(panel){
+    var id = panel.id;
+    // Skip About and Stats tabs
+    if (id === 'tab-12' || id === 'tab-30') return;
+    panel.appendChild(note.cloneNode(true));
+  });
+})();
 </script>
 </body>
 </html>
